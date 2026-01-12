@@ -14,20 +14,50 @@ import time
 import requests
 from flask import render_template_string
 from werkzeug.utils import secure_filename
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, FloatField, SubmitField, SelectField
+from wtforms import StringField, IntegerField, FloatField, SubmitField, SelectField, PasswordField
+from wtforms.validators import DataRequired, Email, EqualTo
 from wtforms.validators import Optional
 from flask_wtf.file import FileField, FileAllowed
 from config import Config
 from extensions import db
 # Tweak: Added 'date' import for fixed CURRENT_DATE
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
 from dashboard_view import dashboard_bp
 # Tweak: Uncommented/ensured import for models
-from models import Inventory, Expense, Payment
+from models import Inventory, Expense, Payment, User
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
+from wtforms import PasswordField
+from functools import wraps
 from groq import Groq
+
+
+def subscription_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
+
+        # Check trial
+        if current_user.is_trial:
+            trial_end = current_user.trial_start + timedelta(days=30)
+            if datetime.utcnow() > trial_end:
+                flash('Your 30-day free trial has ended. Please subscribe.', 'warning')
+                return redirect(url_for('subscribe'))
+
+        # Check paid subscription
+        if current_user.subscription_end and datetime.utcnow() > current_user.subscription_end:
+            flash('Your subscription has expired. Please renew.', 'warning')
+            return redirect(url_for('subscribe'))
+
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 
 def clean_float(value):
     """Convert string like '2,500,000' or '2500000.50' to float safely"""
@@ -52,6 +82,24 @@ app.register_blueprint(dashboard_bp)
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+mail = Mail(app)
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+# NEW: Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Route name for login page
+login_manager.login_message = "Please log in to access GreenChain"
+login_manager.login_message_category = "info"
+
+# NEW: Tell Flask-Login how to load a user from session
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 
 
 # Change password to yours
@@ -187,12 +235,40 @@ class RecordSaleForm(FlaskForm):
     notes = StringField('Notes (optional)', validators=[Optional()])
     submit = SubmitField('Record Sale')
 
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
+
+
+class SignupForm(FlaskForm):
+    dealership_name = StringField(
+        'Dealership Name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    phone = StringField('Phone (optional)')
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[
+                                     DataRequired(), EqualTo('password')])
+    submit = SubmitField('Sign Up')
+
+
+class ForgotPasswordForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Send Reset Link')
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('New Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[
+                                     DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
 # ------------------------
 # Routes
 # ------------------------
 
 
 @app.route('/')
+@subscription_required
 def home():
     return render_template('dashboard.html')
 
@@ -200,6 +276,7 @@ def home():
 
 
 @app.route('/get_vehicles')
+@subscription_required
 def get_vehicles():
     vehicles = Inventory.query.all()
     data = [
@@ -208,6 +285,7 @@ def get_vehicles():
 
 
 @app.route('/get_vehicle/<int:vehicle_id>')
+@subscription_required
 def get_vehicle(vehicle_id):
     vehicle = Inventory.query.get(vehicle_id)
     if not vehicle:
@@ -228,6 +306,7 @@ def get_vehicle(vehicle_id):
 
 
 @app.route('/add_vehicle_ajax', methods=['POST'])
+@subscription_required
 def add_vehicle_ajax():
     make = request.form.get('make') or None
     model = request.form.get('model') or None
@@ -264,6 +343,7 @@ def add_vehicle_ajax():
 
 
 @app.route('/add_expense_ajax', methods=['POST'])
+@subscription_required
 def add_expense_ajax():
     vehicle_id = request.form.get('vehicle_id', type=int)
     category = request.form.get('expense_category') or None
@@ -284,6 +364,7 @@ def add_expense_ajax():
 
 
 @app.route('/edit_vehicle_ajax', methods=['POST'])
+@subscription_required
 def edit_vehicle_ajax():
     vehicle_id = request.form.get('vehicle_id', type=int)
     vehicle = Inventory.query.get(vehicle_id)
@@ -314,6 +395,7 @@ def edit_vehicle_ajax():
     return jsonify({'message': f'Vehicle updated successfully!'})
 
 @app.route('/record_sale_ajax', methods=['POST'])
+@subscription_required
 def record_sale_ajax():
     vehicle_id = request.form.get('vehicle_id', type=int)
     reg_number = request.form.get('registration_number', '').strip().upper()
@@ -373,6 +455,7 @@ def record_sale_ajax():
 
 
 @app.route('/delete_vehicle/<int:car_id>', methods=['DELETE'])
+@subscription_required
 def delete_vehicle(car_id):
     try:
         vehicle = Inventory.query.get(car_id)  # Find car
@@ -405,6 +488,7 @@ def superset_token(dashboard_id):
 
 
 @app.route('/api/inventory', methods=['GET'])
+@subscription_required
 def get_inventory():
     vehicles = Inventory.query.all()
     # Shows if data fetched
@@ -637,8 +721,159 @@ def inventory():
                            max_profit=max_profit,
                            max_price=max_price)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid email or password', 'danger')
+            return redirect(url_for('login'))
+        login_user(user)
+        flash('Logged in successfully!', 'success')
+        return redirect(url_for('home'))
+    return render_template('login.html', form=form)
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = SignupForm()
+    if form.validate_on_submit():
+        if User.query.filter_by(email=form.email.data).first():
+            flash('Email already registered', 'danger')
+            return redirect(url_for('signup'))
+        if User.query.filter_by(dealership_name=form.dealership_name.data).first():
+            flash('Dealership name already taken', 'danger')
+            return redirect(url_for('signup'))
+        user = User(
+            dealership_name=form.dealership_name.data,
+            email=form.email.data,
+            phone=form.phone.data
+        )
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)  # NEW: Log in right away
+        flash('Welcome! Choose your plan to start your 30-day free trial.', 'success')
+        return redirect(url_for('subscribe'))  # NEW: Go to subscribe page
+    return render_template('signup.html', form=form)
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Logged out successfully', 'info')
+    return redirect(url_for('login'))
+
+
+@app.route('/update_profile', methods=['POST'])
+@login_required
+def update_profile():
+    name = request.form.get('name')
+    photo_file = request.files.get('photo')
+
+    if name:
+        current_user.profile_name = name
+
+    if photo_file and photo_file.filename:
+        filename = secure_filename(photo_file.filename)
+        photo_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        current_user.profile_photo_filename = filename
+
+    db.session.commit()
+    flash('Profile updated successfully!', 'success')
+    return jsonify({'success': True})
+
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            token = s.dumps({'user_id': user.id}, salt='password-reset')
+            link = url_for('reset_password', token=token, _external=True)
+            msg = Message('GreenChain Password Reset', recipients=[user.email])
+            msg.body = f'Click this link to reset your password: {link}\nThis link expires in 1 hour.'
+            mail.send(msg)
+            flash('Check your email for the password reset link', 'info')
+        else:
+            flash('If the email exists, a reset link has been sent',
+                  'info')  # Security
+        return redirect(url_for('login'))
+    return render_template('forgot_password.html', form=form)
+
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    try:
+        data = s.loads(token, salt='password-reset', max_age=3600)  # 1 hour
+    except:
+        flash('Invalid or expired link', 'danger')
+        return redirect(url_for('forgot_password'))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user = User.query.get(data['user_id'])
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Password reset successful! Please log in.', 'success')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', form=form)
+
+
+@app.route('/subscribe')
+@login_required
+def subscribe():
+    return render_template('subscribe.html')
+
+# NEW: Initiate Pesapal payment
+
+# NEW: Start free trial
+
+
+@app.route('/start_trial', methods=['POST'])
+@login_required
+def start_trial():
+    current_user.is_trial = True
+    current_user.trial_start = datetime.utcnow()
+    current_user.subscription_plan = 'trial'
+    db.session.commit()
+    return '', 204  # Success, no content
+
+
+@app.route('/initiate_payment', methods=['POST'])
+@login_required
+def initiate_payment():
+    data = request.json
+    amount = data['amount']
+    plan = data['plan']
+    redirect_url = initiate_pesapal_payment(amount, plan, current_user)
+    if redirect_url:
+        return jsonify({'redirect_url': redirect_url})
+    return jsonify({'error': 'Payment failed'}), 400
+
+
+@app.route('/pesapal_callback')
+@login_required
+def pesapal_callback():
+    # Pesapal redirects here after payment
+    # For now just redirect to dashboard
+    flash('Payment received! Subscription active.', 'success')
+    current_user.subscription_plan = 'monthly'  # or from query
+    current_user.is_trial = False
+    current_user.subscription_end = datetime.utcnow() + timedelta(days=30)
+    db.session.commit()
+    return redirect(url_for('home'))
+    
 # ==================== BEST AI — USES v.expenses AND v.payments DIRECTLY! ====================
 @app.route('/api/ai_chat', methods=['POST'])
+@subscription_required
 def ai_chat():
     data = request.get_json()
     user_message = data.get('message', '').strip()
