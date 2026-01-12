@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Expense</title>
+  <!-- Link to CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+</head>
+
+<body>
+  <div class="form-container">
+    <h2>Add Expense</h2>
+    <form method="POST">
+      {{ form.hidden_tag() }}
+
+      {% for field in [form.vehicle_id, form.expense_category, form.expense_amount] %}
+      <div class="form-group">
+        {{ field.label(class="form-label") }}
+        {{ field(class="form-control") }}
+        {% for error in field.errors %}
+        <span class="error">{{ error }}</span>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <div class="form-group">
+        {{ form.submit(class="btn", value="Add Expense") }}
+      </div>
+    </form>
+  </div>
+</body>
+
+</html>

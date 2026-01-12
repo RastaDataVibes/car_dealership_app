@@ -1,0 +1,2487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenChain Dashboard</title>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0/dist/superset-embedded-sdk.min.js"></script>
+  <!-- Add these two lines for Chart.js magic -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .dashboard-container {
+      display: flex;
+      align-items: stretch;
+      gap: 20px;
+      max-width: 100%;
+    }
+
+    .sidebar {
+      width: 232px;
+      background-color: #B1B2B5FF;
+      border-radius: 8px;
+      padding: 15px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar-btn {
+      width: 90%;
+      margin: 0 auto;
+      padding: 10px 15px;
+      text-align: left;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #d1d1d1;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .sidebar-btn:hover {
+      background: #c0c0c0;
+    }
+
+    .sidebar-form {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      background: #e8e8e8;
+      padding: 0 10px;
+      border-radius: 6px;
+    }
+
+    .sidebar-form.open {
+      max-height: 500px;
+      padding: 10px;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #B1B2B5FF;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      padding: 0 15px;
+      height: 91px;
+      flex-wrap: wrap;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-title {
+      font-size: 24px;
+      font-weight: bold;
+      text-transform: lowercase;
+      color: #333;
+    }
+
+    .arrow-btn {
+      font-size: 20px;
+      cursor: pointer;
+      user-select: none;
+      color: grey;
+      transition: color 0.2s;
+    }
+
+    .arrow-btn.active {
+      color: black;
+      font-weight: bold;
+    }
+
+    .search-container {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .search-input {
+      font-size: 18px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .search-btn {
+      font-size: 18px;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .profile-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .profile-photo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #ccc;
+    }
+
+    .profile-name {
+      font-size: 16px;
+    }
+
+    .profile-dropdown {
+      position: absolute;
+      top: 55px;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      width: 200px;
+      max-height: 0;
+      transition: max-height 0.3s ease;
+    }
+
+    .profile-dropdown.open {
+      max-height: 300px;
+    }
+
+    .profile-dropdown input {
+      width: 90%;
+      margin: 10px auto;
+      display: block;
+      padding: 5px;
+    }
+
+    .profile-dropdown button {
+      margin: 10px auto;
+      display: block;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .kpi-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .kpi-card {
+      height: 95px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .green {
+      width: 193px;
+      background-color: #70b583FF;
+    }
+
+    .yellow {
+      width: 207px;
+      background-color: #b5a01eFF;
+    }
+
+    #soldCarsCard .kpi-big-number {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* CENTER: Title top, number middle */
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      padding: 10px;
+      /* PAD: Breathing room */
+      text-align: center;
+      background-color: #b5a01eFF;
+      /* YELLOW INSIDE */
+      border-radius: inherit;
+      position: relative;
+      overflow: hidden;
+      color: white;
+      /* WHITE TEXT: Contrast on yellow */
+    }
+
+    #soldCarsCard .kpi-title {
+      font-size: 1em;
+      /* MEDIUM: Clear title */
+      margin: 0 0 8px 0;
+      /* GAP BELOW: To number */
+      opacity: 1;
+      font-weight: bold;
+    }
+
+    #soldCarsCard .kpi-value {
+      font-size: 3em;
+      /* GIANT: Number dominates */
+      font-weight: bold;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .blue {
+      width: 222px;
+      background-color: #3f7db5FF;
+    }
+
+    #totalSalesCard .kpi-big-number {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* CENTER: Title top, number middle */
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      padding: 10px;
+      text-align: center;
+      background-color: #3f7db5FF;
+      border-radius: inherit;
+      position: relative;
+      overflow: hidden;
+      color: white;
+    }
+
+    #totalSalesCard .kpi-title {
+      font-size: 1em;
+      /* MEDIUM: Clear title */
+      margin: 0 0 6px 0;
+      /* GAP BELOW: To number */
+      opacity: 1;
+      font-weight: bold;
+      width: 100%;
+      order: 1;
+    }
+
+    #totalSalesCard .kpi-value {
+      font-size: 2em;
+      font-weight: bold;
+      margin: 0;
+      line-height: 1;
+      word-break: break-word;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      order: 2;
+      max-width: 100%;
+    }
+
+    .purple {
+      width: 222px;
+      background-color: #9658b5FF;
+    }
+
+    #totalProfitsCard .kpi-big-number {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* CENTER: Title top, number middle */
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      padding: 10px;
+      /* PAD: Breathing room */
+      text-align: center;
+      background-color: #9658b5FF;
+      /* PURPLE INSIDE */
+      border-radius: inherit;
+      position: relative;
+      overflow: hidden;
+      color: white;
+      /* WHITE TEXT: Contrast on purple */
+    }
+
+    #totalProfitsCard .kpi-title {
+      font-size: 1em;
+      /* MEDIUM: Clear title */
+      margin: 0 0 6px 0;
+      /* GAP BELOW: To number */
+      opacity: 1;
+      font-weight: bold;
+      width: 100%;
+      order: 1;
+    }
+
+    #totalProfitsCard .kpi-value {
+      font-size: 2em;
+      /* GIANT: Number dominates */
+      font-weight: bold;
+      margin: 0;
+      line-height: 1;
+      word-break: break-word;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      order: 2;
+      max-width: 100%;
+    }
+
+    .chart-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background-color: #B1B2B5FF;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .sales-trend {
+      width: 541px;
+      height: 300px;
+    }
+
+    .profit-make {
+      width: 343px;
+      height: 300px;
+    }
+
+    .inventory-table {
+      width: 904px;
+      max-height: 346px;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .dashboard-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(255, 255, 255, 0.95);
+      z-index: 99999;
+      padding: 0;
+    }
+
+    .dashboard-overlay .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 10000
+    }
+
+    @media(max-width:1200px) {
+      .topbar {
+        flex-direction: column;
+        height: auto;
+        gap: 5px;
+      }
+    }
+
+    form input,
+    form select {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    form button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      background-color: #3f7db5FF;
+      color: white;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #2e5e8f;
+    }
+
+    .table-container {
+      position: relative;
+      border: none;
+      border-radius: 0;
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+    }
+
+    .table-search {
+      padding: 10px;
+      background: #B1B2B5FF;
+      border-bottom: 1px solid #dee2e6;
+      flex-shrink: 0;
+    }
+
+    .table-search input {
+      width: 50%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background-color: white;
+      color: black;
+    }
+
+    .table-wrapper {
+      flex: 1;
+      /* Grow to fill remaining height, but don't shrink below content if needed */
+      overflow: auto;
+      /* Enable horizontal and vertical scrolling as needed */
+      min-height: 0;
+      /* Allow flex child to shrink for scrolling */
+      scrollbar-width: thin;
+      /* Firefox */
+      scrollbar-color: #ccc #f8f9fa;
+      background-color: #B1B2B5FF;
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+      width: 8px;
+      /* Thin scrollbar like Superset */
+      height: 8px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-track {
+      background: #B1B2B5FF;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 4px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+      background: #bbb;
+    }
+
+    table {
+      min-width: 100%;
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+      background-color: #B1B2B5FF;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      border: 1px solid #888;
+      text-align: left;
+      vertical-align: middle;
+      height: 40px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      position: relative;
+      background-color: #B1B2B5FF;
+      color: #000 !important;
+      font-size: 16px;
+    }
+
+    th:hover::after,
+    td:hover::after {
+      content: attr(title);
+      /* Uses title attribute set in JS */
+      position: absolute;
+      background: #333;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      z-index: 10;
+      white-space: normal;
+      max-width: 200px;
+      font-size: 12px;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 4px;
+    }
+
+    th {
+      background: #B1B2B5FF;
+      cursor: pointer;
+      user-select: none;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    th:hover {
+      background: #a0a1a4;
+    }
+
+    th.sort-asc::after {
+      content: ' ▲';
+    }
+
+    th.sort-desc::after {
+      content: ' ▼';
+    }
+
+    .numeric {
+      text-align: right;
+    }
+
+    .success-bg {
+      background-color: #d4edda !important;
+      color: black !important;
+    }
+
+    .photo-cell img {
+      max-width: 50px;
+      max-height: 40px;
+      height: auto;
+      vertical-align: middle;
+    }
+
+    .na-faint {
+      color: #666 !important;
+      font-style: italic;
+    }
+
+    /* CHANGED: Updated CSS for cell bars to mimic horizontal bar graph: bar-container full inner height, bar positioned at bottom spanning full available height and percentage width, text overlaid with right alignment for numeric cells, ensuring bar "sits" on vertical grid (left border as x-axis start) and extends horizontally along the cell's inner space (like bar length/height in horizontal orientation). Border-radius 0 to align flush with grid lines where possible. */
+    .bar-container {
+      position: relative;
+      height: 24px;
+      /* Adjusted for cell height 40px minus top/bottom padding 8px each */
+      line-height: 24px;
+      width: 100%;
+      display: block;
+      line-height: 40px;
+    }
+
+    .bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 100%;
+      border-radius: 0;
+      /* Flush with edges for grid alignment */
+      opacity: 0.8;
+    }
+
+    .bar-positive {
+      background-color: #28a745;
+      /* Success green */
+    }
+
+    .bar-negative {
+      background-color: #dc3545;
+      /* Red for negative */
+    }
+
+    .bar-text {
+      position: relative;
+      z-index: 2;
+      display: block;
+      padding: 0 8px;
+      text-align: right;
+      /* Align with numeric right-align */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* CHANGE 1: Black background for chart canvas - expect: dark chart area, bars/lines pop against black */
+    #profitChart {
+      background-color: black !important;
+    }
+
+    /* CHANGE 2: White text for chart elements to contrast black background - expect: Y-axis ticks, legend, and tooltips in white for readability */
+    #profitChart .chartjs-render-monitor,
+    #profitChart text,
+    .chartjs-legend li,
+    .chartjs-tooltip,
+    #salesTrendChart .chartjs-render-monitor,
+    #salesTrendChart text,
+    .chartjs-legend li,
+    .chartjs-tooltip {
+      color: white !important;
+    }
+
+    /* CHANGE 3: White grid lines for y-axis to stand out on black - expect: subtle white lines for better readability without clutter */
+    #profitChart .chartjs-grid,
+    #salesTrendChart .chartjs-grid {
+      color: rgba(128, 128, 128, 0.3) !important;
+    }
+
+    /* CHANGE 4: Seamless chart in card - set profit-make card background to black - expect: canvas black blends with card, single rounded black border from card's border-radius/box-shadow, no double borders like inventory table */
+    .profit-make,
+    .sales-trend {
+      background-color: black !important;
+      padding: 0;
+      /* CHANGE 5: Remove padding - expect: canvas fills card edge-to-edge, seamless like table */
+      border-radius: 8px;
+      /* CHANGE 6: Ensure rounded corners on card - expect: chart edges round, no sharp canvas corners */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      /* CHANGE 7: Darker shadow - expect: more prominent depth, blends seamless with black, similar to table's subtle shadow */
+    }
+
+    /* CHANGE 8: Canvas inherits rounded corners - expect: #profitChart matches card's 8px radius, no double borders, fully seamless */
+    #profitChart,
+    #salesTrendChart {
+      border-radius: 8px !important;
+    }
+
+    /* UPDATED: Styles for Big Number KPI with Trend Line (mimics Superset) */
+    .kpi-big-number {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      padding: 12px 8px 4px 8px;
+      text-align: center;
+      background-color: #70b583FF;
+      /* ORIGINAL: Keep your green color */
+      border-radius: inherit;
+      position: relative;
+      overflow: hidden;
+      color: white;
+    }
+
+    .kpi-value {
+      font-size: 3em;
+      /* Large Big Number Font Size - adjusted for 95px height */
+      font-weight: bold;
+      margin: 0 auto;
+      line-height: 1;
+      flex-grow: 1;
+    }
+
+    /* UPDATED: Title style - bold, prominent, full opacity (replaces subtitle) */
+    .kpi-title {
+      font-size: 1em;
+      /* Slightly larger for emphasis */
+      margin: 0 0 8px 0;
+      opacity: 1;
+      /* Full visibility */
+      font-weight: bold;
+      width: 100%;
+    }
+
+    /* Ensure canvas fits tightly */
+    #totalCarsTrend {
+      background-color: transparent;
+      height: 15px !important;
+      margin-top: auto;
+      width: 100%;
+      margin-bottom: 0 !important;
+      padding: 0 !important;
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      overflow: hidden !important;
+      z-index: -1;
+    }
+
+    body.dark-mode {
+      background-color: #333;
+      color: white;
+    }
+
+    body.dark-mode .kpi-card {
+      background-color: #555;
+      /* Darker cards */
+    }
+
+    /* FULL RESPONSIVE: Mobile/Tablet Adaptations (Builds on Your Existing) */
+    @media (max-width: 768px) {
+
+      /* TABLET/PHONE */
+      .dashboard-container {
+        flex-direction: column;
+        /* STACK: Sidebar below main */
+        gap: 10px;
+      }
+
+      .sidebar {
+        width: 100%;
+        /* FULL WIDTH: No side squeeze */
+      }
+
+      .main {
+        padding: 5px;
+        /* SMALL PAD: Fits small screen */
+      }
+
+      .topbar {
+        flex-direction: column;
+        /* STACK ARROWS/SEARCH */
+        height: auto;
+        padding: 10px;
+        gap: 5px;
+      }
+
+      .kpi-container {
+        flex-direction: column;
+        /* STACK KPIS: One per row */
+        align-items: center;
+        gap: 10px;
+      }
+
+      .kpi-card {
+        width: 90vw;
+        /* FULL PHONE WIDTH */
+        height: 80px;
+        /* SHORTER: Thumb-friendly */
+      }
+
+      .kpi-money {
+        text-align: center;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+      }
+
+      .kpi-title {
+        font-size: 0.9em !important;
+
+      }
+
+      .kpi-value {
+        font-size: 2.5em !important;
+        /* SHRINK NUMBER: Fits */
+      }
+
+      .chart-row {
+        flex-direction: column;
+        /* STACK CHARTS: Vertical */
+      }
+
+      .sales-trend,
+      .profit-make {
+        width: 100%;
+        /* FULL WIDTH */
+        height: 250px;
+        /* SHORTER */
+      }
+
+      .inventory-table {
+        width: 100%;
+        /* FULL TABLE */
+        max-height: 300px;
+        /* ADJUST HEIGHT */
+      }
+
+      .table-search input {
+        width: 100%;
+        /* FULL SEARCH */
+      }
+
+      .sidebar-btn {
+        font-size: 14px;
+        /* SMALLER BUTTONS: Touch easy */
+      }
+    }
+
+    @media (max-width: 480px) {
+
+      .kpi-value {
+        font-size: 2em !important;
+        /* TINY NUMBERS: Quick glance */
+      }
+
+      .kpi-title {
+        font-size: 0.8em !important;
+      }
+
+      .topbar {
+        padding: 5px;
+      }
+    }
+
+    .kpi-money {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start !important;
+      /* Title at top */
+      align-items: center;
+      text-align: center;
+      height: 100%;
+      width: 100%;
+      padding: 12px 10px 10px 10px;
+      color: white;
+      border-radius: inherit;
+      overflow: hidden;
+    }
+
+    .kpi-money .kpi-title {
+      order: 1 !important;
+      font-size: 1em !important;
+      margin: 0 0 8px 0 !important;
+      font-weight: bold;
+      opacity: 1;
+      width: 100%;
+    }
+
+
+    .kpi-money .kpi-value-normal {
+      order: 2 !important;
+      font-size: 1.5em !important;
+      font-weight: bold;
+      margin: 0;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    /* Mobile: Smaller numbers for Sales & Profits */
+    @media (max-width: 768px) {
+      .kpi-money .kpi-value-normal {
+        font-size: 1.9em !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-money .kpi-value-normal {
+        font-size: 1.7em !important;
+      }
+
+      .kpi-money .kpi-title {
+        font-size: 0.9em !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard-container">
+    <div class="sidebar">
+      <button class="sidebar-btn" id="dashboardBtn" onclick="openSupersetDashboard()">📊 Dashboard</button>
+      <button class="sidebar-btn" id="addCarBtn">🚘 Add Car</button>
+      <div class="sidebar-form" id="addCarForm">
+        <form id="addCarFormElement">
+          <input type="text" name="make" placeholder="Make">
+          <input type="text" name="model" placeholder="Model">
+          <input type="number" name="year" placeholder="Year">
+          <input type="text" name="registration_number" placeholder="Registration Number">
+          <input type="text" name="sourced_from" placeholder="Sourced From (e.g. John, Copart, Japan)">
+          <input type="text" name="purchase_price" placeholder="Purchase Price" inputmode="numeric"
+            oninput="formatNumberWithCommasLive(this)">
+          <input type="text" name="fixed_selling_price" placeholder="Fixed Selling Price" inputmode="numeric"
+            oninput="formatNumberWithCommasLive(this)">
+          <input type="text" name="mileage" placeholder="Mileage" inputmode="numeric"
+            oninput="formatNumberWithCommasLive(this)">
+          <input type="text" name="notes" placeholder="Notes">
+          <input type="file" name="photo" accept="image/*">
+          <button type="submit">Add Vehicle</button>
+        </form>
+      </div>
+      <button class="sidebar-btn" id="addExpenseBtn">🫰🏾 Add Expense</button>
+      <div class="sidebar-form" id="addExpenseForm">
+        <form id="addExpenseFormElement">
+          <select name="vehicle_id" id="expenseVehicleSelect"></select>
+          <input type="text" name="expense_category" placeholder="Expense Category">
+          <input type="text" name="expense_amount" placeholder="Expense Amount" inputmode="numeric"
+            oninput="formatNumberWithCommasLive(this)">
+          <button type="submit">Add Expense</button>
+        </form>
+      </div>
+      <button class="sidebar-btn" id="editCarBtn">📝 Edit Car</button>
+      <div class="sidebar-form" id="editCarForm">
+        <form id="editCarFormElement">
+          <select name="vehicle_id" id="editVehicleSelect"></select>
+          <input type="text" name="make" placeholder="Make">
+          <input type="text" name="model" placeholder="Model">
+          <input type="number" name="year" placeholder="Year">
+          <input type="text" name="purchase_price" placeholder="Purchase Price" inputmode="numeric"
+            oninput="formatNumberWithCommasLive(this)">
+          <input type="text" name="fixed_selling_price" placeholder="fixed_Selling Price" inputmode="numeric"
+            oninput="formatNumberWithCommasLive(this)">
+          <input type="text" name="mileage" placeholder="Mileage" inputmode="numeric"
+            oninput="formatNumberWithCommasLive(this)">
+          <input type="file" name="photo" accept="image/*">
+          <button type="submit">Update Vehicle</button>
+        </form>
+      </div>
+      <button class="sidebar-btn" id="recordSaleBtn">💰 Record Sale</button>
+      <div class="sidebar-form" id="recordSaleForm">
+        <form id="recordSaleFormElement">
+          <select name="vehicle_id" id="recordSaleVehicleSelect" required>
+            <option value="">Select Vehicle</option>
+          </select>
+          <input type="text" name="sold_to" placeholder="Customer Name + Phone" required>
+          <input type="text" name="fixed_selling_price" placeholder="Final Selling Price (once)" inputmode="numeric"
+            oninput="formatNumberWithCommasLive(this)">
+          <input type="text" name="add_installment" placeholder="Installment Amount (today)" inputmode="numeric"
+            oninput="formatNumberWithCommasLive(this)">
+          <input type="text" name="notes" placeholder="Notes (optional)">
+          <button type="submit">Record Sale/Installment</button>
+        </form>
+      </div>
+      <button class="sidebar-btn" id="reportBtn">📈 Report</button>
+      <div class="sidebar-form" id="reportForm">
+        <div style="padding: 10px; background: #e8e8e8; border-radius: 5px; text-align: center;">
+          <h4 style="margin-bottom: 10px;">Pick a Report</h4>
+          <button onclick="downloadAllCars()"
+            style="background: #70b583; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">All
+            Cars List</button>
+          <br>
+          <button onclick="downloadAvailableCars()"
+            style="background: #3f7db5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">Available
+            Cars</button>
+          <br>
+          <button onclick="downloadSalesStory()"
+            style="background: #b5a01e; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">Sales
+            Story</button>
+        </div>
+      </div>
+      <button class="sidebar-btn" id="settingsBtn">⚙️ Settings</button>
+      <div class="sidebar-form" id="settingsForm">
+        <div style="padding: 10px; background: #e8e8e8; border-radius: 5px; text-align: center;">
+          <h4 style="margin-bottom: 10px;">App Settings</h4>
+          <button onclick="updateProfile()"
+            style="background: #3f7db5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">👤
+            Update Profile</button>
+          <br>
+          <button onclick="toggleTheme()"
+            style="background: #9658b5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">🌙
+            Dark Mode</button>
+          <br>
+          <button onclick="downloadAllData()"
+            style="background: #70b583; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">💾
+            Download All</button>
+        </div>
+      </div>
+    <button class="sidebar-btn" id="aiAdviserBtn">🤖 AI Adviser</button>
+      <div class="sidebar-form" id="aiAdviserForm">
+        <div style="padding: 15px;">
+          <h4 style="margin: 0 0 12px 0; color: #333; text-align: center; font-size: 16px;">🤖 GreenChain AI Adviser</h4>
+          <p style="font-size: 13px; color: #555; margin: 0 0 15px 0; text-align: center;">
+            Ask me about your cars, profits, or get smart advice!
+          </p>
+
+          <!-- Chat Messages -->
+          <div id="aiChatMessages" style="height: 280px; overflow-y: auto; background: white; border: 1px solid #aaa; border-radius: 6px; padding: 10px; margin-bottom: 12px; font-size: 14px;">
+            <div style="background:#e0e0e0; padding:8px 12px; border-radius:10px; max-width:92%; margin-bottom:8px;">
+              Hi boss! 👋 I'm your AI adviser.<br>
+              I know all your cars, sales, and profits.<br>
+              Ask me anything!
+            </div>
+          </div>
+
+          <!-- Input + Send -->
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="aiUserInput" placeholder="Type your question..." style="flex:1; padding:10px; border:1px solid #ccc; border-radius:20px; outline:none; font-size:14px;">
+            <button onclick="sendAIMessage()" style="background:#70b583; color:white; border:none; padding:10px 14px; border-radius:20px; cursor:pointer; font-size:14px;">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <span class="arrow-btn" id="back-btn" onclick="goBack()">&#8592;</span>
+          <span class="arrow-btn active" id="forward-btn" onclick="goForward()">&#8594;</span>
+          <span class="app-title">greenchain</span>
+        </div>
+        <div class="search-container">
+          <input type="text" class="search-input" id="searchInput" placeholder="Type to search...">
+          <button class="search-btn" id="searchBtn">&#128269;</button>
+        </div>
+        <div class="profile-container" id="profileContainer">
+          <img src="https://via.placeholder.com/40" class="profile-photo" id="profilePhoto">
+          <span class="profile-name" id="profileName">User</span>
+          <div class="profile-dropdown" id="profileDropdown">
+            <input type="text" id="nameInput" placeholder="Enter name">
+            <input type="email" id="emailInput" placeholder="Enter email">
+            <input type="file" id="photoInput" accept="image/*">
+            <button id="saveProfile">Save</button>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-container">
+        <div class="kpi-card green" id="kpiCard1">
+          <div class="kpi-big-number">
+            <h3 class="kpi-title">Total Cars</h3> <!-- TITLE ONLY: At top, bold & small -->
+            <h2 class="kpi-value" id="totalCarsValue">0</h2> <!-- BIG NUMBER: Front & center, no sub below it -->
+            <canvas id="totalCarsTrend" width="193" height="20" style="display: block; margin-top: 4px;"></canvas>
+          </div>
+        </div>
+        <div class="kpi-card yellow" id="soldCarsCard">
+          <div class="kpi-big-number">
+            <h3 class="kpi-title">Cars Sold</h3> <!-- TITLE: Bold top -->
+            <h2 class="kpi-value" id="soldCarsValue">0</h2> <!-- BIG NUMBER: Center, from SQL count -->
+          </div>
+        </div>
+        <div class="kpi-card blue" id="totalSalesCard">
+          <div class="kpi-money">
+            <h3 class="kpi-title">Total sales(UGX)</h3> <!-- TITLE: Bold top -->
+            <div class="kpi-value-normal" id="totalSalesValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
+          </div>
+        </div>
+        <div class="kpi-card purple" id="totalProfitsCard">
+          <div class="kpi-money">
+            <h3 class="kpi-title">Total profits(UGX)</h3> <!-- TITLE: Bold top -->
+            <div class="kpi-value-normal" id="totalProfitsValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
+          </div>
+        </div>
+      </div>
+      <div class="card" id="dashboardContainer"
+        style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background-color: white; padding: 0; margin: 0;">
+        <button id="closeDashboardBtn"
+          style="position: absolute; top: 10px; right: 10px; z-index: 10000; font-size: 20px; background: red; color: white; border: none; border-radius: 4px; cursor: pointer;">X</button>
+        <!-- SDK will render dashboard here -->
+      </div>
+      <div class="chart-row">
+        <div class="card sales-trend">
+          <canvas id="salesTrendChart" width="541" height="300"></canvas>
+        </div>
+        <div class="card profit-make">
+          <canvas id="profitChart" width="343" height="300"></canvas> <!-- The chart spot! -->
+        </div>
+      </div>
+      <!-- Inventory Table -->
+      <div class="card inventory-table" id="inventoryTableContainer">
+        <div class="table-container">
+          <div class="table-search">
+            <input type="text" id="tableSearch" placeholder="Search table data...">
+          </div>
+          <div class="table-wrapper">
+            <table id="inventoryTable">
+              <thead>
+                <tr>
+                  <th data-sort="id">ID <span class="sort-icon">▲</span></th>
+                  <th data-sort="date_added">Date Added <span class="sort-icon">▲</span></th>
+                  <th data-sort="make">Make <span class="sort-icon">▲</span></th>
+                  <th data-sort="model">Model <span class="sort-icon">▲</span></th>
+                  <th data-sort="year">Year <span class="sort-icon">▲</span></th>
+                  <th data-sort="registration_number">Registration Number <span class="sort-icon">▲</span></th>
+                  <th data-sort="sourced_from">Sourced From <span class="sort-icon">▲</span></th>
+                  <th data-sort="mileage">Mileage <span class="sort-icon">▲</span></th>
+                  <th data-sort="status">Status <span class="sort-icon">▲</span></th>
+                  <th data-sort="purchase_price">Purchase Price <span class="sort-icon">▲</span></th>
+                  <th data-sort="expenses_amount">Expenses Amount <span class="sort-icon">▲</span></th>
+                  <th data-sort="fixed_selling_price">Fixed Selling Price <span class="sort-icon">▲</span></th>
+                  <th data-sort="booked_profit">Booked Profit <span class="sort-icon">▲</span></th>
+                  <th data-sort="balance_due">Balance Due <span class="sort-icon">▲</span></th>
+                  <th data-sort="sale_date">Sale Date <span class="sort-icon">▲</span></th>
+                  <th data-sort="sold_to">Sold To <span class="sort-icon">▲</span></th>
+                  <th data-sort="notes">Notes <span class="sort-icon">▲</span></th>
+                  <th data-sort="photo_filename">Photo Filename <span class="sort-icon">▲</span></th>
+                  <th data-sort="days_in_inventory">Days in Inventory <span class="sort-icon">▲</span></th>
+                </tr>
+              </thead>
+              <tbody id="inventoryTableBody">
+                <!-- Data loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    function formatNumberWithCommasLive(input) {
+      const cursorPos = input.selectionStart;
+      let value = input.value.replace(/,/g, '');
+
+      // Allow only valid number format: digits, optional decimal, optional digits after
+      if (!/^-?\d*\.?\d*$/.test(value)) {
+        // Optionally: remove last invalid char
+        input.value = input.value.slice(0, -1);
+        input.setSelectionRange(cursorPos - 1, cursorPos - 1);
+        return;
+      }
+
+      let [whole, decimal] = value.split('.');
+      whole = whole.replace(/\D/g, '');
+      if (decimal !== undefined) {
+        decimal = decimal.replace(/\D/g, '').slice(0, 2); // max 2 decimals
+      }
+
+      if (whole === '' && decimal === undefined) {
+        input.value = '';
+        return;
+      }
+
+      const formattedWhole = whole === '' ? '0' : Number(whole).toLocaleString('en-US');
+      const formatted = decimal !== undefined ? `${formattedWhole}.${decimal}` : formattedWhole;
+
+      input.value = formatted;
+
+      // Smart cursor positioning
+      const commasBeforeCursor = (input.value.slice(0, cursorPos).match(/,/g) || []).length;
+      const newCommasBeforeCursor = (formatted.slice(0, cursorPos).match(/,/g) || []).length;
+      const newPos = cursorPos + (newCommasBeforeCursor - commasBeforeCursor);
+
+      // If in decimal part, push to end
+      const decimalStart = formatted.indexOf('.') + 1;
+      if (decimalStart > 0 && cursorPos >= decimalStart) {
+        input.setSelectionRange(formatted.length, formatted.length);
+      } else {
+        input.setSelectionRange(newPos, newPos);
+      }
+    }
+
+    const backBtn = document.getElementById('back-btn');
+    const forwardBtn = document.getElementById('forward-btn');
+    backBtn.addEventListener('click', () => { backBtn.classList.add('active'); forwardBtn.classList.remove('active'); });
+    forwardBtn.addEventListener('click', () => { forwardBtn.classList.add('active'); backBtn.classList.remove('active'); });
+
+    // NEW: Global caching for inventory data - avoids repeated API calls (OPTIMIZATION: Step 1)
+    let cachedInventory = null;
+    let lastFetchTime = 0;
+    const CACHE_DURATION = 30000; // 30 seconds - adjust if needed (tune for freshness vs. speed)
+
+    // NEW: Helper to get fresh/cached data (OPTIMIZATION: Step 1)
+    async function getInventoryData(forceRefresh = false) {
+      const now = Date.now();
+      if (cachedInventory && !forceRefresh && (now - lastFetchTime < CACHE_DURATION)) {
+        console.log('Using cached inventory data'); // DEBUG: Log cache hits
+        return cachedInventory;
+      }
+      console.log('Fetching fresh inventory data'); // DEBUG: Log fresh fetches
+      const res = await fetch('/api/inventory');
+      if (!res.ok) throw new Error(`API failed: ${res.status}`);
+      cachedInventory = await res.json();
+      lastFetchTime = now;
+      return cachedInventory;
+    }
+
+    // NEW: Debounce utility - delays execution until user stops typing (OPTIMIZATION: Step 2)
+    function debounce(func, delay) {
+      let timeoutId;
+      return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(null, args), delay);
+      };
+    }
+
+    // NEW: Batch refreshes - queues multiple updates into one (OPTIMIZATION: Step 3)
+    let refreshPending = false;
+    function queueRefresh(forceRefresh = false) {  // Optional force for cache invalidation
+      if (refreshPending) {
+        console.log('Refresh already queued - skipping duplicate');  // DEBUG
+        return;
+      }
+      refreshPending = true;
+      setTimeout(async () => {  // Async for awaits
+        try {
+          await loadInventoryTable(forceRefresh);  // Pass force
+          loadProfitData(forceRefresh);  // Pass force
+          loadSalesData(forceRefresh);  // Pass force
+          // NEW: Add future KPIs here, e.g., loadTotalCarsKPI(forceRefresh);
+        } catch (err) {
+          console.error('Batch refresh error:', err);
+        } finally {
+          refreshPending = false;
+        }
+      }, 100);  // 100ms delay - quick but batches
+    }
+
+    const searchInput = document.getElementById('searchInput');
+    const inventoryTable = document.getElementById('inventoryTable');
+
+    // UPDATED: Global search with debounce (OPTIMIZATION: Step 2)
+    const debouncedGlobalSearch = debounce(() => {  // Wrap in debounce
+      const val = searchInput.value.trim().toLowerCase();
+      Array.from(inventoryTable.tBodies[0].rows).forEach(row => {
+        row.style.display = Array.from(row.cells).some(cell => cell.textContent.toLowerCase().includes(val)) ? '' : 'none';
+      });
+    }, 300);  // 300ms delay
+    searchInput.addEventListener('input', debouncedGlobalSearch);  // Use debounced version
+
+    const profileContainer = document.getElementById('profileContainer');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const saveBtn = document.getElementById('saveProfile');
+    const profilePhoto = document.getElementById('profilePhoto');
+    const profileName = document.getElementById('profileName');
+    const nameInput = document.getElementById('nameInput');
+    const photoInput = document.getElementById('photoInput');
+    profileContainer.addEventListener('click', (e) => {
+      if (["nameInput", "emailInput", "photoInput", "saveProfile"].includes(e.target.id)) return;
+      profileDropdown.classList.toggle('open');
+    });
+    saveBtn.addEventListener('click', () => {
+      if (nameInput.value) profileName.textContent = nameInput.value;
+      if (photoInput.files[0]) { const reader = new FileReader(); reader.onload = e => profilePhoto.src = e.target.result; reader.readAsDataURL(photoInput.files[0]); }
+      profileDropdown.classList.remove('open');
+    });
+    const addCarBtn = document.getElementById('addCarBtn'), addCarForm = document.getElementById('addCarForm');
+    const addExpenseBtn = document.getElementById('addExpenseBtn'), addExpenseForm = document.getElementById('addExpenseForm');
+    const editCarBtn = document.getElementById('editCarBtn'), editCarForm = document.getElementById('editCarForm');
+    const recordSaleBtn = document.getElementById('recordSaleBtn'), recordSaleForm = document.getElementById('recordSaleForm');
+    addCarBtn.addEventListener('click', () => { addCarForm.classList.toggle('open'); addExpenseForm.classList.remove('open'); editCarForm.classList.remove('open'); recordSaleForm.classList.remove('open'); });
+    addExpenseBtn.addEventListener('click', () => { addExpenseForm.classList.toggle('open'); addCarForm.classList.remove('open'); editCarForm.classList.remove('open'); recordSaleForm.classList.remove('open'); });
+    editCarBtn.addEventListener('click', () => { editCarForm.classList.toggle('open'); addCarForm.classList.remove('open'); addExpenseForm.classList.remove('open'); recordSaleForm.classList.remove('open'); });
+    recordSaleBtn.addEventListener('click', () => { recordSaleForm.classList.toggle('open'); addCarForm.classList.remove('open'); addExpenseForm.classList.remove('open'); editCarForm.classList.remove('open'); });
+    document.addEventListener('click', e => {
+      const openForms = [addCarForm, addExpenseForm, editCarForm, recordSaleForm];
+      const buttons = [addCarBtn, addExpenseBtn, editCarBtn, recordSaleBtn];
+      const clickedInside = openForms.some(f => f.contains(e.target)) || buttons.some(b => b.contains(e.target));
+      if (!clickedInside) openForms.forEach(f => f.classList.remove('open'));
+    });
+    async function fetchVehicles(selectEl) {
+      const res = await fetch('/get_vehicles'); const data = await res.json(); selectEl.innerHTML = '<option value="">Select vehicle</option>';
+      data.forEach(v => { const opt = document.createElement('option'); opt.value = v.id; opt.textContent = v.name; selectEl.appendChild(opt); });
+    }
+    const addCarFormElement = document.getElementById('addCarFormElement');
+
+    // UPDATED: Form submit with cache invalidation and queued refresh (OPTIMIZATION: Steps 1 & 3)
+    addCarFormElement.addEventListener('submit', async e => {
+      e.preventDefault();
+      const formData = new FormData(addCarFormElement);
+      const res = await fetch('/add_vehicle_ajax', { method: 'POST', body: formData });
+      if (res.ok) {
+        alert('Vehicle added!');
+        addCarFormElement.reset();
+        addCarForm.classList.remove('open');
+        cachedInventory = null;  // Invalidate cache after mutation
+        queueRefresh(true);  // Batch + force refresh
+        fetch('/flush_superset_cache', { method: 'POST' });
+      }
+    });
+
+    const addExpenseFormElement = document.getElementById('addExpenseFormElement');
+    const expenseVehicleSelect = document.getElementById('expenseVehicleSelect');
+    addExpenseBtn.addEventListener('click', () => { fetchVehicles(expenseVehicleSelect); });
+
+    // UPDATED: Form submit with cache invalidation and queued refresh (OPTIMIZATION: Steps 1 & 3)
+    addExpenseFormElement.addEventListener('submit', async e => {
+      e.preventDefault();
+      const formData = new FormData(addExpenseFormElement);
+      const res = await fetch('/add_expense_ajax', { method: 'POST', body: formData });
+      if (res.ok) {
+        alert('Expense added!');
+        addExpenseFormElement.reset();
+        addExpenseForm.classList.remove('open');
+        cachedInventory = null;  // Invalidate cache after mutation
+        queueRefresh(true);  // Batch + force refresh
+        fetch('/flush_superset_cache', { method: 'POST' });
+      }
+    });
+
+    const editCarFormElement = document.getElementById('editCarFormElement');
+    const editVehicleSelect = document.getElementById('editVehicleSelect');
+    editCarBtn.addEventListener('click', () => { fetchVehicles(editVehicleSelect); });
+    editVehicleSelect.addEventListener('change', async () => { const vid = editVehicleSelect.value; if (!vid) return; const res = await fetch(`/get_vehicle/${vid}`); const data = await res.json(); editCarFormElement.make.value = data.make || ''; editCarFormElement.model.value = data.model || ''; editCarFormElement.year.value = data.year || ''; editCarFormElement.purchase_price.value = data.purchase_price || ''; editCarFormElement.selling_price.value = data.fixed_selling_price || ''; editCarFormElement.mileage.value = data.mileage || ''; });
+
+    // UPDATED: Form submit with cache invalidation and queued refresh (OPTIMIZATION: Steps 1 & 3)
+    editCarFormElement.addEventListener('submit', async e => {
+      e.preventDefault();
+      const formData = new FormData(editCarFormElement);
+      const res = await fetch('/edit_vehicle_ajax', { method: 'POST', body: formData });
+      if (res.ok) {
+        alert('Vehicle updated!');
+        editCarFormElement.reset();
+        editCarForm.classList.remove('open');
+        cachedInventory = null;  // Invalidate cache after mutation
+        queueRefresh(true);  // Batch + force refresh
+        fetch('/flush_superset_cache', { method: 'POST' });
+      }
+    });
+
+    const recordSaleFormElement = document.getElementById('recordSaleFormElement');
+    const recordSaleVehicleSelect = document.getElementById('recordSaleVehicleSelect');
+    recordSaleBtn.addEventListener('click', () => { fetchVehicles(recordSaleVehicleSelect); });
+    recordSaleVehicleSelect.addEventListener('change', async () => { const vid = recordSaleVehicleSelect.value; if (!vid) return; const res = await fetch(`/get_vehicle/${vid}`); const data = await res.json(); recordSaleFormElement.sold_to = data.sold_to || ''; recordSaleFormElement.fixed_selling_price.value = data.fixed_selling_price || ''; recordSaleFormElement.add_installment.value = data.add_installment || ''; recordSaleFormElement.notes.value = data.notes || '' })
+    recordSaleFormElement.addEventListener('submit', async e => {
+      e.preventDefault();
+      const formData = new FormData(recordSaleFormElement);
+      const res = await fetch('/record_sale_ajax', { method: 'POST', body: formData });
+      if (res.ok) {
+        alert('Sale recorded!');
+        recordSaleElement.reset();
+        reccordSaleForm.classList.remove('open');
+        cachedInventory = null;  // Invalidate cache after mutation
+        queueRefresh(true);  // Batch + force refresh
+        fetch('/flush_superset_cache', { method: 'POST' });
+      }
+    });
+  </script>
+  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0"></script>
+  <script>
+    let sortColumn = null;
+    let sortAscending = false;
+    function formatCurrency(value) {
+      if (!value || value.trim() === '') return 'N/A';
+      let formatted = value.replace(/\$/g, 'UGX ');
+      // ADDED: Align +/- - Add '+' for positive values if not already signed
+      const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
+      if (num > 0 && !formatted.startsWith('+') && !formatted.startsWith('-')) {
+        formatted = '+' + formatted;
+      }
+      return formatted;
+    }
+    function formatField(value) {
+      return value || 'N/A';
+    }
+    function getNaClass(value) {
+      const formatted = formatField(value);
+      return formatted === 'N/A' ? 'na-faint' : '';
+    }
+    function getFormattedCurrencyCell(value) {
+      const formatted = formatCurrency(value);
+      const naClass = formatted === 'N/A' ? 'na-faint' : '';
+      return `<span class="${naClass}">${formatted}</span>`;
+    }
+
+    // UPDATED: loadInventoryTable() - uses cached data (OPTIMIZATION: Step 1)
+    async function loadInventoryTable(forceRefresh = false) {  // Optional force param
+      try {
+        const response = await getInventoryData(forceRefresh);  // Use cache
+        let data = response.formatted_data || [];
+        if (sortColumn) {
+          data.sort((a, b) => {
+            let aVal = a[sortColumn] || '';
+            let bVal = b[sortColumn] || '';
+            if (sortColumn === 'id' || sortColumn === 'year' || sortColumn === 'mileage') {
+              aVal = parseFloat(aVal) || 0;
+              bVal = parseFloat(bVal) || 0;
+            }
+            if (aVal < bVal) return sortAscending ? -1 : 1;
+            if (aVal > bVal) return sortAscending ? 1 : -1;
+            return 0;
+          });
+        }
+        const tbody = document.getElementById('inventoryTableBody');
+        tbody.innerHTML = '';
+        data.forEach((v) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="success-bg numeric ${getNaClass(v.id)}">${formatField(v.id)}</td>
+            <td class="${getNaClass(v.date_added)}">${formatField(v.date_added)}</td>
+            <td class="${getNaClass(v.make)}">${formatField(v.make)}</td>
+            <td class="${getNaClass(v.model)}">${formatField(v.model)}</td>
+            <td class="numeric ${getNaClass(v.year)}">${formatField(v.year)}</td>
+            <td class="${getNaClass(v.registration_number)}">${formatField(v.registration_number)}</td>
+            <td class="${getNaClass(v.sourced_from)}">${formatField(v.sourced_from)}</td>
+            <td class="numeric ${getNaClass(v.mileage)}">${formatField(v.mileage)}</td>
+            <td class="${getNaClass(v.status)}">${formatField(v.status)}</td>
+            <td class="numeric">${getFormattedCurrencyCell(v.purchase_price)}</td>
+            <td class="numeric">${getFormattedCurrencyCell(v.expenses_amount)}</td>
+            <td class="numeric">${getFormattedCurrencyCell(v.fixed_selling_price)}</td>
+            <td class="numeric">${getFormattedCurrencyCell(v.booked_profit)}</td>
+            <td class="numeric">${getFormattedCurrencyCell(v.balance_due)}</td>
+            <td class="${getNaClass(v.sale_date)}">${formatField(v.sale_date)}</td>
+            <td class="${getNaClass(v.sold_to)}">${formatField(v.sold_to)}</td>
+            <td class="${getNaClass(v.notes)}">${formatField(v.notes)}</td>
+            <td class="photo-cell">${v.photo_filename ? `<img src="/static/uploads/${v.photo_filename}" alt="${v.photo_filename}" onerror="this.style.display='none'">` : '<span class="na-faint">N/A</span>'}</td>
+            <td class="${getNaClass(v.days_in_inventory)}">${formatField(v.days_in_inventory)}</td>
+            <td class="delete-cell"><button onclick="deleteCar(${v.id})" style="background: red; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">🗑️ Delete</button></td>
+          `;
+          tbody.appendChild(row);
+        });
+        const tableSearchInput = document.getElementById('tableSearch');
+        tableSearchInput.placeholder = `Search ${data.length} rows`;
+        addCellBars(response.max_profit || 1, response.max_price || 1);
+      } catch (err) {
+        console.error('Table load error:', err);
+      }
+    }
+
+    // UPDATED: Table search with debounce (OPTIMIZATION: Step 2)
+    const debouncedTableSearch = debounce((e) => {  // Wrap in debounce
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('#inventoryTable tbody tr').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(term) ? '' : 'none';
+      });
+    }, 300);  // 300ms delay
+    document.getElementById('tableSearch').addEventListener('input', debouncedTableSearch);  // Use debounced version
+
+    function sortTable(column) {
+      sortAscending = sortColumn === column ? !sortAscending : true;
+      sortColumn = column;
+      loadInventoryTable();
+      document.querySelectorAll('th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+      const activeTh = document.querySelector(`th[data-sort="${column}"]`);
+      activeTh.classList.add(sortAscending ? 'sort-asc' : 'sort-desc');
+    }
+
+    document.querySelectorAll('th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const column = th.dataset.sort;
+        sortTable(column);
+      });
+    });
+    /* CHANGED: Updated addCellBars to wrap the formatted value in bar-text span within bar-container, ensuring the bar acts as a horizontal extension (length based on value percent) starting from the left vertical grid line (x-axis), spanning the full inner cell height along the horizontal space, mimicking a horizontal bar graph where bar length visually represents magnitude for easy comparison. */
+    function addCellBars(maxProfit, maxPrice) {
+      const barCols = [7, 8, 9, 10, 11, 12, 13]; /* purchase, expenses, selling, profit */
+      const isProfitCol = [false, false, false, true];
+      document.querySelectorAll('#inventoryTable tbody tr').forEach(tr => {
+        barCols.forEach((colIdx, i) => {
+          const cell = tr.cells[colIdx];
+          let valStr = cell.innerHTML.replace(/<[^>]*>/g, '').trim(); /* Extract text content robustly */
+          const val = parseFloat(valStr.replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+          if (isNaN(val) || val === 0) return; /* Skip for N/A or zero */
+          const maxVal = isProfitCol[i] ? maxProfit : maxPrice;
+          if (maxVal > 0) {
+            const percent = (Math.abs(val) / maxVal) * 100;
+            const colorClass = val >= 0 ? 'bar-positive' : 'bar-negative';
+            /* CHANGED: HTML structure for horizontal bar graph effect: bar-container sets inner height, bar fills bottom-to-top (full height) and left-to-percent width, bar-text overlays the value right-aligned for visibility over the bar. */
+            cell.innerHTML = `<div class="bar-container"><div class="bar ${colorClass}" style="width: ${percent}%"></div><span class="bar-text">${valStr}</span></div>`;
+          }
+        });
+      });
+    }
+
+  </script>
+  <!-- EMBEDDED REAL CHART JS - ADDED LEGEND 'SUM(PROFIT)', FIXED VALUE LABELS ON ALL BARS, ENHANCED VERTICAL DOTTED LINE, AND PROMINENT GREY GRID -->
+  <script>
+    // ADD THIS LINE AT SCRIPT TOP — YOUR ORIGINAL
+    if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+
+    // GLOBAL CROSSHAIR — REGISTER ONCE (FIXES LAG + REDECLARE)
+    const crosshairPlugin = {
+      id: 'crosshair',
+      afterDatasetsDraw(chart) {
+        const { ctx, scales: { x, y }, chartArea } = chart;
+        const active = chart.getActiveElements();
+        if (active.length === 0) return;
+        const xPos = x.getPixelForValue(active[0].index);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(31, 119, 180, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.moveTo(xPos, chartArea.top);
+        ctx.lineTo(xPos, chartArea.bottom);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+    Chart.register(crosshairPlugin);
+
+    // GLOBAL INSTANCES — DECLARED ONCE
+    let profitChartInstance = null;
+    let salesChartInstance = null;
+
+    // CHANGE 1: Abbreviate number function — YOUR ORIGINAL
+    function abbreviateNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+      return num.toString();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const canvas = document.getElementById('profitChart');
+      if (!canvas) {
+        console.log('No canvas found');
+        return;
+      }
+      console.log('Canvas ready - fetching real data for bars!');
+
+      // GLOBAL + FORCE REFRESH + DESTROY OLD
+      window.loadProfitData = function (forceRefresh = false) {
+        getInventoryData(forceRefresh)
+          .then(function (response) {
+            var data = response.formatted_data || [];
+            console.log('Total cars loaded: ' + data.length);
+
+            data = data.filter(car => car.status === 'Sold');
+            console.log('Sold cars: ' + data.length);
+
+            if (data.length === 0) {
+              document.querySelector('.profit-make').innerHTML = '<p style="color:white;text-align:center;padding:30px;">No sold cars—add & sell one!</p>';
+              if (profitChartInstance) profitChartInstance.destroy();
+              profitChartInstance = null;
+              return;
+            }
+
+            var makeProfits = {};
+            data.forEach(function (car) {
+              var make = car.make || 'Unknown';
+              var profitStr = car.booked_profit || '';
+              var cleanProfit = profitStr.replace(/UGX |[+$]/g, '').replace(/,/g, '');
+              var profit = parseFloat(cleanProfit) || 0;
+              makeProfits[make] = (makeProfits[make] || 0) + profit;
+            });
+            console.log('Profits summed by make: ', makeProfits);
+
+            var makes = Object.keys(makeProfits);
+            var profits = Object.values(makeProfits);
+
+            var sortedIndex = profits
+              .map((p, i) => ({ profit: p, index: i }))
+              .sort((a, b) => b.profit - a.profit)
+              .map(item => item.index);
+
+            makes = sortedIndex.map(i => makes[i]);
+            profits = sortedIndex.map(i => profits[i]);
+
+            if (profits.every(p => p === 0)) {
+              document.querySelector('.profit-make').innerHTML = '<p style="color:white;text-align:center;padding:30px;">No profits to plot</p>';
+              if (profitChartInstance) profitChartInstance.destroy();
+              profitChartInstance = null;
+              return;
+            }
+
+            var grandTotal = profits.reduce((a, b) => a + b, 0);
+            var ctx = canvas.getContext('2d');
+
+            if (profitChartInstance) {
+              profitChartInstance.destroy();
+              profitChartInstance = null;
+            }
+
+            profitChartInstance = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: makes,
+                datasets: [{
+                  label: 'SUM(Profit)',
+                  data: profits,
+                  backgroundColor: '#1f77b4',
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                barPercentage: 0.8,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                  title: { display: true, text: 'Profit by Make', font: { size: 16, weight: 'bold' }, color: 'white', padding: { top: 10, bottom: 20 } },
+                  legend: { display: true, position: 'top', align: 'end', labels: { usePointStyle: true, padding: 10 } },
+                  tooltip: {
+                    callbacks: {
+                      label: context => {
+                        var profit = context.parsed.y;
+                        var percent = ((profit / grandTotal) * 100).toFixed(1);
+                        return 'sum(profit) ' + abbreviateNumber(profit) + ' (' + percent + '%)';
+                      }
+                    }
+                  },
+                  datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    display: true,
+                    clamp: false,
+                    offset: 8,
+                    font: { size: 10, weight: 'bold' },
+                    formatter: abbreviateNumber,
+                    color: 'white'
+                  }
+                },
+                scales: {
+                  x: { title: { display: true, text: 'Make', padding: { bottom: 30 }, color: 'white' }, ticks: { maxRotation: 0, color: 'white' } },
+                  y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Total Profit', position: 'left', padding: { right: 50 }, color: 'white' },
+                    ticks: { callback: abbreviateNumber, color: 'white' },
+                    grid: { color: 'rgba(128, 128, 128, 0.3)' }
+                  }
+                }
+              }
+            });
+
+            console.log('Profit chart updated on submit!');
+          })
+          .catch(err => {
+            console.error('Chart error: ', err);
+            document.querySelector('.profit-make').innerHTML = '<p style="color:white;">Failed: ' + err.message + '</p>';
+          });
+      };
+
+      loadProfitData(); // Initial
+    });
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const salesCanvas = document.getElementById('salesTrendChart');
+      if (!salesCanvas) {
+        console.log('No sales canvas found');
+        return;
+      }
+      console.log('Sales canvas ready - fetching real data for line!');
+
+      function parseDate(dateStr) {
+        if (!dateStr || dateStr === 'N/A' || dateStr.trim() === '') return null;
+        dateStr = dateStr.trim();
+        let date = new Date(dateStr);
+        if (!isNaN(date.getTime())) return date;
+
+        const formats = [
+          /^\d{1,2}-\d{1,2}-\d{4} \d{1,2}:\d{2}:\d{2}/,
+          /^\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2}:\d{2}/
+        ];
+
+        for (let fmt of formats) {
+          if (dateStr.match(fmt)) {
+            let parts = dateStr.split(' ');
+            let datePart = parts[0].includes('/') ? parts[0].split('/') : parts[0].split('-');
+            let timePart = parts[1].split(':');
+            let day = parseInt(datePart[0]);
+            let month = parseInt(datePart[1]) - 1;
+            let year = parseInt(datePart[2]);
+            let hour = parseInt(timePart[0]), min = parseInt(timePart[1]), sec = parseInt(timePart[2] || 0);
+            date = new Date(year, month, day, hour, min, sec);
+            if (!isNaN(date.getTime())) return date;
+          }
+        }
+        console.warn('Unparseable date skipped:', dateStr);
+        return null;
+      }
+
+      window.loadSalesData = function (forceRefresh = false) {
+        getInventoryData(forceRefresh)
+          .then(response => {
+            var data = response.formatted_data || [];
+            data = data.filter(car => car.status === 'Sold' && car.sale_date);
+
+            var monthlySales = {};
+            data.forEach(car => {
+              var date = parseDate(car.sale_date);
+              if (!date) return;
+              var monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+              monthlySales[monthKey] = (monthlySales[monthKey] || 0) + 1;
+            });
+
+            // REAL CURRENT DATE — NO HARDCODE
+            const now = new Date();
+            let months = [];
+            let salesCounts = [];
+            for (let i = 2; i >= 0; i--) {
+              const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+              const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+              months.push(key);
+              salesCounts.push(monthlySales[key] || 0);
+            }
+
+            const salesCtx = salesCanvas.getContext('2d');
+            if (salesChartInstance) salesChartInstance.destroy();
+
+            salesChartInstance = new Chart(salesCtx, {
+              type: 'line',
+              data: {
+                labels: months.map(m => new Date(m + '-01').toLocaleString('default', { month: 'short', year: 'numeric' })),
+                datasets: [{
+                  label: 'Cars Sold',
+                  data: salesCounts,
+                  borderColor: '#1f77b4',
+                  backgroundColor: 'rgba(31, 119, 180, 0.15)',
+                  borderWidth: 3,
+                  fill: true,
+                  tension: 0.25,
+                  pointRadius: 6,
+                  pointHoverRadius: 8
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                  title: { display: true, text: 'Sales Trend (Last 3 Months)', font: { size: 16, weight: 'bold' }, color: 'white', padding: { top: 10, bottom: 20 } },
+                  legend: { display: true, position: 'top', align: 'end', labels: { usePointStyle: true, padding: 10, color: 'white' } }
+                },
+                scales: {
+                  x: { ticks: { color: 'white' } },
+                  y: { beginAtZero: true, ticks: { color: 'white', stepSize: 1 }, grid: { color: 'rgba(128,128,128,0.3)' } }
+                }
+              }
+            });
+
+            console.log('Sales trend updated on submit!');
+          })
+          .catch(err => console.error('Sales chart error: ', err));
+      };
+
+      loadSalesData();
+    });
+  </script>
+  <!-- NEW: Full Green KPI Script Block (paste right before </body>) -->
+  <script>
+    // FIXED: Optimized parseDate (no change, kept for dates)
+    function parseDate(dateStr) {
+      if (!dateStr || dateStr === 'N/A' || dateStr.trim() === '') return null;
+      dateStr = dateStr.trim();
+      let date = new Date(dateStr);
+      if (!isNaN(date.getTime())) return date;
+      // Handle dd-mm-yyyy hh:mm:ss
+      if (dateStr.match(/^\d{1,2}-\d{1,2}-\d{4} \d{1,2}:\d{2}:\d{2}/)) {
+        let parts = dateStr.split(' ');
+        let datePart = parts[0].split('-');
+        let timePart = parts[1].split(':');
+        let day = parseInt(datePart[0]), month = parseInt(datePart[1]) - 1, year = parseInt(datePart[2]);
+        let hour = parseInt(timePart[0]), min = parseInt(timePart[1]), sec = parseInt(timePart[2]);
+        date = new Date(year, month, day, hour, min, sec);
+        if (!isNaN(date.getTime())) return date;
+      }
+      // Handle dd/mm/yyyy hh:mm:ss as fallback
+      if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2}:\d{2}/)) {
+        let parts = dateStr.split(' ');
+        let datePart = parts[0].split('/');
+        let timePart = parts[1].split(':');
+        let day = parseInt(datePart[0]), month = parseInt(datePart[1]) - 1, year = parseInt(datePart[2]);
+        let hour = parseInt(timePart[0]), min = parseInt(timePart[1]), sec = parseInt(timePart[2]);
+        date = new Date(year, month, day, hour, min, sec);
+        if (!isNaN(date.getTime())) return date;
+      }
+      console.warn('Unparseable date skipped:', dateStr);
+      return null;
+    }
+
+    // FIXED: loadTotalCarsKPI - Total "10" display, VISIBLE trend (bolder line), SPEED (15 days, no anim), NO ERROR on forms (retry + soft catch)
+    let trendChartInstance = null; // REUSE: Faster redraws, no lag
+    async function loadTotalCarsKPI(forceRefresh = false) {
+      try {
+        const response = await getInventoryData(forceRefresh);
+        let data = response.formatted_data || [];
+        console.log('GREEN BOX SEES: ' + data.length + ' cars'); // Spy: 10
+
+        const totalCars = data.length; // TOTAL: Always "10"
+        document.getElementById('totalCarsValue').textContent = totalCars; // Set "10" immediately
+
+        // DAILY COUNTS for trend only (fast loop)
+        const dailyCounts = {};
+        data.forEach((car) => {
+          const date = parseDate(car.date_added);
+          if (!date) return;
+          const dayKey = date.toISOString().split('T')[0];
+          dailyCounts[dayKey] = (dailyCounts[dayKey] || 0) + 1; // SPEED: Inline ++
+        });
+
+        // TREND: 15 days only (fewer points = faster draw)
+        const maxDays = 15; // CUT FROM 30: Less lag
+        const now = new Date(); // Real date: Nov 04, 2025
+        const extendedDays = [];
+        const extendedCounts = [];
+        for (let i = maxDays - 1; i >= 0; i--) {
+          const pastDay = new Date(now);
+          pastDay.setDate(now.getDate() - i);
+          const dayKey = pastDay.toISOString().split('T')[0];
+          extendedDays.push(dayKey);
+          extendedCounts.push(dailyCounts[dayKey] || 0);
+        }
+
+        const canvas = document.getElementById('totalCarsTrend');
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height); // Quick clear
+
+          // REUSE CHART: Update data only (no full create = speed boost)
+          if (trendChartInstance) {
+            trendChartInstance.data.labels = extendedDays.map(d => '');
+            trendChartInstance.data.datasets[0].data = extendedCounts;
+            trendChartInstance.update('none'); // Instant update, no anim
+          } else {
+            trendChartInstance = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: extendedDays.map(d => ''),
+                datasets: [{
+                  data: extendedCounts,
+                  borderColor: 'white', // VISIBLE: Bold white
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)', // GLOW: Light fill for shape
+                  borderWidth: 3, // BOLDER: 3px trace (up from 2.5)
+                  fill: true,
+                  tension: 0.3,
+                  pointRadius: 2, // TINY DOTS: Spots on add days
+                  pointBackgroundColor: 'white',
+                  pointBorderWidth: 0
+                }]
+              },
+              options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'none' }, // NO HOVER LAG
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { enabled: false }, // NO POP-UPS
+                  datalabels: { display: false }
+                },
+                scales: {
+                  x: { display: false, grid: { display: false }, ticks: { display: false } },
+                  y: { display: false, beginAtZero: true, grid: { display: false }, ticks: { display: false } }
+                },
+                elements: { point: { radius: 2 }, line: { borderWidth: 3 } },
+                animation: { duration: 0 } // ZERO ANIM: Instant load, no slow fade
+              }
+            });
+          }
+        }
+
+        // FINAL LOCK: Re-set after draw (anti-glitch)
+        setTimeout(() => {
+          document.getElementById('totalCarsValue').textContent = totalCars;
+        }, 100); // Short wait
+
+        console.log('KPI LOADED: ' + totalCars + ' with visible trend');
+      } catch (err) {
+        console.error('KPI soft error (retrying):', err); // SOFT: Logs but no "Error" display
+        // RETRY ONCE: Common after forms (race fix)
+        setTimeout(() => loadTotalCarsKPI(forceRefresh), 500);
+        // Fallback: Set last known (no blank)
+        document.getElementById('totalCarsValue').textContent = parseInt(document.getElementById('totalCarsValue').textContent) || 0;
+      }
+    }
+
+    // NEW: loadSoldCarsKPI - Count sold cars (SQL: COUNT(status) WHERE status = 'Sold')
+    async function loadSoldCarsKPI(forceRefresh = false) {
+      try {
+        const response = await getInventoryData(forceRefresh);
+        let data = response.formatted_data || [];
+        console.log('YELLOW BOX SEES: ' + data.length + ' total cars'); // Spy total
+
+        // FIXED: SQL MATCH - Filter sold only, count length
+        const soldCars = data.filter(car => car.status === 'Sold').length; // e.g., 3
+        console.log('YELLOW SOLD COUNT: ' + soldCars); // Spy sold
+
+        document.getElementById('soldCarsValue').textContent = soldCars; // Set "3"
+
+        console.log('SOLD KPI LOADED: ' + soldCars + ' cars');
+      } catch (err) {
+        console.error('Sold KPI error:', err);
+        document.getElementById('soldCarsValue').textContent = 'Error';
+      }
+    }
+
+
+    async function loadTotalSalesKPI(forceRefresh = false) {
+      try {
+        const response = await getInventoryData(forceRefresh);
+        let data = response.formatted_data || [];
+        console.log('BLUE BOX SEES: ' + data.length + ' total cars');
+
+        const soldData = data.filter(car => car.status === 'Sold');
+        let totalSales = 0;
+        soldData.forEach(car => {
+          let priceStr = (car.fixed_selling_price || '0').trim();
+          console.log('Raw price for ' + (car.make || 'car') + ': "' + priceStr + '"'); // Spy raw
+          priceStr = priceStr.replace(/[ +UGX$-]/g, '').replace(/,/g, ''); // Clean +UGX, commas
+          let multiplier = 1;
+          if (priceStr.toUpperCase().endsWith('M')) {
+            multiplier = 1000000;
+            priceStr = priceStr.slice(0, -1);
+          } else if (priceStr.toUpperCase().endsWith('K')) {
+            multiplier = 1000;
+            priceStr = priceStr.slice(0, -1);
+          }
+          const cleanPrice = parseFloat(priceStr) * multiplier || 0;
+          totalSales += cleanPrice;
+          console.log('Cleaned price: ' + cleanPrice); // Spy cleaned
+        });
+
+        // FIXED FORMAT: toFixed(2) for precision, no blind chop
+        let formattedSales = 'UGX 0';
+        if (totalSales >= 1000000) {
+          const mValue = (totalSales / 1000000).toFixed(2); // "4.04"
+          formattedSales = `${mValue.replace(/\.?0+$/, '')}M`; // "4.04M" (drops trailing 0s only)
+        } else if (totalSales >= 1000) {
+          const kValue = (totalSales / 1000).toFixed(0); // "4040K"
+          formattedSales = `${kValue}K`;
+        } else {
+          formattedSales = `${Math.round(totalSales)}`;
+        }
+
+        console.log('BLUE SALES SUM: ' + totalSales + ' (formatted: ' + formattedSales + ')');
+        document.getElementById('totalSalesValue').textContent = formattedSales;
+
+        console.log('SALES KPI LOADED: ' + formattedSales);
+      } catch (err) {
+        console.error('Sales KPI error:', err);
+        document.getElementById('totalSalesValue').textContent = 'Error';
+      }
+    }
+
+    // NEW: loadTotalProfitsKPI - Sum profits for sold cars (SQL: SUM(profit) WHERE status = 'Sold')
+    async function loadTotalProfitsKPI(forceRefresh = false) {
+      try {
+        const response = await getInventoryData(forceRefresh);
+        let data = response.formatted_data || [];
+        console.log('PURPLE BOX SEES: ' + data.length + ' total cars'); // Spy total
+
+        // FIXED: SQL MATCH - Filter sold, sum profit
+        const soldData = data.filter(car => car.status === 'Sold');
+        let totalProfits = 0;
+        soldData.forEach(car => {
+          let profitStr = (car.booked_profit || '0').trim();
+          console.log('Raw profit for ' + (car.make || 'car') + ': "' + profitStr + '"'); // Spy raw
+          // CLEAN: Strip UGX, +, -, commas
+          profitStr = profitStr.replace(/[ +UGX$-]/g, '').replace(/,/g, '');
+          // ABREV: M/K to full
+          let multiplier = 1;
+          if (profitStr.toUpperCase().endsWith('M')) {
+            multiplier = 1000000;
+            profitStr = profitStr.slice(0, -1);
+          } else if (profitStr.toUpperCase().endsWith('K')) {
+            multiplier = 1000;
+            profitStr = profitStr.slice(0, -1);
+          }
+          const cleanProfit = parseFloat(profitStr) * multiplier || 0;
+          totalProfits += cleanProfit;
+          console.log('Cleaned profit: ' + cleanProfit); // Spy cleaned
+        });
+
+        // FORMAT: Abbrev + sign for positive (e.g., +UGX 2.5M)
+        let formattedProfits = 'UGX 0';
+        const isPositive = totalProfits > 0;
+        const absTotal = Math.abs(totalProfits);
+        if (absTotal >= 1000000) {
+          const mValue = (absTotal / 1000000).toFixed(2).replace(/\.?0+$/, '');
+          formattedProfits = `${isPositive ? '+' : '-'}${mValue}M`;
+        } else if (absTotal >= 1000) {
+          const kValue = (absTotal / 1000).toFixed(0);
+          formattedProfits = `${isPositive ? '+' : '-'}${kValue}K`;
+        } else {
+          formattedProfits = `${isPositive ? '+' : '-'}${Math.round(absTotal)}`;
+        }
+
+        console.log('PURPLE PROFITS SUM: ' + totalProfits + ' (formatted: ' + formattedProfits + ')');
+        document.getElementById('totalProfitsValue').textContent = formattedProfits; // Set "UGX +2.5M"
+
+        console.log('PROFITS KPI LOADED: ' + formattedProfits);
+      } catch (err) {
+        console.error('Profits KPI error:', err);
+        document.getElementById('totalProfitsValue').textContent = 'Error';
+      }
+    }
+
+    // OPTIMIZED: queueRefresh - Instant KPI/table, batch charts (fewer fetches = speed)
+    async function queueRefresh(forceRefresh = false) {
+      if (refreshPending) {
+        console.log('Refresh queued - skipping duplicate');
+        return;
+      }
+      refreshPending = true;
+
+      try {
+        // INSTANT: Await KPIs/table/charts (fresh data)
+        await loadTotalCarsKPI(forceRefresh);
+        await loadSoldCarsKPI(forceRefresh);
+        await loadTotalSalesKPI(forceRefresh);
+        await loadTotalProfitsKPI(forceRefresh);
+        await loadInventoryTable(forceRefresh);
+        await loadProfitData(forceRefresh);
+        await loadSalesData(forceRefresh);
+
+        // NUCLEAR FIX: FORCE CANVAS REDRAW — OLD PIXELS GONE
+        const profitCtx = document.getElementById('profitChart')?.getContext('2d');
+        const salesCtx = document.getElementById('salesTrendChart')?.getContext('2d');
+        if (profitCtx) profitCtx.clearRect(0, 0, profitCtx.canvas.width, profitCtx.canvas.height);
+        if (salesCtx) salesCtx.clearRect(0, 0, salesCtx.canvas.width, salesCtx.canvas.height);
+
+        console.log('FULL REFRESH + CANVAS NUKED — CHARTS 100% INSTANT!');
+      } catch (err) {
+        console.error('Refresh error:', err);
+      } finally {
+        refreshPending = false;
+      }
+    }
+
+    // FIXED: Open Superset Dashboard - Direct with Token (No Login, Hidden UI)
+    async function openSupersetDashboard() {
+      // Open immediately with fallback (unblocks popup)
+      const fallbackUrl = 'https://dash-y8xp.onrender.com/superset/dashboard/1/?standalone=true&show_filters=false&native_filters_key=UCkVgPchSNg';
+      const win = window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+      // Fetch token in background and update URL if successful
+      try {
+        const res = await fetch('/superset_token/1');  // CONNECTION: Fetch auth token from backend
+        if (res.ok) {
+          const { token } = await res.json();
+          const supersetUrl = `https://dash-y8xp.onrender.com/superset/dashboard/1/?standalone=true&show_filters=false&token=${token}&native_filters_key=UCkVgPchSNg`;
+          if (win) win.location.href = supersetUrl; // Update the open tab
+        }
+      } catch (err) {
+        console.error('Token error:', err);
+        // Fallback already open — no action needed
+      }
+    }
+
+    // START: Initial load
+    document.addEventListener('DOMContentLoaded', () => {
+      queueRefresh(true); // Force fresh start
+    });
+
+
+    // TOGGLE REPORT DRAWER (like Add Car)
+    const reportBtn = document.getElementById('reportBtn');
+    const reportForm = document.getElementById('reportForm');
+
+    reportBtn.addEventListener('click', () => {
+      reportForm.classList.toggle('open'); // Flip open/close
+    });
+
+    // CLOSE ON OUTSIDE CLICK
+    document.addEventListener('click', (e) => {
+      if (!reportBtn.contains(e.target) && !reportForm.contains(e.target)) {
+        reportForm.classList.remove('open'); // Hide if click elsewhere
+      }
+    });
+
+    // REPORT DOWNLOADS (real files from car data)
+    function downloadAllCars() {
+      fetch('/api/inventory')
+        .then(res => res.json())
+        .then(data => {
+          let csv = 'ID,Date Added,Make,Model,Year,Registration Number,Mileage,Status,Purchase Price,Expenses,Fixed Selling Price,Profit,Sale Date,Photo,Days in Inventory\n'; // FULL HEADERS
+          data.formatted_data.forEach(car => {
+            // CLEAN NUMBERS: Strip UGX/+, commas for prices/profit
+            const cleanPurchase = parseFloat((car.purchase_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+            const cleanExpenses = parseFloat((car.expenses_amount || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+            const cleanSelling = parseFloat((car.fixed_selling_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+            const cleanProfit = parseFloat((car.booked_profit || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+            const cleanMileage = parseInt(car.mileage || 0) || 0;
+            const cleanDays = parseInt(car.days_in_inventory || 0) || 0;
+
+            csv += `"${car.id}","${car.date_added || ''}","${car.make || ''}","${car.model || ''}",${car.year || ''},"${car.registration_number || ''}",${cleanMileage},"${car.status || ''}",${cleanPurchase},${cleanExpenses},${cleanSelling},${cleanProfit},"${car.sale_date || ''}","${car.photo_filename || ''}",${cleanDays}\n`;
+          });
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'all_cars.csv';
+          link.click();
+          reportForm.classList.remove('open');
+        })
+        .catch(err => alert('Try again!'));
+    }
+
+    // FIXED: Available Cars CSV - Unsold only, clean numbers
+    function downloadAvailableCars() {
+      fetch('/api/inventory')
+        .then(res => res.json())
+        .then(data => {
+          let csv = 'ID,Make,Model,Year,Registration Number,Mileage,Purchase Price,Fixed Selling Price\n'; // HEADERS for available
+          const available = data.formatted_data.filter(car => car.status !== 'Sold');
+          available.forEach(car => {
+            const cleanPurchase = parseFloat((car.purchase_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+            const cleanSelling = parseFloat((car.fixed_selling_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+            const cleanMileage = parseInt(car.mileage || 0) || 0;
+
+            csv += `"${car.id}","${car.make || ''}","${car.model || ''}",${car.year || ''},"${car.registration_number || ''}",${cleanMileage},${cleanPurchase},${cleanSelling}\n`;
+          });
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'available_cars.csv';
+          link.click();
+          reportForm.classList.remove('open');
+        })
+        .catch(err => alert('Try again!'));
+    }
+
+    // FIXED: Sales Story Text - Proper grand total (clean prices)
+    function downloadSalesStory() {
+      fetch('/api/inventory')
+        .then(res => res.json())
+        .then(data => {
+          let text = 'My Sales Story\n\n';
+          let totalSold = 0, totalMoney = 0;
+          const sold = data.formatted_data.filter(car => car.status === 'Sold');
+          sold.forEach(car => {
+            text += `Sold: ${car.make}  ${car.model} ${car.registration_number} for ${car.fixed_selling_price} (Profit: ${car.booked_profit})\n`;
+            totalSold++;
+            // FIXED CLEAN: Parse money (strip UGX/+, commas)
+            const moneyStr = (car.fixed_selling_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '');
+            const money = parseFloat(moneyStr) || 0;
+            totalMoney += money;
+          });
+          text += `\nGrand Total: ${totalSold} cars for UGX ${totalMoney}!`; // FIXED: Real sum
+          const blob = new Blob([text], { type: 'text/plain' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'sales_story.txt';
+          link.click();
+          reportForm.classList.remove('open');
+        })
+        .catch(err => alert('Try again!'));
+    }
+
+    // TOGGLE SETTINGS DRAWER (like Report)
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsForm = document.getElementById('settingsForm');
+
+    settingsBtn.addEventListener('click', () => {
+      settingsForm.classList.toggle('open'); // Flip open/close
+    });
+
+    // CLOSE ON OUTSIDE CLICK
+    document.addEventListener('click', (e) => {
+      if (!settingsBtn.contains(e.target) && !settingsForm.contains(e.target)) {
+        settingsForm.classList.remove('open'); // Hide if click elsewhere
+      }
+    });
+
+    // SETTINGS CHOICES (easy tweaks)
+    function updateProfile() {
+      // TEMP: Opens your existing profile dropdown (topbar)
+      document.getElementById('profileContainer').click(); // Clicks your profile photo
+      settingsForm.classList.remove('open'); // Close drawer
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode'); // Flip dark/light
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); // Save choice
+      settingsForm.classList.remove('open');
+      alert('Theme changed!'); // Quick feedback
+    }
+
+    function downloadAllData() {
+      // DOWNLOAD ALL REPORTS AT ONCE (zips CSV + text)
+      alert('Downloading all your data...'); // TEMP: Real zip later
+      // TODO: Call all download functions
+      downloadAllCars();
+      downloadAvailableCars();
+      downloadSalesStory();
+      settingsForm.classList.remove('open');
+    }
+
+    // NEW: Back & Forward Navigation (like browser arrows)
+    function goBack() {
+      if (window.history.length > 1) {
+        window.history.back(); // Go to previous page/view
+      } else {
+        alert('No back—home!'); // If no history, stay
+      }
+      updateArrowStates(); // Refresh colors
+    }
+
+    function goForward() {
+      if (window.history.state && window.history.state !== null) {
+        window.history.forward(); // Go to next page/view
+      } else {
+        alert('No forward!'); // If no history, stay
+      }
+      updateArrowStates(); // Refresh colors
+    }
+
+    // UPDATE COLORS (active/inactive)
+    function updateArrowStates() {
+      const backBtn = document.getElementById('back-btn');
+      const forwardBtn = document.getElementById('forward-btn');
+      if (window.history.state === null || window.history.length <= 1) {
+        backBtn.classList.remove('active'); // Back off if no history
+      } else {
+        backBtn.classList.add('active');
+      }
+      forwardBtn.classList.remove('active'); // Forward off by default (add logic if needed)
+    }
+
+    // START: Update on load
+    document.addEventListener('DOMContentLoaded', () => {
+      updateArrowStates(); // Set initial colors
+    });
+
+    // LISTEN FOR BROWSER CHANGES
+    window.addEventListener('popstate', updateArrowStates); // Refresh on back/forward
+
+    // NEW: Delete Car - Confirm & Call Backend
+    async function deleteCar(carId) {
+      if (!confirm('Delete this car? No undo!')) return;
+
+      // Find the row and delete button
+      const deleteButton = document.querySelector(`button[onclick="deleteCar(${carId})"]`);
+      if (!deleteButton) return;
+
+      const row = deleteButton.closest('tr');
+      if (!row) return;
+
+      // 1. INSTANT UI FEEDBACK
+      row.style.transition = 'opacity 0.3s ease';
+      row.style.opacity = '0.4';                    // Fade out
+      deleteButton.disabled = true;                 // Disable button
+      deleteButton.textContent = 'Deleting...';     // Change button text
+
+      // Optional: Add "Deleting..." text in the last cell
+      const statusCell = row.cells[row.cells.length - 1]; // Delete button cell
+      const deletingText = document.createElement('span');
+      deletingText.textContent = ' (deleting...)';
+      deletingText.style.color = 'orange';
+      deletingText.style.fontStyle = 'italic';
+      statusCell.appendChild(deletingText);
+
+      try {
+        const res = await fetch(`/delete_vehicle/${carId}`, {
+          method: 'DELETE'
+        });
+
+        if (res.ok) {
+          // SUCCESS → Permanently remove row
+          row.remove();
+          showToast('Car deleted successfully!');
+
+          // Invalidate cache and refresh KPIs/table
+          cachedInventory = null;
+          queueRefresh(true);
+          fetch('/flush_superset_cache', { method: 'POST' });
+        } else {
+          throw new Error('Server error');
+        }
+      } catch (err) {
+        // FAILURE → Rollback UI
+        row.style.opacity = '1';
+        deleteButton.disabled = false;
+        deleteButton.textContent = '🗑️ Delete';
+        deletingText.remove();
+
+        showToast('Delete failed — try again');
+        console.error('Delete error:', err);
+      }
+    }
+
+    function showToast(message, duration = 3000) {
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #10b981;
+        color: white;
+        padding: 14px 28px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 15px;
+        z-index: 10000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        animation: toastIn 0.4s ease;
+      `;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'toastOut 0.4s ease forwards';
+        setTimeout(() => toast.remove(), 400);
+      }, duration);
+    }
+
+    // Toast animations
+    const toastStyle = document.createElement('style');
+    toastStyle.textContent = `
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    }
+    `;
+    document.head.appendChild(toastStyle);
+
+    // INTERACTIVE: Hovers, Clicks, Modal Helpers (Builds on Your Existing)
+    document.addEventListener('DOMContentLoaded', () => {
+      // HOVER GLOW: Buttons lift/shadow on mouse over
+      document.querySelectorAll('.sidebar-btn, .kpi-card, th').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+          el.style.transform = 'translateY(-2px)';
+          el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+          el.style.transition = 'all 0.2s ease';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.transform = 'translateY(0)';
+          el.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+        });
+      });
+
+      // CLICK DRILL-DOWN: KPI clicks show details (modal with data)
+      document.querySelectorAll('.kpi-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const value = card.querySelector('.kpi-value').textContent;
+          const title = card.querySelector('.kpi-title').textContent;
+          alert(`${title}: ${value}`); // TEMP: Replace with modal for details
+        });
+      });
+
+      // TABLE CLICK SORT (Your existing, but enhanced for touch)
+      document.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const column = th.dataset.sort;
+          sortTable(column);
+        });
+      });
+
+      // MODAL CLOSE ON ESC KEY (for all modals)
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.sidebar-form.open').forEach(form => form.classList.remove('open'));
+        }
+      });
+    });
+  </script>
+
+  <script>
+    // AUTO-UPDATE CHARTS ON ANY FORM SUBMIT — FIXED CSRF!
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(form);
+          const action = form.action || window.location.href;
+          const method = form.method || 'POST';
+
+          // FIX: ADD CSRF TOKEN (from Flask-WTF hidden input)
+          const csrfToken = form.querySelector('input[name="csrf_token"]')?.value;
+          if (csrfToken) formData.append('csrf_token', csrfToken);
+
+          const submitBtn = form.querySelector('input[type="submit"], button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.value = 'Saving...';
+          }
+
+          fetch(action, {
+            method: method,
+            body: formData
+          })
+            .then(r => r.json().catch(() => r.text()))
+            .then(result => {
+              let success = false;
+
+              if (r.redirected) success = true;  // Flask redirect = success
+              else if (result.success === true || result.status === 'success') success = true;
+              else if (typeof result === 'string' && result.includes('success')) success = true;
+
+              if (success) {
+                alert('Saved successfully!');
+                form.reset();
+
+                // REFRESH CHARTS INSTANTLY
+                if (typeof loadProfitData === 'function') loadProfitData(true);
+                if (typeof loadSalesData === 'function') loadSalesData(true);
+
+                // OPTIONAL: RELOAD PAGE FOR TABLE (or update table via AJAX)
+                setTimeout(() => location.reload(), 800);
+              } else {
+                alert('Error saving. Check form.');
+                console.error(result);
+              }
+            })
+            .catch(err => {
+              console.error(err);
+              alert('submitted');
+              form.submit(); // Fallback
+            })
+            .finally(() => {
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.value = submitBtn.dataset.originalValue || 'Submit';
+              }
+            });
+
+          // SAVE ORIGINAL BUTTON TEXT
+          if (submitBtn && submitBtn.value) submitBtn.dataset.originalValue = submitBtn.value;
+        });
+      });
+    });
+
+  </script>
+  <script>
+  // Open/close AI panel — same as other buttons
+  document.getElementById('aiAdviserBtn').addEventListener('click', function(e) {
+    e.stopPropagation(); // Stop click from closing it immediately
+    const aiForm = document.getElementById('aiAdviserForm');
+    aiForm.classList.toggle('open');
+
+    // Close all other sidebar forms
+    ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm', 'reportForm', 'settingsForm'].forEach(id => {
+      const form = document.getElementById(id);
+      if (form && form !== aiForm) {
+        form.classList.remove('open');
+      }
+    });
+  });
+
+  // Send message to AI
+  async function sendAIMessage() {
+    const input = document.getElementById('aiUserInput');
+    const message = input.value.trim();
+    if (!message) return;
+
+    addMessageToChat(message, 'user');
+    input.value = '';
+
+    const thinking = addMessageToChat('Thinking...', 'ai', true);
+
+    try {
+      const res = await fetch('/api/ai_chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+      });
+      const data = await res.json();
+      thinking.remove();
+      addMessageToChat(data.reply || "Try again!", 'ai');
+    } catch (err) {
+      thinking.remove();
+      addMessageToChat("No connection. Check later! 😴", 'ai');
+    }
+  }
+
+  // Create chat bubble
+  function addMessageToChat(text, sender, isThinking = false) {
+    const container = document.getElementById('aiChatMessages');
+    const bubble = document.createElement('div');
+    bubble.style.cssText = `
+      max-width: 92%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      word-wrap: break-word;
+      font-size: 14px;
+      ${sender === 'user' 
+        ? 'background:#70b583; color:white; align-self:flex-end; margin-left:auto;' 
+        : 'background:#e0e0e0; color:black; align-self:flex-start;'}
+    `;
+    if (isThinking) bubble.style.fontStyle = 'italic';
+    bubble.innerHTML = text.replace(/\n/g, '<br>');
+    container.appendChild(bubble);
+    container.scrollTop = container.scrollHeight;
+    return bubble;
+  }
+
+  // Send with Enter key
+  document.getElementById('aiUserInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      sendAIMessage();
+    }
+  });
+</script>
+</body>
+
+</html>

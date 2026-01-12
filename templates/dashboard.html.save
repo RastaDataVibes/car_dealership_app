@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenChain Dashboard</title>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0/dist/superset-embedded-sdk.min.js"></script>
+  <!-- Add these two lines for Chart.js magic -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .dashboard-container {
+      display: flex;
+      align-items: stretch;
+      gap: 20px;
+      max-width: 100%;
+    }
+
+    .sidebar {
+      width: 232px;
+      background-color: #B1B2B5FF;
+      border-radius: 8px;
+      padding: 15px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar-btn {
+      width: 90%;
+      margin: 0 auto;
+      padding: 10px 15px;
+      text-align: left;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #d1d1d1;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .sidebar-btn:hover {
+      background: #c0c0c0;
+    }
+
+    .sidebar-form {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      background: #e8e8e8;
+      padding: 0 10px;
+      border-radius: 6px;
+    }
+
+    .sidebar-form.open {
+      max-height: 500px;
+      padding: 10px;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #B1B2B5FF;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      padding: 0 15px;
+      height: 91px;
+      flex-wrap: wrap;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-title {
+      font-size: 24px;
+      font-weight: bold;
+      text-transform: lowercase;
+      color: #333;
+    }
+
+    .arrow-btn {
+      font-size: 20px;
+      cursor: pointer;
+      user-select: none;
+      color: grey;
+      transition: color 0.2s;
+    }
+
+    .arrow-btn.active {
+      color: black;
+      font-weight: bold;
+    }
+
+    .search-container {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .search-input {
+      font-size: 18px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .search-btn {
+      font-size: 18px;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .profile-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .profile-photo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #ccc;
+    }
+
+    .profile-name {
+      font-size: 16px;
+    }
+
+    .profile-dropdown {
+      position: absolute;
+      top: 55px;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      width: 200px;
+      max-height: 0;
+      transition: max-height 0.3s ease;
+    }
+
+    .profile-dropdown.open {
+      max-height: 300px;
+    }
+
+    .profile-dropdown input {
+      width: 90%;
+      margin: 10px auto;
+      display: block;
+      padding: 5px;
+    }
+
+    .profile-dropdown button {
+      margin: 10px auto;
+      display: block;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .kpi-container      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .kpi-card {
+      height: 95px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .green {
+      width: 193px;
+      background-color: #70b583FF;
+    }
+
+    .yellow {
+      width: 207px;
+      background-color: #b5a01eFF;
+    }
+
+    .blue {
+      width: 222px;
+      background-color: #3f7db5FF;
+    }
+
+    .purple {
+      width: 222px;
+      background-color: #9658b5FF;
+    }
+
+    .chart-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background-color: #B1B2B5FF;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .sales-trend {
+      width: 541px;
+      height: 300px;
+    }
+
+    .profit-make {
+      width: 343px;
+      height: 300px;
+    }
+
+    .inventory-table {
+      width: 904px;
+      max-height: 346px;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .dashboard-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(255, 255, 255, 0.95);
+      z-index: 99999;
+      padding: 0;
+    }
+
+    .dashboard-overlay .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 10000
+    }
+
+    @media(max-width:1200px) {
+      .topbar {
+        flex-direction: column;
+        height: auto;
+        gap: 5px;
+      }
+    }
+
+    form input,
+    form select {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    form button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      background-color: #3f7db5FF;
+      color: white;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #2e5e8f;
+    }
+
+    .table-container {
+      position: relative;
+      border: none;
+      border-radius: 0;
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+    }
+
+    .table-search {
+      padding: 10px;
+      background: #B1B2B5FF;
+      border-bottom: 1px solid #dee2e6;
+      flex-shrink: 0;
+    }
+
+    .table-search input {
+      width: 50%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background-color: white;
+      color: black;
+    }
+
+    .table-wrapper {
+      flex: 1;
+      /* Grow to fill remaining height, but don't shrink below content if needed */
+      overflow: auto;
+      /* Enable horizontal and vertical scrolling as needed */
+      min-height: 0;
+      /* Allow flex child to shrink for scrolling */
+      scrollbar-width: thin;
+      /* Firefox */
+      scrollbar-color: #ccc #f8f9fa;
+      background-color: #B1B2B5FF;
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+      width: 8px;
+      /* Thin scrollbar like Superset */
+      height: 8px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-track {
+      background: #B1B2B5FF;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 4px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+      background: #bbb;
+    }
+
+    table {
+      min-width: 100%;
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+      background-color: #B1B2B5FF;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      border: 1px solid #888;
+      text-align: left;
+      vertical-align: middle;
+      height: 40px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      position: relative;
+      background-color: #B1B2B5FF;
+      color: #000 !important;
+      font-size: 16px;
+    }
+
+    th:hover::after,
+    td:hover::after {
+      content: attr(title);
+      /* Uses title attribute set in JS */
+      position: absolute;
+      background: #333;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      z-index: 10;
+      white-space: normal;
+      max-width: 200px;
+      font-size: 12px;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 4px;
+    }
+
+    th {
+      background: #B1B2B5FF;
+      cursor: pointer;
+      user-select: none;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    th:hover {
+      background: #a0a1a4;
+    }
+
+    th.sort-asc::after {
+      content: ' ▲';
+    }
+
+    th.sort-desc::after {
+      content: ' ▼';
+    }
+
+    .numeric {
+      text-align: right;
+    }
+
+    .success-bg {
+      background-color: #d4edda !important;
+      color: black !important;
+    }
+
+    .photo-cell img {
+      max-width: 50px;
+      max-height: 40px;
+      height: auto;
+      vertical-align: middle;
+    }
+
+    .na-faint {
+      color: #666 !important;
+      font-style: italic;
+    }
+
+    /* CHANGED: Updated CSS for cell bars to mimic horizontal bar graph: bar-container full inner height, bar positioned at bottom spanning full available height and percentage width, text overlaid with right alignment for numeric cells, ensuring bar "sits" on vertical grid (left border as x-axis start) and extends horizontally along the cell's inner space (like bar length/height in horizontal orientation). Border-radius 0 to align flush with grid lines where possible. */
+    .bar-container {
+      position: relative;
+      height: 24px;
+      /* Adjusted for cell height 40px minus top/bottom padding 8px each */
+      line-height: 24px;
+      width: 100%;
+      display: block;
+      line-height: 40px;
+    }
+
+    .bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 100%;
+      border-radius: 0;
+      /* Flush with edges for grid alignment */
+      opacity: 0.8;
+    }
+
+    .bar-positive {
+      background-color: #28a745;
+      /* Success green */
+    }
+
+    .bar-negative {
+      background-color: #dc3545;
+      /* Red for negative */
+    }
+
+    .bar-text {
+      position: relative;
+      z-index: 2;
+      display: block;
+      padding: 0 8px;
+      text-align: right;
+      /* Align with numeric right-align */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* CHANGE 1: Black background for chart canvas - expect: dark chart area, bars/lines pop against black */
+    #profitChart {
+      background-color: black !important;
+    }
+
+    /* CHANGE 2: White text for chart elements to contrast black background - expect: Y-axis ticks, legend, and tooltips in white for readability */
+    #profitChart .chartjs-render-monitor,
+    #profitChart text,
+    .chartjs-legend li,
+    .chartjs-tooltip {
+      color: white !important;
+    }
+
+    /* CHANGE 3: White grid lines for y-axis to stand out on black - expect: subtle white lines for better readability without clutter */
+    #profitChart .chartjs-grid {
+      color: rgba(128, 128, 128, 0.3) !important;
+    }
+
+    /* CHANGE 4: Seamless chart in card - set profit-make card background to black - expect: canvas black blends with card, single rounded black border from card's border-radius/box-shadow, no double borders like inventory table */
+    .profit-make {
+      background-color: black !important;
+      padding: 0;
+      /* CHANGE 5: Remove padding - expect: canvas fills card edge-to-edge, seamless like table */
+      border-radius: 8px;
+      /* CHANGE 6: Ensure rounded corners on card - expect: chart edges round, no sharp canvas corners */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      /* CHANGE 7: Darker shadow - expect: more prominent depth, blends seamless with black, similar to table's subtle shadow */
+    }
+
+    /* CHANGE 8: Canvas inherits rounded corners - expect: #profitChart matches card's 8px radius, no double borders, fully seamless */
+    #profitChart {
+      border-radius: 8px !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard-container">
+    <div class="sidebar">
+      <button class="sidebar-btn" id="dashboardBtn">📊 Dashboard</button>
+      <button class="sidebar-btn" id="addCarBtn">🚘 Add Car</button>
+      <div class="sidebar-form" id="addCarForm">
+        <form id="addCarFormElement">
+          <input type="text" name="make" placeholder="Make">
+          <input type="text" name="model" placeholder="Model">
+          <input type="number" name="year" placeholder="Year">
+          <input type="number" step="0.01" name="purchase_price" placeholder="Purchase Price">
+          <input type="number" step="0.01" name="selling_price" placeholder="Selling Price">
+          <input type="number" name="mileage" placeholder="Mileage">
+          <input type="file" name="photo" accept="image/*">
+          <button type="submit">Add Vehicle</button>
+        </form>
+      </div>
+      <button class="sidebar-btn" id="addExpenseBtn">🫰🏾 Add Expense</button>
+      <div class="sidebar-form" id="addExpenseForm">
+        <form id="addExpenseFormElement">
+          <select name="vehicle_id" id="expenseVehicleSelect"></select>
+          <input type="text" name="expense_category" placeholder="Expense Category">
+          <input type="number" step="0.01" name="expense_amount" placeholder="Expense Amount">
+          <button type="submit">Add Expense</button>
+        </form>
+      </div>
+      <button class="sidebar-btn" id="editCarBtn">📝 Edit Car</button>
+      <div class="sidebar-form" id="editCarForm">
+        <form id="editCarFormElement">
+          <select name="vehicle_id" id="editVehicleSelect"></select>
+          <input type="text" name="make" placeholder="Make">
+          <input type="text" name="model" placeholder="Model">
+          <input type="number" name="year" placeholder="Year">
+          <input type="number" step="0.01" name="purchase_price" placeholder="Purchase Price">
+          <input type="number" step="0.01" name="selling_price" placeholder="Selling Price">
+          <input type="number" name="mileage" placeholder="Mileage">
+          <input type="file" name="photo" accept="image/*">
+          <button type="submit">Update Vehicle</button>
+        </form>
+      </div>
+      <button class="sidebar-btn">📈 Report</button>
+      <button class="sidebar-btn">⚙️ Settings</button>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <div class="top-left">
+          <span class="arrow-btn" id="back-btn">&#8592;</span>
+          <span class="arrow-btn active" id="forward-btn">&#8594;</span>
+          <span class="app-title">greenchain</span>
+        </div>
+        <div class="search-container">
+          <input type="text" class="search-input" id="searchInput" placeholder="Type to search...">
+          <button class="search-btn" id="searchBtn">&#128269;</button>
+        </div>
+        <div class="profile-container" id="profileContainer">
+          <img src="https://via.placeholder.com/40" class="profile-photo" id="profilePhoto">
+          <span class="profile-name" id="profileName">User</span>
+          <div class="profile-dropdown" id="profileDropdown">
+            <input type="text" id="nameInput" placeholder="Enter name">
+            <input type="email" id="emailInput" placeholder="Enter email">
+            <input type="file" id="photoInput" accept="image/*">
+            <button id="saveProfile">Save</button>
+          </div>
+        </div>
+      </div>
+      <div class="kpi-container">
+        <div class="kpi-card green" id="kpiCard1">
+        </div>
+        <div class="kpi-card yellow">KPI 2</div>
+        <div class="kpi-card blue">KPI 3</div>
+        <div class="kpi-card purple">KPI 4</div>
+      </div>
+      <div class="card" id="dashboardContainer"
+        style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background-color: white; padding: 0; margin: 0;">
+        <button id="closeDashboardBtn"
+          style="position: absolute; top: 10px; right: 10px; z-index: 10000; font-size: 20px; background: red; color: white; border: none; border-radius: 4px; cursor: pointer;">X</button>
+        <!-- SDK will render dashboard here -->
+      </div>
+      <div class="chart-row">
+        <div class="card sales-trend">
+          <iframe src="http://localhost:8088/superset/explore/p/mQeaxEv6bYP/?standalone=1&height=300" seamless
+            frameborder="0" scrolling="no" style="border:0; width:100%; height:100%;"></iframe>
+        </div>
+        <div class="card profit-make">
+          <canvas id="profitChart" width="343" height="300"></canvas> <!-- The chart spot! -->
+        </div>
+      </div>
+      <!-- Inventory Table -->
+      <div class="card inventory-table" id="inventoryTableContainer">
+        <div class="table-container">
+          <div class="table-search">
+            <input type="text" id="tableSearch" placeholder="Search table data...">
+          </div>
+          <div class="table-wrapper">
+            <table id="inventoryTable">
+              <thead>
+                <tr>
+                  <th data-sort="id">ID <span class="sort-icon">▲</span></th>
+                  <th data-sort="date_added">Date Added <span class="sort-icon">▲</span></th>
+                  <th data-sort="make">Make <span class="sort-icon">▲</span></th>
+                  <th data-sort="model">Model <span class="sort-icon">▲</span></th>
+                  <th data-sort="year">Year <span class="sort-icon">▲</span></th>
+                  <th data-sort="mileage">Mileage <span class="sort-icon">▲</span></th>
+                  <th data-sort="status">Status <span class="sort-icon">▲</span></th>
+                  <th data-sort="purchase_price">Purchase Price <span class="sort-icon">▲</span></th>
+                  <th data-sort="expenses_amount">Expenses Amount <span class="sort-icon">▲</span></th>
+                  <th data-sort="selling_price">Selling Price <span class="sort-icon">▲</span></th>
+                  <th data-sort="profit">Profit <span class="sort-icon">▲</span></th>
+                  <th data-sort="date_sold">Date Sold <span class="sort-icon">▲</span></th>
+                  <th data-sort="photo_filename">Photo Filename <span class="sort-icon">▲</span></th>
+                  <th data-sort="days_in_inventory">Days in Inventory <span class="sort-icon">▲</span></th>
+                </tr>
+              </thead>
+              <tbody id="inventoryTableBody">
+                <!-- Data loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const backBtn = document.getElementById('back-btn');
+    const forwardBtn = document.getElementById('forward-btn');
+    backBtn.addEventListener('click', () => { backBtn.classList.add('active'); forwardBtn.classList.remove('active'); });
+    forwardBtn.addEventListener('click', () => { forwardBtn.classList.add('active'); backBtn.classList.remove('active'); });
+    const searchInput = document.getElementById('searchInput');
+    const inventoryTable = document.getElementById('inventoryTable');
+    searchInput.addEventListener('input', () => {
+      const val = searchInput.value.trim().toLowerCase();
+      Array.from(inventoryTable.tBodies[0].rows).forEach(row => {
+        row.style.display = Array.from(row.cells).some(cell => cell.textContent.toLowerCase().includes(val)) ? '' : 'none';
+      });
+    });
+    const profileContainer = document.getElementById('profileContainer');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const saveBtn = document.getElementById('saveProfile');
+    const profilePhoto = document.getElementById('profilePhoto');
+    const profileName = document.getElementById('profileName');
+    const nameInput = document.getElementById('nameInput');
+    const photoInput = document.getElementById('photoInput');
+    profileContainer.addEventListener('click', (e) => {
+      if (["nameInput", "emailInput", "photoInput", "saveProfile"].includes(e.target.id)) return;
+      profileDropdown.classList.toggle('open');
+    });
+    saveBtn.addEventListener('click', () => {
+      if (nameInput.value) profileName.textContent = nameInput.value;
+      if (photoInput.files[0]) { const reader = new FileReader(); reader.onload = e => profilePhoto.src = e.target.result; reader.readAsDataURL(photoInput.files[0]); }
+      profileDropdown.classList.remove('open');
+    });
+    const addCarBtn = document.getElementById('addCarBtn'), addCarForm = document.getElementById('addCarForm');
+    const addExpenseBtn = document.getElementById('addExpenseBtn'), addExpenseForm = document.getElementById('addExpenseForm');
+    const editCarBtn = document.getElementById('editCarBtn'), editCarForm = document.getElementById('editCarForm');
+    addCarBtn.addEventListener('click', () => { addCarForm.classList.toggle('open'); addExpenseForm.classList.remove('open'); editCarForm.classList.remove('open'); });
+    addExpenseBtn.addEventListener('click', () => { addExpenseForm.classList.toggle('open'); addCarForm.classList.remove('open'); editCarForm.classList.remove('open'); });
+    editCarBtn.addEventListener('click', () => { editCarForm.classList.toggle('open'); addCarForm.classList.remove('open'); addExpenseForm.classList.remove('open'); });
+    document.addEventListener('click', e => {
+      const openForms = [addCarForm, addExpenseForm, editCarForm];
+      const buttons = [addCarBtn, addExpenseBtn, editCarBtn];
+      const clickedInside = openForms.some(f => f.contains(e.target)) || buttons.some(b => b.contains(e.target));
+      if (!clickedInside) openForms.forEach(f => f.classList.remove('open'));
+    });
+    async function fetchVehicles(selectEl) {
+      const res = await fetch('/get_vehicles'); const data = await res.json(); selectEl.innerHTML = '<option value="">Select vehicle</option>';
+      data.forEach(v => { const opt = document.createElement('option'); opt.value = v.id; opt.textContent = v.name; selectEl.appendChild(opt); });
+    }
+    const addCarFormElement = document.getElementById('addCarFormElement');
+    addCarFormElement.addEventListener('submit', async e => { e.preventDefault(); const formData = new FormData(addCarFormElement); const res = await fetch('/add_vehicle_ajax', { method: 'POST', body: formData }); if (res.ok) { alert('Vehicle added!'); addCarFormElement.reset(); addCarForm.classList.remove('open'); loadInventoryTable(); } });
+    const addExpenseFormElement = document.getElementById('addExpenseFormElement');
+    const expenseVehicleSelect = document.getElementById('expenseVehicleSelect');
+    addExpenseBtn.addEventListener('click', () => { fetchVehicles(expenseVehicleSelect); });
+    addExpenseFormElement.addEventListener('submit', async e => { e.preventDefault(); const formData = new FormData(addExpenseFormElement); const res = await fetch('/add_expense_ajax', { method: 'POST', body: formData }); if (res.ok) { alert('Expense added!'); addExpenseFormElement.reset(); addExpenseForm.classList.remove('open'); loadInventoryTable(); } });
+    const editCarFormElement = document.getElementById('editCarFormElement');
+    const editVehicleSelect = document.getElementById('editVehicleSelect');
+    editCarBtn.addEventListener('click', () => { fetchVehicles(editVehicleSelect); });
+    editVehicleSelect.addEventListener('change', async () => { const vid = editVehicleSelect.value; if (!vid) return; const res = await fetch(`/get_vehicle/${vid}`); const data = await res.json(); editCarFormElement.make.value = data.make || ''; editCarFormElement.model.value = data.model || ''; editCarFormElement.year.value = data.year || ''; editCarFormElement.purchase_price.value = data.purchase_price || ''; editCarFormElement.selling_price.value = data.selling_price || ''; editCarFormElement.mileage.value = data.mileage || ''; });
+    editCarFormElement.addEventListener('submit', async e => { e.preventDefault(); const formData = new FormData(editCarFormElement); const res = await fetch('/edit_vehicle_ajax', { method: 'POST', body: formData }); if (res.ok) { alert('Vehicle updated!'); editCarFormElement.reset(); editCarForm.classList.remove('open'); loadInventoryTable(); } });
+  </script>
+  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0"></script>
+  <script>
+    async function renderKPIDashboard(dashboardId, containerId) {
+      try {
+        const res = await fetch(`/superset_token/${dashboardId}`);
+        if (!res.ok) throw new Error("Failed to get token");
+        const { token } = await res.json();
+        supersetEmbeddedSdk.embedDashboard({
+          id: dashboardId,
+          supersetDomain: "http://localhost:8088",
+          mountPoint: document.getElementById(containerId),
+          fetchGuestToken: () => Promise.resolve(token),
+          height: 95,
+          dashboardUiConfig: {
+            hideTitle: true,
+            hideTab: true,
+            hideChartControls: true
+          }
+        });
+      } catch (err) {
+        console.error("Error rendering KPI dashboard:", err);
+        document.getElementById(containerId).innerHTML = '<p>Oops! Check console.</p>';
+      }
+    }
+    const KPI_DASHBOARD_ID = "324ba2f0-f011-4225-a9ec-0361e783db95";
+    renderKPIDashboard(KPI_DASHBOARD_ID, "kpiCard1");
+    let sortColumn = null;
+    let sortAscending = false;
+    function formatCurrency(value) {
+      if (!value || value.trim() === '') return 'N/A';
+      let formatted = value.replace(/\$/g, 'UGX ');
+      // ADDED: Align +/- - Add '+' for positive values if not already signed
+      const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
+      if (num > 0 && !formatted.startsWith('+') && !formatted.startsWith('-')) {
+        formatted = '+' + formatted;
+      }
+      return formatted;
+    }
+    function formatField(value) {
+      return value || 'N/A';
+    }
+    function getNaClass(value) {
+      const formatted = formatField(value);
+      return formatted === 'N/A' ? 'na-faint' : '';
+    }
+    function getFormattedCurrencyCell(value) {
+      const formatted = formatCurrency(value);
+      const naClass = formatted === 'N/A' ? 'na-faint' : '';
+      return `<span class="${naClass}">${formatted}</span>`;
+    }
+    async function loadInventoryTable() {
+      try {
+        const res = await fetch('/api/inventory');
+        if (!res.ok) throw new Error(`API failed: ${res.status}`);
+        const response = await res.json();
+        let data = response.formatted_data || [];
+        if (sortColumn) {
+          data.sort((a, b) => {
+            let aVal = a[sortColumn] || '';
+            let bVal = b[sortColumn] || '';
+            if (sortColumn === 'id' || sortColumn === 'year' || sortColumn === 'mileage') {
+              aVal = parseFloat(aVal) || 0;
+              bVal = parseFloat(bVal) || 0;
+            }
+            if (aVal < bVal) return sortAscending ? -1 : 1;
+            if (aVal > bVal) return sortAscending ? 1 : -1;
+            return 0;
+          });
+        }
+        const tbody = document.getElementById('inventoryTableBody');
+        tbody.innerHTML = '';
+        data.forEach((v) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="success-bg numeric ${getNaClass(v.id)}">${formatField(v.id)}</td>
+            <td class="${getNaClass(v.date_added)}">${formatField(v.date_added)}</td>
+            <td class="${getNaClass(v.make)}">${formatField(v.make)}</td>
+            <td class="${getNaClass(v.model)}">${formatField(v.model)}</td>
+            <td class="numeric ${getNaClass(v.year)}">${formatField(v.year)}</td>
+            <td class="numeric ${getNaClass(v.mileage)}">${formatField(v.mileage)}</td>
+            <td class="${getNaClass(v.status)}">${formatField(v.status)}</td>
+            <td class="numeric">${getFormattedCurrencyCell(v.purchase_price)}</td>
+            <td class="numeric">${getFormattedCurrencyCell(v.expenses_amount)}</td>
+            <td class="numeric">${getFormattedCurrencyCell(v.selling_price)}</td>
+            <td class="numeric">${getFormattedCurrencyCell(v.profit)}</td>
+            <td class="${getNaClass(v.date_sold)}">${formatField(v.date_sold)}</td>
+            <td class="photo-cell">${v.photo_filename ? `<img src="/static/uploads/${v.photo_filename}" alt="${v.photo_filename}" onerror="this.style.display='none'">` : '<span class="na-faint">N/A</span>'}</td>
+            <td class="${getNaClass(v.days_in_inventory)}">${formatField(v.days_in_inventory)}</td>
+          `;
+          tbody.appendChild(row);
+        });
+        const tableSearchInput = document.getElementById('tableSearch');
+        tableSearchInput.placeholder = `Search ${data.length} rows`;
+        addCellBars(response.max_profit || 1, response.max_price || 1);
+      } catch (err) {
+        console.error('Table load error:', err);
+      }
+    }
+    function sortTable(column) {
+      sortAscending = sortColumn === column ? !sortAscending : true;
+      sortColumn = column;
+      loadInventoryTable();
+      document.querySelectorAll('th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+      const activeTh = document.querySelector(`th[data-sort="${column}"]`);
+      activeTh.classList.add(sortAscending ? 'sort-asc' : 'sort-desc');
+    }
+    document.getElementById('tableSearch').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('#inventoryTable tbody tr').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(term) ? '' : 'none';
+      });
+    });
+    document.querySelectorAll('th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const column = th.dataset.sort;
+        sortTable(column);
+      });
+    });
+    /* CHANGED: Updated addCellBars to wrap the formatted value in bar-text span within bar-container, ensuring the bar acts as a horizontal extension (length based on value percent) starting from the left vertical grid line (x-axis), spanning the full inner cell height along the horizontal space, mimicking a horizontal bar graph where bar length visually represents magnitude for easy comparison. */
+    function addCellBars(maxProfit, maxPrice) {
+      const barCols = [7, 8, 9, 10]; /* purchase, expenses, selling, profit */
+      const isProfitCol = [false, false, false, true];
+      document.querySelectorAll('#inventoryTable tbody tr').forEach(tr => {
+        barCols.forEach((colIdx, i) => {
+          const cell = tr.cells[colIdx];
+          let valStr = cell.innerHTML.replace(/<[^>]*>/g, '').trim(); /* Extract text content robustly */
+          const val = parseFloat(valStr.replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+          if (isNaN(val) || val === 0) return; /* Skip for N/A or zero */
+          const maxVal = isProfitCol[i] ? maxProfit : maxPrice;
+          if (maxVal > 0) {
+            const percent = (Math.abs(val) / maxVal) * 100;
+            const colorClass = val >= 0 ? 'bar-positive' : 'bar-negative';
+            /* CHANGED: HTML structure for horizontal bar graph effect: bar-container sets inner height, bar fills bottom-to-top (full height) and left-to-percent width, bar-text overlays the value right-aligned for visibility over the bar. */
+            cell.innerHTML = `<div class="bar-container"><div class="bar ${colorClass}" style="width: ${percent}%"></div><span class="bar-text">${valStr}</span></div>`;
+          }
+        });
+      });
+    }
+    $(document).ready(function () {
+      loadInventoryTable();
+    });
+  </script>
+  <!-- EMBEDDED REAL CHART JS - ADDED LEGEND 'SUM(PROFIT)', FIXED VALUE LABELS ON ALL BARS, ENHANCED VERTICAL DOTTED LINE, AND PROMINENT GREY GRID -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var canvas = document.getElementById('profitChart');
+      if (!canvas) {
+        console.log('No canvas found');
+        return;
+      }
+      console.log('Canvas ready - fetching real data for bars!');
+
+      // CHANGE 1: Abbreviate number function (e.g., 19500 -> '19.5k', 1500000 -> '1.5M') - removes UGX and uses compact format for readability
+      // UPDATED: Changed toFixed(2) -> toFixed(1) for 1 decimal place (e.g., '19.5k' instead of '19.50k')
+      function abbreviateNumber(num) {
+        if (num >= 1000000) {
+          return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+        } else if (num >= 1000) {
+          return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+        } else {
+          return num.toString();
+        }
+      }
+
+      fetch('/api/inventory')
+        .then(function (res) {
+          if (!res.ok) {
+            throw new Error('API failed: ' + res.status);
+          }
+          return res.json();
+        })
+        .then(function (response) {
+          var data = response.formatted_data || [];
+          console.log('Total cars loaded: ' + data.length);
+
+          // Filter to Sold only (Superset WHERE status = 'Sold')
+          data = data.filter(function (car) {
+            return car.status === 'Sold';
+          });
+          console.log('Sold cars: ' + data.length);
+          if (data.length === 0) {
+            canvas.parentNode.innerHTML = '<p>No sold cars—add & sell one!</p>';
+            return;
+          }
+
+          // Group by make, SUM(profit) (Superset GROUP BY make, SUM(profit))
+          var makeProfits = {};
+          data.forEach(function (car) {
+            var make = car.make || 'Unknown';
+            var profitStr = car.profit || '';
+            var cleanProfit = profitStr.replace(/UGX |[+$]/g, '').replace(/,/g, '');
+            var profit = parseFloat(cleanProfit) || 0;
+            if (!makeProfits[make]) {
+              makeProfits[make] = 0;
+            }
+            makeProfits[make] += profit;
+          }

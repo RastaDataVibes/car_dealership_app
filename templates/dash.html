@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Mockup</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* Dashboard container: sidebar + main content */
+    .dashboard-container {
+      display: flex;
+      align-items: stretch;
+      gap: 20px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 232px;
+      background-color: #B1B2B5FF;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    /* Main content */
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Top bar spans exactly KPI row width */
+    .topbar {
+      height: 91px;
+      width: 904px;
+      background-color: #B1B2B5FF;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      justify-content: space-between;
+      gap: 20px;
+      position: relative;
+    }
+
+    /* App title */
+    .app-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2e3a59;
+      text-transform: lowercase;
+    }
+
+    /* Search */
+    .search-container {
+      position: relative;
+    }
+
+    .search-container input {
+      padding: 6px 10px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+      width: 200px;
+    }
+
+    /* Search results dropdown */
+    .search-results {
+      position: absolute;
+      top: 35px;
+      left: 0;
+      background: white;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+      width: 100%;
+      max-height: 150px;
+      overflow-y: auto;
+      display: none;
+      z-index: 10;
+    }
+
+    .search-results div {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .search-results div:hover {
+      background-color: #eee;
+    }
+
+    /* Profile */
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .profile-icon {
+      font-size: 22px;
+    }
+
+    /* Profile dropdown */
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      top: 35px;
+      right: 0;
+      background-color: white;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+      width: 150px;
+      z-index: 10;
+    }
+
+    .profile-dropdown .dropdown-item {
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
+    .profile-dropdown .dropdown-item:hover {
+      background-color: #eee;
+    }
+
+    /* KPI row */
+    .kpi-container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .kpi-card {
+      height: 95px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .green {
+      width: 193px;
+      background-color: #70b583FF;
+    }
+
+    .yellow {
+      width: 207px;
+      background-color: #b5a01eFF;
+    }
+
+    .blue {
+      width: 222px;
+      background-color: #3f7db5FF;
+    }
+
+    .purple {
+      width: 222px;
+      background-color: #9658b5FF;
+    }
+
+    /* Charts row */
+    .chart-row {
+      display: flex;
+      gap: 20px;
+    }
+
+    .card {
+      background-color: #B1B2B5FF;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    /* Adjust charts width to match KPI row width */
+    .sales-trend {
+      width: 541px;
+      height: 300px;
+    }
+
+    .profit-make {
+      width: 343px;
+      height: 300px;
+    }
+
+    /* Inventory table full width */
+    .inventory-table {
+      width: 904px;
+      height: 346px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="sidebar"></div>
+
+    <!-- Main content -->
+    <div class="main">
+      <!-- Top bar -->
+      <div class="topbar">
+        <!-- App title -->
+        <div class="app-title">greenchain</div>
+
+        <!-- Search input -->
+        <div class="search-container">
+          <input type="text" id="searchInput" placeholder="🔍 Search" onkeyup="handleSearch()" />
+          <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <!-- Profile info -->
+        <div class="profile" onclick="toggleProfileDropdown()">
+          <span class="profile-icon">👤</span>
+          <span class="profile-name">User</span>
+          <div id="profileDropdown" class="profile-dropdown">
+            <div class="dropdown-item">My Profile</div>
+            <div class="dropdown-item">Settings</div>
+            <div class="dropdown-item">Logout</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI row -->
+      <div class="kpi-container">
+        <div class="kpi-card green">KPI 1</div>
+        <div class="kpi-card yellow">KPI 2</div>
+        <div class="kpi-card blue">KPI 3</div>
+        <div class="kpi-card purple">KPI 4</div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="chart-row">
+        <div class="card sales-trend">Sales Trend</div>
+        <div class="card profit-make">Profit by Make</div>
+      </div>
+
+      <!-- Inventory table -->
+      <div class="card inventory-table">Inventory Table</div>
+    </div>
+  </div>
+
+  <script>
+    // Sample data for search
+    const sampleItems = ["Total Sales", "Profit", "Inventory", "Orders", "Suppliers", "Customers"];
+
+    function handleSearch() {
+      const input = document.getElementById('searchInput').value.toLowerCase();
+      const resultsDiv = document.getElementById('searchResults');
+      resultsDiv.innerHTML = '';
+
+      if (input === '') {
+        resultsDiv.style.display = 'none';
+        return;
+      }
+
+      const filtered = sampleItems.filter(item => item.toLowerCase().includes(input));
+
+      if (filtered.length === 0) {
+        resultsDiv.innerHTML = '<div>No results found</div>';
+      } else {
+        filtered.forEach(item => {
+          const div = document.createElement('div');
+          div.textContent = item;
+          div.onclick = () => {
+            alert(`You selected: ${item}`);
+            resultsDiv.style.display = 'none';
+            document.getElementById('searchInput').value = item;
+          };
+          resultsDiv.appendChild(div);
+        });
+      }
+      resultsDiv.style.display = 'block';
+    }
+
+    function toggleProfileDropdown() {
+      const dropdown = document.getElementById('profileDropdown');
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function (e) {
+      const profile = document.querySelector('.profile');
+      const results = document.getElementById('searchResults');
+
+      if (!profile.contains(e.target)) {
+        document.getElementById('profileDropdown').style.display = 'none';
+      }
+      if (!document.querySelector('.search-container').contains(e.target)) {
+        results.style.display = 'none';
+      }
+    });
+    <script src="templates/topbar.js"></script>
+
+</body>
+
+</html>

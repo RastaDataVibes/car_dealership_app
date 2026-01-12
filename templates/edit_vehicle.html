@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Vehicle</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+  <script>
+    async function loadVehicleDetails() {
+      const vehicleId = document.getElementById('vehicle_id').value;
+      if (!vehicleId) return;
+
+      try {
+        const response = await fetch(`/get_vehicle/${vehicleId}`);
+        if (!response.ok) throw new Error('Vehicle not found');
+        const data = await response.json();
+
+        document.getElementById('make').value = data.make || '';
+        document.getElementById('model').value = data.model || '';
+        document.getElementById('year').value = data.year || '';
+        document.getElementById('purchase_price').value = data.price || '';
+        document.getElementById('selling_price').value = data.selling_price || '';
+        document.getElementById('mileage').value = data.mileage || '';
+
+        if (data.photo) {
+          document.getElementById('vehicle_photo').src = `/static/uploads/${data.photo}`;
+          document.getElementById('photo_container').style.display = 'block';
+        } else {
+          document.getElementById('photo_container').style.display = 'none';
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert('Failed to load vehicle details');
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div class="form-container">
+    <h2>Edit Vehicle</h2>
+    <form method="POST" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        {{ form.vehicle_id.label(class="form-label") }}
+        {{ form.vehicle_id(id="vehicle_id", class="form-control", onchange="loadVehicleDetails()") }}
+      </div>
+
+      <hr>
+
+      <div class="form-group">
+        {{ form.make.label(class="form-label") }}
+        {{ form.make(id="make", class="form-control") }}
+      </div>
+
+      <div class="form-group">
+        {{ form.model.label(class="form-label") }}
+        {{ form.model(id="model", class="form-control") }}
+      </div>
+
+      <div class="form-group">
+        {{ form.year.label(class="form-label") }}
+        {{ form.year(id="year", class="form-control") }}
+      </div>
+
+      <div class="form-group">
+        {{ form.purchase_price.label(class="form-label") }}
+        {{ form.purchase_price(id="purchase_price", class="form-control") }}
+      </div>
+
+      <div class="form-group">
+        {{ form.selling_price.label(class="form-label") }}
+        {{ form.selling_price(id="selling_price", class="form-control") }}
+      </div>
+
+      <div class="form-group">
+        {{ form.mileage.label(class="form-label") }}
+        {{ form.mileage(id="mileage", class="form-control") }}
+      </div>
+
+      <div class="form-group">
+        {{ form.photo.label(class="form-label") }}
+        {{ form.photo(class="form-control") }}
+      </div>
+
+      <div id="photo_container" class="form-group" style="display: none;">
+        <img id="vehicle_photo" src="" alt="Vehicle Photo" width="200">
+      </div>
+
+      <div class="form-group">
+        {{ form.submit(class="btn") }}
+      </div>
+    </form>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Superset Dashboard</title>
+  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.6.0/dist/embedded-sdk.min.js"></script>
+</head>
+<body>
+  <h2>Superset Dashboard</h2>
+  <div id="superset-embed"></div>
+
+  <script>
+    async function loadDashboard() {
+      try {
+        // 1. Request guest token from Flask
+        const tokenResp = await fetch('/get_guest_token');
+        const tokenData = await tokenResp.json();
+
+        if (!tokenData.token) {
+          console.error("No token received:", tokenData);
+          return;
+        }
+
+        const guestToken = tokenData.token;
+
+        // 2. Initialize Superset Embedded SDK
+        const sdk = new window.EmbeddedSDK({
+          host: "http://localhost:8088"  // Superset host (browser URL)
+        });
+
+        // 3. Embed the dashboard
+        sdk.embedDashboard({
+          id: "{{ dashboard_id }}",   // passed from Flask route
+          domContainer: document.getElementById("superset-embed"),
+          fetchGuestToken: async () => guestToken,
+          dashboardUiConfig: {
+            hideTitle: false,
+            hideChartControls: false
+          }
+        });
+      } catch (err) {
+        console.error("Error loading Superset dashboard:", err);
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
+
