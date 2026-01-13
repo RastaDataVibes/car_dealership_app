@@ -38,6 +38,7 @@ class Inventory(db.Model):
     date_added = db.Column(db.DateTime)
     sale_date = db.Column(db.DateTime)
     notes = db.Column(db.Text)
+    dealership_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     # Relationship to Expenses
     expenses = db.relationship(
