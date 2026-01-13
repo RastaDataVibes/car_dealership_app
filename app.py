@@ -288,16 +288,17 @@ def home():
 @app.route('/get_vehicles')
 @subscription_required
 def get_vehicles():
-    vehicles = Inventory.query.all()
+    vehicles = Inventory.query.filter_by(dealership_id=current_user.id).all()
     data = [
-        {'id': v.id, 'name': f"{v.make or 'N/A'} {v.model or 'N/A'} ({v.year or 'Unknown'}, {v.status})"} for v in vehicles]
+        {'id': v.id, 'name': f"{v.make or 'N/A'} {v.model or 'N/A'} ({v.year or 'Unknown'}-{v.registration_number or 'No Reg'}({v.status})"} for v in vehicles]
     return jsonify(data)
 
 
 @app.route('/get_vehicle/<int:vehicle_id>')
 @subscription_required
 def get_vehicle(vehicle_id):
-    vehicle = Inventory.query.get(vehicle_id)
+    vehicle = Inventory.query.filter_by(
+        id=vehicle_id, dealership_id=current_user.id).first_or_404()
     if not vehicle:
         return jsonify({})
     return jsonify({
@@ -343,7 +344,9 @@ def add_vehicle_ajax():
         mileage=mileage,
         notes=notes,
         photo_filename=filename,
-        date_added=datetime.now(timezone.utc)
+        date_added=datetime.now(timezone.utc),
+        dealership_id=current_user.id
+        
     )
     db.session.add(vehicle)
     db.session.commit()
@@ -356,6 +359,8 @@ def add_vehicle_ajax():
 @subscription_required
 def add_expense_ajax():
     vehicle_id = request.form.get('vehicle_id', type=int)
+    vehicle = Inventory.query.filter_by(
+        id=vehicle_id, dealership_id=current_user.id).first_or_404()
     category = request.form.get('expense_category') or None
     amount = clean_float(request.form.get('expense_amount'))
 
@@ -377,7 +382,7 @@ def add_expense_ajax():
 @subscription_required
 def edit_vehicle_ajax():
     vehicle_id = request.form.get('vehicle_id', type=int)
-    vehicle = Inventory.query.get(vehicle_id)
+    vehicle = Inventory.query.filter_by(id=vehicle_id, dealership_id=current_user.id).first()
     if not vehicle:
         return jsonify({'message': 'Vehicle not found!'}), 404
 
@@ -412,10 +417,12 @@ def record_sale_ajax():
 
     # Resolve vehicle: prefer ID, fallback to registration number
     if vehicle_id:
-        vehicle = Inventory.query.get(vehicle_id)
+        vehicle = Inventory.query.filter_by(
+            id=vehicle_id, dealership_id=current_user.id).first()
     elif reg_number:
         vehicle = Inventory.query.filter(
-            db.func.upper(Inventory.registration_number) == reg_number
+            db.func.upper(Inventory.registration_number) == reg_number,
+            Inventory.dealership_id == current_user.id
         ).first()
     else:
         return jsonify({'success': False, 'message': 'Please select or enter a vehicle'}), 400
@@ -468,7 +475,7 @@ def record_sale_ajax():
 @subscription_required
 def delete_vehicle(car_id):
     try:
-        vehicle = Inventory.query.get(car_id)  # Find car
+        vehicle = Inventory.query.filter_by(id=car_id, dealership_id=current_user.id).first_or_404()
         if not vehicle:
             return jsonify({'error': 'Car not found'}), 404
 
@@ -500,7 +507,7 @@ def superset_token(dashboard_id):
 @app.route('/api/inventory', methods=['GET'])
 @subscription_required
 def get_inventory():
-    vehicles = Inventory.query.all()
+    vehicles = Inventory.query.filter_by(dealership_id=current_user.id).all()
     # Shows if data fetched
     print(f"DEBUG: Raw query found {len(vehicles)} vehicles")
 
@@ -650,9 +657,10 @@ def superset_token(dashboard_id):
 
 
 @app.route('/inventory')
+@subscription_required
 def inventory():
     # No limit; all data like LIMIT 100000 (but query.all() for model)
-    vehicles = Inventory.query.all()
+    vehicles = Inventory.query.filter_by(dealership_id=current_user.id).all()
 
     rows = []
     max_profit = 0
@@ -891,7 +899,7 @@ def ai_chat():
     if not user_message:
         return jsonify({"reply": "Ask me about cars, expenses, payments, or advice! 🚗💸"})
     
-    vehicles = Inventory.query.all()
+    vehicles = Inventory.query.filter_by(dealership_id=current_user.id).all()
     
     total_cars = len(vehicles)
     sold_cars = len([v for v in vehicles if v.status == 'Sold'])
