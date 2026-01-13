@@ -170,10 +170,11 @@
       width: 200px;
       max-height: 0;
       transition: max-height 0.3s ease;
+      z-index: 1000;
     }
 
     .profile-dropdown.open {
-      max-height: 300px;
+      max-height: 400px;
     }
 
     .profile-dropdown input {
@@ -188,6 +189,22 @@
       display: block;
       padding: 5px 10px;
       cursor: pointer;
+    }
+
+    .profile-logout {
+      display: block;
+      text-align: center;
+      padding: 12px;
+      color: #333;
+      font-weight: normal;
+      text-decoration: none;
+      font-size: 14px;
+      border-top: 1px solid #eee;
+      /* Line above Logout */
+    }
+
+    .profile-logout:hover {
+      background: #fff;
     }
 
     .kpi-container {
@@ -1024,7 +1041,8 @@
         <div class="top-left">
           <span class="arrow-btn" id="back-btn" onclick="goBack()">&#8592;</span>
           <span class="arrow-btn active" id="forward-btn" onclick="goForward()">&#8594;</span>
-          <span class="app-title">greenchain</span>
+          <img src="/static/uploads/logo.png" alt="GreenChain Logo"
+            style="height: 100px; width: 100px; margin-left: 13px; border-radius: 50%; object-fit: contain;">
         </div>
         <div class="search-container">
           <input type="text" class="search-input" id="searchInput" placeholder="Type to search...">
