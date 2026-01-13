@@ -119,6 +119,32 @@ class Payment(db.Model):
                            default=lambda: datetime.now(timezone.utc),
                            server_default=func.now())
 
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    dealership_name = db.Column(db.String(100), nullable=False, unique=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    phone = db.Column(db.String(20))
+    password_hash = db.Column(db.String(128))
+    is_trial = db.Column(db.Boolean, default=True)  # True = free trial
+    trial_start = db.Column(db.DateTime, default=datetime.utcnow)
+    subscription_plan = db.Column(
+        db.String(20), default='trial')  # starter, standard, pro
+    subscription_end = db.Column(db.DateTime)  # when subscription expires
+    date_created = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    profile_name = db.Column(db.String(100))
+    profile_photo_filename = db.Column(db.String(300))
+
+    def set_password(self, password):
+        from werkzeug.security import generate_password_hash
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        from werkzeug.security import check_password_hash
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f"<User {self.dealership_name}>"
 
 # ------------------------
 # Automatic behavior for Inventory
