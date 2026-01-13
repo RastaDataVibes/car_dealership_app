@@ -77,6 +77,16 @@ app = Flask(__name__)
 app.config.from_object(Config)
 '''db = SQLAlchemy(app)'''
 db.init_app(app)
+
+with app.app_context():
+    from sqlalchemy import inspect
+    inspector = inspect(db.engine)
+    if not inspector.has_table('user'):           # or 'inventory' — your choice
+        db.create_all()
+        print("✅ Database tables created successfully (first run)")
+    else:
+        print("✅ Tables already exist, skipping creation")
+
 app.register_blueprint(dashboard_bp)
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads')
