@@ -25,3 +25,4 @@ flask-bcrypt==1.0.1
 flask-mail==0.10.0
 itsdangerous==2.2.0
 pesapal-py==0.1.3
+email_validator==2.2.0
