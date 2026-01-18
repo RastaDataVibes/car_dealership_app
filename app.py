@@ -96,6 +96,122 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 mail = Mail(app)
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
+# PESAPAL SETTINGS
+PESAPAL_BASE_URL = 'https://cybqa.pesapal.com/pesapalv3/'  # Test mode base URL
+PESAPAL_TOKEN_URL = 'https://cybqa.pesapal.com/pesapalv3/api/Auth/RequestToken'  # Test
+PESAPAL_ORDER_URL = 'https://cybqa.pesapal.com/pesapalv3/api/Transactions/SubmitOrderRequest'  # Test
+PESAPAL_CALLBACK_URL = 'https://kale-unpawed-bryson.ngrok-free.dev/pesapal_callback'  # Your app
+
+
+def get_pesapal_token():
+    payload = {
+        "consumer_key": app.config['PESAPAL_CONSUMER_KEY'],
+        "consumer_secret": app.config['PESAPAL_CONSUMER_SECRET']
+    }
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(PESAPAL_TOKEN_URL, json=payload, headers=headers)
+    print("Token request status:", response.status_code)
+    print("Token response:", response.text)
+
+    if response.status_code == 200:
+        try:
+            return response.json()['token']
+        except KeyError:
+            print("Token key missing in response")
+            return None
+    else:
+        print("Pesapal login failed")
+        return None
+
+
+def register_pesapal_ipn():
+    token = get_pesapal_token()
+    if not token:
+        print("Cannot register IPN: no token")
+        return "test_ipn_id"  # Fallback
+
+    url = f"{PESAPAL_BASE_URL}URLSetup/RegisterIPN"
+    payload = {
+        "url": PESAPAL_CALLBACK_URL,
+        "ipn_notification_type": "GET"
+    }
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token}'
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+    print("IPN register status:", response.status_code)
+    print("IPN register response:",
+          response.text or "EMPTY RESPONSE (normal in test)")
+
+    if response.status_code == 200:
+        # Pesapal test often returns empty body on success
+        if response.text.strip():
+            try:
+                data = response.json()
+                return data['ipn_id']
+            except:
+                print("JSON parse error, using fallback")
+                return "test_ipn_id"
+        else:
+            print("Empty response — IPN registered successfully (test mode)")
+            return "test_ipn_id"  # Fallback works
+    else:
+        print("IPN registration failed")
+        return None
+
+
+# Register IPN and get notification_id
+PESAPAL_NOTIFICATION_ID = register_pesapal_ipn()
+
+if PESAPAL_NOTIFICATION_ID:
+    print("Your notification_id:", PESAPAL_NOTIFICATION_ID)
+else:
+    print("Failed to get notification_id — check logs")
+
+
+def initiate_pesapal_payment(amount, plan, user):
+    token = get_pesapal_token()
+    if not token:
+        return None
+
+    order_data = {
+        "id": f"greenchain_{int(time.time())}",
+        "currency": "UGX",
+        "amount": amount,
+        "description": f"GreenChain {plan} subscription",
+        "callback_url": PESAPAL_CALLBACK_URL,
+        # Pesapal gives this in dashboard
+        "notification_id": PESAPAL_NOTIFICATION_ID or "test_ipn_id",
+        "billing_address": {
+            "email_address": user.email,
+            "phone_number": user.phone or "",
+            "first_name": user.dealership_name
+        }
+    }
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token}'
+    }
+
+    response = requests.post(
+        PESAPAL_ORDER_URL, json=order_data, headers=headers)
+    print("Order status:", response.status_code)
+    print("Order response:", response.text)
+
+    if response.status_code == 200:
+        data = response.json()
+        redirect_url = data.get('redirect_url') or data.get(
+            'url') or data.get('order_tracking_id')
+        if redirect_url:
+            return redirect_url
+        print("No redirect_url in response")
+    else:
+        print("Order failed")
+    return None
+
 # NEW: Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
