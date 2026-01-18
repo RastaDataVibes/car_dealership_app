@@ -11,6 +11,7 @@ from extensions import db
 from datetime import datetime, timezone
 from sqlalchemy import event
 from sqlalchemy import func  # Tweak: Added for sum query in helper
+from flask_login import UserMixin
 
 # ------------------------
 # Inventory Table
