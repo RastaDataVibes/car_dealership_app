@@ -10,3 +10,13 @@ class Config:
     
     # ADD: Toggle for cache flush (false on Render to skip Redis errors)
     FLUSH_CACHE_ENABLED = os.environ.get('FLUSH_CACHE_ENABLED', 'true').lower() == 'true'  # Bool for easy if-checks in app.py
+# Email configuration
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'opiobethle@gmail.com')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')  # MUST be in env vars
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_USERNAME', 'opiobethle@gmail.com')
+
+    PESAPAL_CONSUMER_KEY = os.environ.get('PESAPAL_CONSUMER_KEY')
+    PESAPAL_CONSUMER_SECRET = os.environ.get('PESAPAL_CONSUMER_SECRET')
