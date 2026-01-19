@@ -81,7 +81,7 @@ db.init_app(app)
 with app.app_context():
     from sqlalchemy import inspect
     inspector = inspect(db.engine)
-    if not inspector.has_table('user'):           # or 'inventory' — your choice
+    if not inspector.has_table('users'):           # or 'inventory' — your choice
         db.create_all()
         print("✅ Database tables created successfully (first run)")
     else:
