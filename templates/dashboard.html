@@ -1049,13 +1049,17 @@
           <button class="search-btn" id="searchBtn">&#128269;</button>
         </div>
         <div class="profile-container" id="profileContainer">
-          <img src="https://via.placeholder.com/40" class="profile-photo" id="profilePhoto">
-          <span class="profile-name" id="profileName">User</span>
+          <img 
+            src="{% if current_user.profile_photo_filename %}/static/uploads/{{ current_user.profile_photo_filename }}{% else %}https://via.placeholder.com/40{% endif %}"
+            class="profile-photo" id="profilePhoto">
+          <span class="profile-name" id="profileName">{{ current_user.profile_name or current_user.dealership_name or
+            'User' }}</span>
           <div class="profile-dropdown" id="profileDropdown">
             <input type="text" id="nameInput" placeholder="Enter name">
             <input type="email" id="emailInput" placeholder="Enter email">
             <input type="file" id="photoInput" accept="image/*">
             <button id="saveProfile">Save</button>
+            <a href="{{ url_for('logout') }}" class="profile-logout">Logout</a>
           </div>
         </div>
       </div>
