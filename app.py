@@ -994,7 +994,6 @@ def initiate_payment():
 
 
 @app.route('/pesapal_callback')
-@login_required
 def pesapal_callback():
     # Pesapal redirects here after payment
     # For now just redirect to dashboard
