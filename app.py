@@ -126,49 +126,64 @@ def get_pesapal_token():
         
 
 def initiate_pesapal_payment(amount, plan, user):
+    print("Inside initiate_pesapal_payment for user ID:", user.id)
+    
     token = get_pesapal_token()
     if not token:
+        print("!!! CRITICAL: No token received from Pesapal - check consumer key/secret in Render env vars")
         return None
-
-    merchant_ref = f"user_{user.id}_{int(time.time())}"  # ← user.id is the logged-in user's ID
-    print("Generated merchant reference for this payment:", merchant_ref)
+    
+    print("Token received successfully")
+    
+    merchant_ref = f"user_{user.id}_{int(time.time())}"
+    print("Generated merchant_ref:", merchant_ref)
     
     order_data = {
         "id": merchant_ref,
         "currency": "UGX",
-        "amount": amount,
+        "amount": float(amount),  # force number
         "description": f"GreenChain {plan} subscription",
         "callback_url": PESAPAL_CALLBACK_URL,
-        # Pesapal gives this in dashboard
         "notification_id": REAL_NOTIFICATION_ID,
         "billing_address": {
-            "email_address": user.email,
-            "phone_number": user.phone or "",
-            "first_name": user.dealership_name
+            "email_address": user.email or "test@example.com",  # fallback if missing
+            "phone_number": user.phone or "256700000000",
+            "first_name": user.dealership_name or "Test User"
         }
     }
-
+    print("Order data being sent to Pesapal:", order_data)
+    
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {token}'
     }
-    print("Sending payment request to Pesapal...")
-    response = requests.post(
-        PESAPAL_ORDER_URL, json=order_data, headers=headers)
-    print("Order status:", response.status_code)
-    print("Order response:", response.text)
-
+    
+    print("Sending POST to:", PESAPAL_ORDER_URL)
+    response = requests.post(PESAPAL_ORDER_URL, json=order_data, headers=headers)
+    
+    print("Pesapal response status:", response.status_code)
+    print("Pesapal full response text:", response.text)
+    
     if response.status_code == 200:
-        data = response.json()
-        redirect_url = data.get('redirect_url') or data.get(
-            'url') or data.get('order_tracking_id')
-        if redirect_url:
-            return redirect_url
-        print("No redirect_url in response")
+        try:
+            data = response.json()
+            print("Parsed response JSON:", data)
+            redirect_url = data.get('redirect_url') or data.get('url') or data.get('order_tracking_id')
+            if redirect_url:
+                print("Redirect URL found:", redirect_url)
+                return redirect_url
+            else:
+                print("No redirect_url in response JSON")
+        except Exception as e:
+            print("JSON parse error:", str(e))
     else:
-        print("Order failed")
+        print("Non-200 status from Pesapal - likely the cause of 'Payment error'")
+        try:
+            print("Error details:", response.json())
+        except:
+            print("Could not parse error JSON")
+    
     return None
-
 # NEW: Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -941,14 +956,27 @@ def start_trial():
 @app.route('/initiate_payment', methods=['POST'])
 @login_required
 def initiate_payment():
+    print("=== initiate_payment route called by user ID:", current_user.id)
     data = request.json
-    amount = data['amount']
-    plan = data['plan']
+    print("Received JSON data:", data)
+    
+    amount = data.get('amount')
+    plan = data.get('plan')
+    
+    if not amount or not plan:
+        print("Missing amount or plan in JSON")
+        return jsonify({'error': 'Missing amount or plan'}), 400
+    
+    print(f"Starting payment for {plan} - amount: {amount}")
+    
     redirect_url = initiate_pesapal_payment(amount, plan, current_user)
+    
     if redirect_url:
+        print("Success - redirecting to:", redirect_url)
         return jsonify({'redirect_url': redirect_url})
-    return jsonify({'error': 'Payment failed'}), 400
-
+    else:
+        print("No redirect_url returned - payment initiation failed")
+        return jsonify({'error': 'Payment failed - see server logs'}), 400
 
 @app.route('/pesapal_callback')
 def pesapal_callback():
