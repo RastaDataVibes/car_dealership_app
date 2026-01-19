@@ -127,7 +127,7 @@ class User(UserMixin, db.Model):
     dealership_name = db.Column(db.String(100), nullable=False, unique=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone = db.Column(db.String(20))
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.Text)
     is_trial = db.Column(db.Boolean, default=True)  # True = free trial
     trial_start = db.Column(db.DateTime, default=datetime.utcnow)
     subscription_plan = db.Column(
