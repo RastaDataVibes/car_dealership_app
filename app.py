@@ -140,24 +140,12 @@ def register_pesapal_ipn():
         'Authorization': f'Bearer {token}'
     }
 
-    response = requests.post(url, json=payload, headers=headers)
-    def register_pesapal_ipn():
-    token = get_pesapal_token()
-    if not token:
-        print("Cannot register IPN: no token")
-        return "test_ipn_id"  # Fallback
-
-    url = f"{PESAPAL_BASE_URL}URLSetup/RegisterIPN"
-    payload = {
-        "url": PESAPAL_CALLBACK_URL,
-        "ipn_notification_type": "GET"
-    }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {token}'
-    }
+    print("Sending IPN registration to Pesapal...")
+    print("URL:", url)
+    print("Payload:", payload)
 
     response = requests.post(url, json=payload, headers=headers)
+
     print("IPN register status:", response.status_code)
     print("IPN register full response:", response.text or "EMPTY RESPONSE (normal in test)")
 
@@ -167,23 +155,22 @@ def register_pesapal_ipn():
                 data = response.json()
                 ipn_id = data.get('ipn_id') or data.get('notification_id')
                 if ipn_id:
-                    print("SUCCESS! Real IPN ID found:", ipn_id)  # ← new line
+                    print("SUCCESS! Real IPN ID found:", ipn_id)
                     return ipn_id
                 else:
-                    print("No 'ipn_id' in response JSON. Full data:", data)  # ← new
+                    print("No 'ipn_id' in response JSON. Full data:", data)
                     return "test_ipn_id"
             except Exception as e:
-                print("JSON parse error:", str(e))  # ← more detail
-                print("Raw response was:", response.text)  # ← new
+                print("JSON parse error:", str(e))
+                print("Raw response was:", response.text)
                 return "test_ipn_id"
         else:
             print("Empty response — IPN registered successfully (test mode)")
-            print("NOTE: Pesapal test mode often doesn't return ID here. Check dashboard or use API to list IPNs.")  # ← new note
-            return "test_ipn_id"
+            print("NOTE: Pesapal test mode often doesn't return ID here. Check dashboard or use API to list IPNs.")
+            return "test_ipn_id"  # Fallback for test mode
     else:
-        print("IPN registration failed. Error response:", response.text)  # ← more detail
+        print("IPN registration failed. Error response:", response.text)
         return None
-
 # Register IPN and get notification_id
 PESAPAL_NOTIFICATION_ID = register_pesapal_ipn()
 
