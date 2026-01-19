@@ -960,6 +960,11 @@ def reset_password(token):
         return redirect(url_for('login'))
     return render_template('reset_password.html', form=form)
 
+@app.route('/make-password-box-bigger')
+def make_password_box_bigger():
+    with app.app_context():
+        db.engine.execute("ALTER TABLE users ALTER COLUMN password_hash TYPE TEXT")
+    return "Password box is now bigger! You can delete this route now."
 
 @app.route('/subscribe')
 @login_required
