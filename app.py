@@ -97,11 +97,12 @@ mail = Mail(app)
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 # PESAPAL SETTINGS
-PESAPAL_BASE_URL = 'https://cybqa.pesapal.com/pesapalv3/'  # Test mode base URL
-PESAPAL_TOKEN_URL = 'https://cybqa.pesapal.com/pesapalv3/api/Auth/RequestToken'  # Test
-PESAPAL_ORDER_URL = 'https://cybqa.pesapal.com/pesapalv3/api/Transactions/SubmitOrderRequest'  # Test
-PESAPAL_CALLBACK_URL = 'https://kale-unpawed-bryson.ngrok-free.dev/pesapal_callback'  # Your app
+PESAPAL_BASE_URL = 'https://pay.pesapal.com/v3/'  
+PESAPAL_TOKEN_URL = 'https://pay.pesapal.com/v3/api/Auth/RequestToken'  
+PESAPAL_ORDER_URL = 'https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest' 
+PESAPAL_CALLBACK_URL = 'https://car-dealership-app-wxs8.onrender.com/pesapal_callback'  
 
+REAL_NOTIFICATION_ID = "8e0dc841-be13-4158-a7a4-dad520d11491"
 
 def get_pesapal_token():
     payload = {
@@ -122,77 +123,24 @@ def get_pesapal_token():
     else:
         print("Pesapal login failed")
         return None
-
-
-def register_pesapal_ipn():
-    token = get_pesapal_token()
-    if not token:
-        print("Cannot register IPN: no token")
-        return "test_ipn_id"  # Fallback
-
-    url = f"{PESAPAL_BASE_URL}URLSetup/RegisterIPN"
-    payload = {
-        "url": PESAPAL_CALLBACK_URL,
-        "ipn_notification_type": "GET"
-    }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {token}'
-    }
-
-    print("Sending IPN registration to Pesapal...")
-    print("URL:", url)
-    print("Payload:", payload)
-
-    response = requests.post(url, json=payload, headers=headers)
-
-    print("IPN register status:", response.status_code)
-    print("IPN register full response:", response.text or "EMPTY RESPONSE (normal in test)")
-
-    if response.status_code == 200:
-        if response.text.strip():
-            try:
-                data = response.json()
-                ipn_id = data.get('ipn_id') or data.get('notification_id')
-                if ipn_id:
-                    print("SUCCESS! Real IPN ID found:", ipn_id)
-                    return ipn_id
-                else:
-                    print("No 'ipn_id' in response JSON. Full data:", data)
-                    return "test_ipn_id"
-            except Exception as e:
-                print("JSON parse error:", str(e))
-                print("Raw response was:", response.text)
-                return "test_ipn_id"
-        else:
-            print("Empty response — IPN registered successfully (test mode)")
-            print("NOTE: Pesapal test mode often doesn't return ID here. Check dashboard or use API to list IPNs.")
-            return "test_ipn_id"  # Fallback for test mode
-    else:
-        print("IPN registration failed. Error response:", response.text)
-        return None
-# Register IPN and get notification_id
-PESAPAL_NOTIFICATION_ID = register_pesapal_ipn()
-
-if PESAPAL_NOTIFICATION_ID:
-    print("Your notification_id:", PESAPAL_NOTIFICATION_ID)
-else:
-    print("Failed to get notification_id — check logs")
-
+        
 
 def initiate_pesapal_payment(amount, plan, user):
     token = get_pesapal_token()
     if not token:
         return None
 
+    merchant_ref = f"user_{user.id}_{int(time.time())}"  # ← user.id is the logged-in user's ID
+    print("Generated merchant reference for this payment:", merchant_ref)
+    
     order_data = {
-        "id": f"greenchain_{int(time.time())}",
+        "id": merchant_ref,
         "currency": "UGX",
         "amount": amount,
         "description": f"GreenChain {plan} subscription",
         "callback_url": PESAPAL_CALLBACK_URL,
         # Pesapal gives this in dashboard
-        "notification_id": PESAPAL_NOTIFICATION_ID or "test_ipn_id",
+        "notification_id": REAL_NOTIFICATION_ID,
         "billing_address": {
             "email_address": user.email,
             "phone_number": user.phone or "",
@@ -204,7 +152,7 @@ def initiate_pesapal_payment(amount, plan, user):
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {token}'
     }
-
+    print("Sending payment request to Pesapal...")
     response = requests.post(
         PESAPAL_ORDER_URL, json=order_data, headers=headers)
     print("Order status:", response.status_code)
@@ -1004,13 +952,32 @@ def initiate_payment():
 
 @app.route('/pesapal_callback')
 def pesapal_callback():
-    # Pesapal redirects here after payment
-    # For now just redirect to dashboard
-    flash('Payment received! Subscription active.', 'success')
-    current_user.subscription_plan = 'monthly'  # or from query
-    current_user.is_trial = False
-    current_user.subscription_end = datetime.utcnow() + timedelta(days=30)
-    db.session.commit()
+    print("Pesapal callback received! All params:", request.args)
+    
+    # Get the merchant reference Pesapal sent back
+    received_ref = request.args.get('merchantReference')
+    
+    if received_ref and received_ref.startswith('user_'):
+        try:
+            # Extract user ID from the reference
+            parts = received_ref.split('_')
+            user_id = int(parts[1])  # the number after "user_"
+            user = User.query.get(user_id)
+            if user:
+                print(f"Activating subscription for user ID {user_id}")
+                user.subscription_plan = 'monthly'
+                user.is_trial = False
+                user.subscription_end = datetime.utcnow() + timedelta(days=30)
+                db.session.commit()
+                flash('Payment successful! Subscription activated.', 'success')
+            else:
+                flash('User not found for this payment', 'warning')
+        except Exception as e:
+            print("Error processing callback:", str(e))
+            flash('Payment received, but reference missing.', 'warning')
+    else:
+        flash('Payment received, but reference missing.', 'warning')
+    
     return redirect(url_for('home'))
     
 # ==================== BEST AI — USES v.expenses AND v.payments DIRECTLY! ====================
