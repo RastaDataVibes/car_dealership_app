@@ -2503,6 +2503,28 @@
       sendAIMessage();
     }
   });
+
+// NEW: Open personalized Superset dashboard for the logged-in user
+async function openSupersetDashboard() {
+  try {
+    const response = await fetch('/dashboard_link');
+    if (!response.ok) {
+      throw new Error('Failed to get dashboard link');
+    }
+    const data = await response.json();
+    const url = data.url;
+    
+    // Open in new tab (clean, no referrer for privacy)
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } catch (error) {
+    console.error('Error loading dashboard:', error);
+    alert('Could not open dashboard. Please try again or contact support.');
+    
+    // Optional fallback: open default dashboard without filter
+    // window.open('https://dash-aa6n.onrender.com/superset/dashboard/1/?standalone=true', '_blank');
+  }
+}
+
 </script>
 </body>
 
