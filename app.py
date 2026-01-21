@@ -591,6 +591,20 @@ def superset_token(dashboard_id):
         print(f"Token error: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/dashboard_link')
+@login_required
+def dashboard_link():
+    dashboard_id = '1'  # Your Superset dashboard ID (keep this as '1' unless it's different)
+    filter_id = 'TCjKxPRDIo8'  # Your filter's internal ID (from your link — keep this fixed)
+    user_id = current_user.id  # Automatically uses the logged-in user's ID (dealership_id)
+    
+    url = (
+        f"https://dash-aa6n.onrender.com/superset/dashboard/{dashboard_id}/"
+        f"?standalone=true&show_filters=false"
+        f"&native_filters=(NATIVE_FILTER_{filter_id}:(values:({user_id})))"
+    )
+    
+    return jsonify({'url': url})
 
 @app.route('/api/inventory', methods=['GET'])
 @subscription_required
