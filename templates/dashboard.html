@@ -2036,22 +2036,24 @@
       }
     }
 
-    // FIXED: Open Superset Dashboard - Direct with Token (No Login, Hidden UI)
+    // NEW: Open personalized Superset dashboard for the logged-in user
     async function openSupersetDashboard() {
-      // Open immediately with fallback (unblocks popup)
-      const fallbackUrl = 'https://dash-y8xp.onrender.com/superset/dashboard/1/?standalone=true&show_filters=false&native_filters_key=UCkVgPchSNg';
-      const win = window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
-      // Fetch token in background and update URL if successful
       try {
-        const res = await fetch('/superset_token/1');  // CONNECTION: Fetch auth token from backend
-        if (res.ok) {
-          const { token } = await res.json();
-          const supersetUrl = `https://dash-y8xp.onrender.com/superset/dashboard/1/?standalone=true&show_filters=false&token=${token}&native_filters_key=UCkVgPchSNg`;
-          if (win) win.location.href = supersetUrl; // Update the open tab
+        const response = await fetch('/dashboard_link');
+        if (!response.ok) {
+          throw new Error('Failed to get dashboard link');
         }
-      } catch (err) {
-        console.error('Token error:', err);
-        // Fallback already open — no action needed
+        const data = await response.json();
+        const url = data.url;
+        
+        // Open in new tab (clean, no referrer for privacy)
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+        alert('Could not open dashboard. Please try again or contact support.');
+        
+        // Optional fallback: open default dashboard without filter
+        // window.open('https://dash-aa6n.onrender.com/superset/dashboard/1/?standalone=true', '_blank');
       }
     }
 
@@ -2503,28 +2505,6 @@
       sendAIMessage();
     }
   });
-
-// NEW: Open personalized Superset dashboard for the logged-in user
-async function openSupersetDashboard() {
-  try {
-    const response = await fetch('/dashboard_link');
-    if (!response.ok) {
-      throw new Error('Failed to get dashboard link');
-    }
-    const data = await response.json();
-    const url = data.url;
-    
-    // Open in new tab (clean, no referrer for privacy)
-    window.open(url, '_blank', 'noopener,noreferrer');
-  } catch (error) {
-    console.error('Error loading dashboard:', error);
-    alert('Could not open dashboard. Please try again or contact support.');
-    
-    // Optional fallback: open default dashboard without filter
-    // window.open('https://dash-aa6n.onrender.com/superset/dashboard/1/?standalone=true', '_blank');
-  }
-}
-
 </script>
 </body>
 
