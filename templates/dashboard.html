@@ -2039,20 +2039,21 @@
     // NEW: Open personalized Superset dashboard for the logged-in user
     async function openSupersetDashboard() {
       try {
-        const response = await fetch('/dashboard_link');
-        if (!response.ok) {
-          throw new Error('Failed to get dashboard link');
+        const res = await fetch('/superset_token/1');  // Calls the token route for dashboard ID 1
+        if (!res.ok) {
+          throw new Error('Failed to get token');
         }
-        const data = await response.json();
-        const url = data.url;
-        
-        // Open in new tab (clean, no referrer for privacy)
+        const { token } = await res.json();
+
+        // Build URL with token (no user ID visible in URL)
+        const url = `https://dash-aa6n.onrender.com/superset/dashboard/1/?standalone=true&show_filters=false&token=${token}`;
+
         window.open(url, '_blank', 'noopener,noreferrer');
-      } catch (error) {
-        console.error('Error loading dashboard:', error);
-        alert('Could not open dashboard. Please try again or contact support.');
-        
-        // Optional fallback: open default dashboard without filter
+      } catch (err) {
+        console.error('Dashboard error:', err);
+        alert('Could not open dashboard. Please try again.');
+    
+        // Optional fallback (plain link without token - shows all or nothing)
         // window.open('https://dash-aa6n.onrender.com/superset/dashboard/1/?standalone=true', '_blank');
       }
     }
