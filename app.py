@@ -1,12 +1,3 @@
-# Full app.py file
-# Tweaks Summary:
-# 1. Added import for 'date' from datetime to hardcode current date (Oct 27, 2025) for days_in_inventory calc to match Superset's CURRENT_DATE.
-# 2. Ensured 'from models import Inventory, Expense' is uncommented/added (was commented in original) to import models properly.
-# 3. Updated /api/inventory route: Now returns formatted_data (with +/-$ strings, formatted dates), max_profit, max_price for Chart.js bars. Uses fixed date for delta. Achieves: Exact Superset formatting in JS table, enables cell bars scaled to dataset.
-# 4. Added /inventory route: Renders Jinja template with formatted rows (for standalone page if needed, but dashboard uses API). Achieves: Fallback/full-view option matching specs.
-# 5. In AJAX routes (/add_vehicle_ajax, /add_expense_ajax, /edit_vehicle_ajax): Added calls to model helpers (update_expenses_total, calculate_profit) post-commit. Achieves: Auto-refresh expenses/profit on DB changes, ensuring table accuracy on reload.
-# 6. Kept all original code intact (Superset token, forms, other routes). No other changes.
-
 import os
 import redis
 import jwt
@@ -199,101 +190,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-
-# Change password to yours
-def get_admin_token(superset_url="https://dash-y8xp.onrender.com/superset", username="zaga", password="zagadat"):
-    session = requests.Session()
-    session.get(superset_url)  # Set cookie
-    csrf_url = f"{superset_url}/csrf_token/"
-    csrf_response = session.get(csrf_url)
-    if csrf_response.status_code == 200:
-        csrf_token = csrf_response.json()["csrf_token"]
-    else:
-        csrf_token = None  # Skip if fails (dev mode)
-
-    login_url = f"{superset_url}/api/v1/security/login"
-    payload = {"username": username, "password": password, "provider": "db"}
-    if csrf_token:
-        payload["csrf_token"] = csrf_token
-    response = session.post(login_url, json=payload)
-    print(f"Login status: {response.status_code}")
-    print(f"Login text: {response.text[:200]}")
-    if response.status_code == 200:
-        return response.json()["access_token"]
-    raise ValueError(
-        f"Login failed: {response.status_code} - {response.text[:100]}")
-
-
-#ADMIN_TOKEN = get_admin_token()  # Gets it on startup
-
-
-def manual_guest_token(resources):
-    payload = {
-        "user": {"username": "emma", "first_name": "Emma", "last_name": "Opio", "active": True, "roles": ["Public"]},
-        "resources": resources,
-        "rls_rules": [],
-        "iat": int(time.time()),
-        "exp": int(time.time()) + 3600,  # 1hr expiry
-        "aud": "superset",
-        "type": "guest"
-    }
-    secret = os.environ.get('SUPERSET_SECRET_KEY', 'my-very-strong-secret-12345')
-    return jwt.encode(payload, secret, algorithm="HS256")
-
-
-'''
-def generate_guest_token(resources):
-    token_url = "http://localhost:8088/api/v1/security/guest_token/"  # Superset API
-    payload = {
-        "user": {"username": "emma", "first_name": "Emma", "last_name": "Opio", "active": True, "roles": ["Public"]},
-        "resources": resources,
-        "rls_rules": []  # No filters
-    }
-    headers = {
-        "Authorization": f"Bearer {ADMIN_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    response = requests.post(token_url, json=payload, headers=headers)
-    print(f"Guest token status: {response.status_code}")
-    print(f"Guest token text: {response.text[:200]}")
-    if response.status_code == 200:
-        return response.json()["token"]
-    raise ValueError(f"Token failed: {response.text}")# e.g., check perms
-'''
-
-# ------------------------
-# Database models
-# ------------------------
-
-'''
-class Inventory(db.Model):
-    __tablename__ = 'inventory'
-    id = db.Column(db.Integer, primary_key=True)
-    make = db.Column(db.String(100))
-    model = db.Column(db.String(100))
-    year = db.Column(db.Integer)
-    purchase_price = db.Column(db.Float)
-    selling_price = db.Column(db.Float)
-    expenses_amount = db.Column(db.Float, default=0.0)
-    profit = db.Column(db.Float)
-    mileage = db.Column(db.Integer)
-    photo_filename = db.Column(db.String(300))
-    status = db.Column(db.String(20), default='Available')
-    date_added = db.Column(db.DateTime)
-    date_sold = db.Column(db.DateTime)
-    expenses = db.relationship('Expense', backref='vehicle', lazy=True)
-
-
-class Expense(db.Model):
-    __tablename__ = 'expenses'
-    id = db.Column(db.Integer, primary_key=True)
-    vehicle_id = db.Column(db.Integer, db.ForeignKey(
-        'inventory.id'), nullable=False)
-    expense_category = db.Column(db.String(100))
-    expense_amount = db.Column(db.Float)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
-'''
-# ------------------------
 # Forms
 # ------------------------
 
@@ -582,29 +478,40 @@ def delete_vehicle(car_id):
 
 
 @app.route("/superset_token/<dashboard_id>")
+@login_required
 def superset_token(dashboard_id):
     resources = [{"type": "dashboard", "id": dashboard_id}]
+    
+    # Build payload with real user context for RLS
+    payload = {
+        "user": {
+            "username": current_user.email or f"user_{current_user.id}",
+            "first_name": current_user.dealership_name or "User",
+            "last_name": "",
+            "active": True,
+            "roles": ["Gamma"],                   # Must match your RLS role
+            "user_id": current_user.id,           # Your app's user ID
+            "dealership_id": current_user.id      # Explicitly pass dealership_id
+        },
+        "resources": resources,
+        "iat": int(time.time()),
+        "exp": int(time.time()) + 3600,           # 1 hour expiry
+        "aud": "superset",
+        "type": "guest"
+    }
+    
+    secret = os.environ.get("SUPERSET_SECRET_KEY")
+    if not secret:
+        print("Error: SUPERSET_SECRET_KEY not set in Render env vars")
+        return jsonify({"error": "Server configuration error"}), 500
+    
     try:
-        token = manual_guest_token(resources)  # FIXED: Use manual
+        token = jwt.encode(payload, secret, algorithm="HS256")
         return jsonify({"token": token})
-    except Exception as e:  # FIXED: Broader catch
-        print(f"Token error: {e}")
+    except Exception as e:
+        print(f"Token generation error: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/dashboard_link')
-@login_required
-def dashboard_link():
-    dashboard_id = '1'  # Your Superset dashboard ID (keep this as '1' unless it's different)
-    filter_id = 'TCjKxPRDIo8'  # Your filter's internal ID (from your link — keep this fixed)
-    user_id = current_user.id  # Automatically uses the logged-in user's ID (dealership_id)
-    
-    url = (
-        f"https://dash-aa6n.onrender.com/superset/dashboard/{dashboard_id}/"
-        f"?standalone=true&show_filters=false"
-        f"&native_filters=(NATIVE_FILTER_{filter_id}:(values:({user_id})))"
-    )
-    
-    return jsonify({'url': url})
 
 @app.route('/api/inventory', methods=['GET'])
 @subscription_required
