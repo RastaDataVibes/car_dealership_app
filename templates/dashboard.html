@@ -2045,6 +2045,10 @@
         }
         const { token } = await res.json();
 
+        if (!data.token) {
+          throw new Error('No secret key came back');
+        }
+
         // Build URL with token (no user ID visible in URL)
         const url = `https://dash-aa6n.onrender.com/superset/dashboard/p/GngKwMvL3jR/?token=${encodeURIComponent(data.token)}`;
 
@@ -2052,6 +2056,7 @@
       } catch (err) {
         console.error('Dashboard error:', err);
         alert('Could not open dashboard. Please try again.');
+        console.log('Full error:', err);  // This goes to the secret console
     
         // Optional fallback (plain link without token - shows all or nothing)
         // window.open('https://dash-aa6n.onrender.com/superset/dashboard/1/?standalone=true', '_blank');
