@@ -477,7 +477,7 @@ def delete_vehicle(car_id):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route("/superset_token/<dashboard_id>")
+@app.route("/superset_token/<path:dashboard_id>")
 @login_required
 def superset_token(dashboard_id):
     resources = [{"type": "dashboard", "id": dashboard_id}]
