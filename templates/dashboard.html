@@ -1147,7 +1147,7 @@
   <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0"></script>
   <script>
   async function openSupersetDashboard() {
-    const res = await fetch('/superset_token/1');
+    const res = await fetch('/api/superset/guest-token/1');
     const { token } = await res.json();
   
     const mountPoint = document.getElementById("dashboardContainer");
@@ -1164,7 +1164,11 @@
         filters: { expanded: true }
       }
     });
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    alert("Failed to load dashboard. Check console.");
   }
+}
   
   // Close button
   document.getElementById("closeDashboardBtn").onclick = () => {
