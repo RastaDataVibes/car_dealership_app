@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GreenChain Dashboard</title>
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0"></script>
   <!-- Add these two lines for Chart.js magic -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -1143,6 +1144,37 @@
       </div>
     </div>
   </div>
+  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0"></script>
+  <script>
+  async function openSupersetDashboard() {
+    const res = await fetch('/superset_token/1');
+    const { token } = await res.json();
+  
+    const mountPoint = document.getElementById("dashboardContainer");
+    mountPoint.style.display = "block"; // show dashboard container
+  
+    supersetEmbeddedSdk.embedDashboard({
+      id: "1",
+      supersetDomain: "https://dash-aa6n.onrender.com",
+      mountPoint: mountPoint,
+      fetchGuestToken: () => Promise.resolve(token),
+      dashboardUiConfig: {
+        hideTitle: false,
+        hideTab: false,
+        filters: { expanded: true }
+      }
+    });
+  }
+  
+  // Close button
+  document.getElementById("closeDashboardBtn").onclick = () => {
+    const mountPoint = document.getElementById("dashboardContainer");
+    mountPoint.style.display = "none";
+    mountPoint.innerHTML = '<button id="closeDashboardBtn" style="position: absolute; top: 10px; right: 10px; z-index: 10000; font-size: 20px; background: red; color: white; border: none; border-radius: 4px; cursor: pointer;">X</button>';
+  };
+  
+  </script>
+
   <script>
     function formatNumberWithCommasLive(input) {
       const cursorPos = input.selectionStart;
@@ -1362,7 +1394,6 @@
       }
     });
   </script>
-  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0"></script>
   <script>
     let sortColumn = null;
     let sortAscending = false;
@@ -2032,33 +2063,6 @@
         console.error('Refresh error:', err);
       } finally {
         refreshPending = false;
-      }
-    }
-
-    // NEW: Open personalized Superset dashboard for the logged-in user
-    async function openSupersetDashboard() {
-      try {
-        const res = await fetch('/superset_token/1');  // Calls the token route for dashboard ID 1
-        if (!res.ok) {
-          throw new Error('Failed to get token' + res.status);
-        }
-        const { token } = await res.json();
-
-        if (!data.token) {
-          throw new Error('No secret key came back');
-        }
-
-        // Build URL with token (no user ID visible in URL)
-        const url = `https://dash-aa6n.onrender.com/superset/dashboard/1/?token=${encodeURIComponent(token)}&standalone=true`;
-
-        window.open(url, '_blank', 'noopener,noreferrer');
-      } catch (err) {
-        console.error('Dashboard error:', err);
-        alert('Could not open dashboard. Please try again.');
-        console.log('Full error:', err);  // This goes to the secret console
-    
-        // Optional fallback (plain link without token - shows all or nothing)
-        // window.open('https://dash-aa6n.onrender.com/superset/dashboard/1/?standalone=true', '_blank');
       }
     }
 
