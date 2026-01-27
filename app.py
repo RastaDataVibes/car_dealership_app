@@ -477,40 +477,39 @@ def delete_vehicle(car_id):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route("/superset_token/<path:dashboard_id>")
+@app.route("/api/superset/guest-token/<int:dashboard_id>")
 @login_required
-def superset_token(dashboard_id):
-    resources = [{"type": "dashboard", "id": dashboard_id}]
-    
-    # Build payload with real user context for RLS
+def superset_guest_token(dashboard_id):
+
     payload = {
         "user": {
-            "username": current_user.email or f"user_{current_user.id}",
-            "first_name": current_user.dealership_name or "User",
+            "username": f"user_{current_user.id}",
+            "first_name": current_user.dealership_name,
             "last_name": "",
             "active": True,
-            "roles": ["Gamma"],                   # Must match your RLS role
-            "user_id": current_user.id,           # Your app's user ID
-            "dealership_id": current_user.id      # Explicitly pass dealership_id
+            "roles": ["Gamma"]
         },
-        "resources": resources,
+        "resources": [
+            {"type": "dashboard", "id": dashboard_id}
+        ],
+        "rls": [
+            {
+                "clause": f"dealership_id = {current_user.id}"
+            }
+        ],
         "iat": int(time.time()),
-        "exp": int(time.time()) + 3600,           # 1 hour expiry
+        "exp": int(time.time()) + 3600,
         "aud": "superset",
         "type": "guest"
     }
-    
-    secret = os.environ.get("SUPERSET_SECRET_KEY")
-    if not secret:
-        print("Error: SUPERSET_SECRET_KEY not set in Render env vars")
-        return jsonify({"error": "Server configuration error"}), 500
-    
-    try:
-        token = jwt.encode(payload, secret, algorithm="HS256")
-        return jsonify({"token": token})
-    except Exception as e:
-        print(f"Token generation error: {e}")
-        return jsonify({"error": str(e)}), 500
+
+    token = jwt.encode(
+        payload,
+        os.environ["SUPERSET_SECRET_KEY"],
+        algorithm="HS256"
+    )
+
+    return jsonify({"token": token})
 
 
 @app.route('/api/inventory', methods=['GET'])
