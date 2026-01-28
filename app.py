@@ -477,7 +477,7 @@ def delete_vehicle(car_id):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route("/api/superset/guest-token/<int:dashboard_id>")
+@app.route("/api/superset/guest-token/<string:dashboard_id>")
 @login_required
 def superset_guest_token(dashboard_id):
 
@@ -498,16 +498,12 @@ def superset_guest_token(dashboard_id):
             {
                 "clause": f"dealership_id = {current_user.id}"
             }
-        ],
-        "iat": int(time.time()),
-        "exp": int(time.time()) + 3600,
-        "aud": "superset",
-        "type": "guest"
+        ]
     }
 
     token = jwt.encode(
         payload,
-        os.environ["SUPERSET_SECRET_KEY"],
+        os.environ["GUEST_TOKEN_JWT_SECRET"],
         algorithm="HS256"
     )
 
