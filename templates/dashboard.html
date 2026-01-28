@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GreenChain Dashboard</title>
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0"></script>
+  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.3.0"></script>
   <!-- Add these two lines for Chart.js magic -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -1192,60 +1192,79 @@
       </div>
     </div>
   </div>
-  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.2.0"></script>
-  <script>
-  async function openSupersetDashboard() {
-    const overlay = document.getElementById("dashboardOverlay");
-    const container = document.getElementById("dashboardContainer");
-    const loading = document.getElementById("loadingMessage");
-  
-    // Show the full-screen overlay immediately
-    overlay.style.display = "block";
-    try {
-      const res = await fetch('/api/superset/guest-token/6a9e95e1-5549-45cc-ac3f-50c82bcad5b7');
-      const { token } = await res.json();
+  <script src="https://unpkg.com/@superset-ui/embedded-sdk@0.3.0"></script>
 
-      loading.style.display = "none";
-    
+  <script>
+    const DASHBOARD_ID = "6a9e95e1-5549-45cc-ac3f-50c82bcad5b7";
+    let dashboardEmbedded = false;
+  
+    async function openSupersetDashboard() {
+      if (dashboardEmbedded) return;
+  
+      const overlay = document.getElementById("dashboardOverlay");
       const mountPoint = document.getElementById("dashboardContainer");
-      mountPoint.style.display = "block"; // show dashboard container
-    
-      supersetEmbeddedSdk.embedDashboard({
-        id: "6a9e95e1-5549-45cc-ac3f-50c82bcad5b7",
-        supersetDomain: "https://dash-aa6n.onrender.com",
-        mountPoint: mountPoint,
-        fetchGuestToken: () => Promise.resolve(token),
-        dashboardUiConfig: {
-          hideTitle: false,
-          hideTab: false,
-          filters: { expanded: true }
-        }
-      });
-    } catch (err) {
-      console.error("Dashboard error:", err);
-      // Show friendly message instead of alert
-      loading.innerHTML = "Sorry, dashboard is taking longer than expected...<br><br>We'll keep trying in the background.";
+      const loading = document.getElementById("loadingMessage");
+  
+      // Show overlay + loading
+      overlay.style.display = "block";
+      loading.style.display = "block";
+      mountPoint.style.display = "none";
+  
+      try {
+        const res = await fetch(`/api/superset/guest-token/${DASHBOARD_ID}`);
+        if (!res.ok) throw new Error("Failed to fetch guest token");
+  
+        const { token } = await res.json();
+  
+        loading.style.display = "none";
+        mountPoint.style.display = "block";
+  
+        supersetEmbeddedSdk.embedDashboard({
+          id: DASHBOARD_ID,
+          supersetDomain: "https://dash-aa6n.onrender.com",
+          mountPoint: mountPoint,
+          fetchGuestToken: () => Promise.resolve(token),
+          dashboardUiConfig: {
+            hideTitle: false,
+            hideTab: false,
+            filters: { expanded: true }
+          },
+          referrerPolicy: "same-origin"
+        });
+  
+        dashboardEmbedded = true;
+  
+      } catch (err) {
+        console.error("Dashboard error:", err);
+        loading.textContent = "Sorry, the dashboard failed to load.";
+        dashboardEmbedded = false;
+      }
     }
-  }
   
-  // Add close handlers (put these right after the function or at the bottom of the script)
-  document.getElementById("closeDashboardBtn").onclick = () => {
-    document.getElementById("dashboardOverlay").style.display = "none";
-  };
+    function closeDashboard() {
+      const overlay = document.getElementById("dashboardOverlay");
+      const mountPoint = document.getElementById("dashboardContainer");
+      const loading = document.getElementById("loadingMessage");
   
-  document.getElementById("dashboardOverlay").onclick = (e) => {
-    if (e.target === document.getElementById("dashboardOverlay")) {
-      document.getElementById("dashboardOverlay").style.display = "none";
+      overlay.style.display = "none";
+      loading.style.display = "none";
+  
+      // Clean up iframe safely
+      mountPoint.replaceChildren();
+      mountPoint.style.display = "none";
+  
+      dashboardEmbedded = false;
     }
-  };
   
-  // Close button
-  document.getElementById("closeDashboardBtn").onclick = () => {
-    const mountPoint = document.getElementById("dashboardContainer");
-    mountPoint.style.display = "none";
-    mountPoint.innerHTML = '<button id="closeDashboardBtn" style="position: absolute; top: 10px; right: 10px; z-index: 10000; font-size: 20px; background: red; color: white; border: none; border-radius: 4px; cursor: pointer;">X</button>';
-  };
+    // Close button
+    document.getElementById("closeDashboardBtn").onclick = closeDashboard;
   
+    // Click outside dashboard closes it
+    document.getElementById("dashboardOverlay").onclick = (e) => {
+      if (e.target.id === "dashboardOverlay") {
+        closeDashboard();
+      }
+    };
   </script>
 
   <script>
