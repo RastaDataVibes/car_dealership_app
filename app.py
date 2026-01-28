@@ -484,10 +484,12 @@ def superset_guest_token(dashboard_id):
     payload = {
         "user": {
             "username": f"user_{current_user.id}",
-            "first_name": current_user.dealership_name,
-            "last_name": "",
+            "first_name": current_user.dealership_name or "Guest",
+            "last_name": "User",
+            "email": f"guest_{current_user.id}@example.com",
             "active": True,
-            "roles": ["Gamma"]
+            "roles": ["Gamma"],
+            "sub": f"user_{current_user.id}"
         },
         "resources": [
             {"type": "dashboard", "id": dashboard_id}
