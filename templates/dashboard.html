@@ -1148,7 +1148,7 @@
   <script>
   async function openSupersetDashboard() {
     try {
-      const res = await fetch('/api/superset/guest-token/1');
+      const res = await fetch('/api/superset/guest-token/6a9e95e1-5549-45cc-ac3f-50c82bcad5b7');
       const { token } = await res.json();
     
       const mountPoint = document.getElementById("dashboardContainer");
@@ -1166,8 +1166,12 @@
         }
       });
     } catch (err) {
-      console.error("Dashboard error:", err);
-      alert("Failed to load dashboard. Check console.");
+      if (err.message && err.message.includes("Not authorized")) {
+        console.log("Ignored roles error – dashboard should still load");
+      } else {
+        console.error("Dashboard error:", err);
+        alert("Failed to load dashboard. Check console.");
+      }
     }
   }
   
