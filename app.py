@@ -488,7 +488,7 @@ def superset_guest_token(dashboard_id):
             "last_name": "User",
             "email": f"guest_{current_user.id}@example.com",
             "active": True,
-            "roles": ["Gamma"],
+            "roles": ["Admin"],
             "sub": f"user_{current_user.id}"
         },
         "resources": [
