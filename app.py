@@ -480,6 +480,9 @@ def delete_vehicle(car_id):
 @app.route("/api/superset/guest-token/<string:dashboard_id>")
 @login_required
 def superset_guest_token(dashboard_id):
+    current_app.logger.info(
+    f"dealer_id={current_user.id} type={type(current_user.id)}"
+)
 
     payload = {
         "user": {
@@ -488,7 +491,7 @@ def superset_guest_token(dashboard_id):
             "last_name": "User",
             "email": f"guest_{current_user.id}@example.com",
             "active": True,
-            "roles": ["Admin"],
+            "roles": ["Gamma"],
             "sub": f"user_{current_user.id}"
         },
         "resources": [
@@ -498,7 +501,12 @@ def superset_guest_token(dashboard_id):
             {
                 "clause": f"dealership_id = {current_user.id}"
             }
-        ]
+        ],
+        
+        "iat": now,
+        "exp": now + 3600,     # valid for 1 hour
+        "aud": "superset",    # MUST match Superset config
+        "type": "guest"
     }
 
     token = jwt.encode(
