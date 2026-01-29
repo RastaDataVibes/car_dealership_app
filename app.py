@@ -5,7 +5,7 @@ import time
 import requests
 from flask import render_template_string
 from werkzeug.utils import secure_filename
-from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, FloatField, SubmitField, SelectField, PasswordField
@@ -483,6 +483,7 @@ def superset_guest_token(dashboard_id):
     current_app.logger.info(
     f"dealer_id={current_user.id} type={type(current_user.id)}"
 )
+    now = datetime.now(timezone.utc).timestamp()
 
     payload = {
         "user": {
@@ -497,12 +498,9 @@ def superset_guest_token(dashboard_id):
         "resources": [
             {"type": "dashboard", "id": dashboard_id}
         ],
-        "rls": [
-            {
-                "clause": f"dealership_id = {current_user.id}"
-            }
+        "rls_rules": [  # Changed from "rls" to "rls_rules"
+            {"clause": f"dealership_id = '{current_user.id}'"}  # Quoted value for safety (assuming string ID)
         ],
-        
         "iat": now,
         "exp": now + 3600,     # valid for 1 hour
         "aud": "superset",    # MUST match Superset config
