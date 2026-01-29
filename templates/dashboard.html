@@ -1211,11 +1211,7 @@
       mountPoint.style.display = "none";
   
       try {
-        const res = await fetch(`/api/superset/guest-token/${DASHBOARD_ID}`);
-        if (!res.ok) throw new Error("Failed to fetch guest token");
-  
-        const { token } = await res.json();
-  
+        
         loading.style.display = "none";
         mountPoint.style.display = "block";
   
@@ -1223,7 +1219,12 @@
           id: DASHBOARD_ID,
           supersetDomain: "https://dash-aa6n.onrender.com",
           mountPoint: mountPoint,
-          fetchGuestToken: () => Promise.resolve(token),
+          fetchGuestToken: async () => {  // Fetch fresh token each time (for refresh if expires)
+            const res = await fetch(`/api/superset/guest-token/${DASHBOARD_ID}`);
+            if (!res.ok) throw new Error("Failed to fetch guest token");
+            const { token } = await res.json();
+            return token;
+          },
           dashboardUiConfig: {
             hideTitle: false,
             hideTab: false,
