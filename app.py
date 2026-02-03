@@ -230,7 +230,11 @@ class RecordSaleForm(FlaskForm):
     submit = SubmitField('Record Sale')
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
+    identifier = StringField(
+        'Email or Phone Number',
+        validators=[DataRequired()],
+        render_kw={"placeholder": "Phone or email"}
+    )
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
@@ -757,9 +761,14 @@ def login():
         return redirect(url_for('home'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        identifier = form.identifier.data.strip()
+        user = User.query.filter_by(email=identifier.lower()).first()
+        if user is None:
+            normalized_phone = User.normalize_phone(identifier)
+            if normalized_phone:
+                user = User.query.filter_by(phone=normalized_phone).first()
         if user is None or not user.check_password(form.password.data):
-            flash('Invalid email or password', 'danger')
+            flash('Invalid email/phone or password', 'danger')
             return redirect(url_for('login'))
         login_user(user)
         flash('Logged in successfully!', 'success')
