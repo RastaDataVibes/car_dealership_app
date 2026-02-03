@@ -136,10 +136,13 @@
             {{ form.dealership_name(id="dealership_name", placeholder="e.g. Kireka Car Bond") }}
 
             <label for="email">Email</label>
-            {{ form.email(id="email", autocomplete="email", placeholder="Enter email") }}
+            {{ form.email(id="email", autocomplete="email", placeholder="example@email.com") }}
 
             <label for="phone">Phone (optional)</label>
-            {{ form.phone(id="phone", autocomplete="tel", placeholder="Enter phone") }}
+            {{ form.phone(id="phone", autocomplete="tel", placeholder="e.g. 256712345678 or 0777123456") }}
+            <small style="color: #666; font-size: 13px; display: block; margin-top: 5px;">
+                Use Ugandan format — we will clean it automatically
+            </small>
 
             <div class="password-group">
                 <label for="password">Password</label>
