@@ -9,6 +9,7 @@
 '''from app import db'''
 from extensions import db
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from sqlalchemy import event
 from sqlalchemy import func  # Tweak: Added for sum query in helper
 from flask_login import UserMixin
@@ -136,6 +137,20 @@ class User(UserMixin, db.Model):
     date_created = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     profile_name = db.Column(db.String(100))
     profile_photo_filename = db.Column(db.String(300))
+
+    @classmethod
+    def clean_phone(cls, phone):
+        if not phone:
+            return None
+        # Keep only numbers (remove spaces, +, -, etc.)
+        numbers = ''.join(c for c in str(phone) if c.isdigit())
+        # If it starts with 0, change to 256
+        if numbers.startswith('0'):
+            numbers = '256' + numbers[1:]
+        # If it's too short, we say it's not a real phone
+        if len(numbers) < 9:
+            return None
+        return numbers
 
     def set_password(self, password):
         from werkzeug.security import generate_password_hash
