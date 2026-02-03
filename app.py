@@ -767,6 +767,8 @@ def login():
             clean_phone = User.clean_phone(identifier)
             if clean_phone:
                 user = User.query.filter_by(phone=clean_phone).first()
+            else:
+                flash('Phone number looks invalid — try full format like 256712345678', 'warning')
         if user is None or not user.check_password(form.password.data):
             flash('Invalid email/phone or password', 'danger')
             return redirect(url_for('login'))
@@ -786,7 +788,7 @@ def signup():
         if User.query.filter_by(email=email_clean).first():
             flash('Email already registered', 'danger')
             return redirect(url_for('signup'))
-        if User.query.filter_by(dealership_name=form.dealership_name.data).first():
+        if User.query.filter_by(dealership_name=form.dealership_name.data.strip()).first():
             flash('Dealership name already taken', 'danger')
             return redirect(url_for('signup'))
         user = User(
