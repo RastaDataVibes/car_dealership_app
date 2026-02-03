@@ -242,8 +242,8 @@ class LoginForm(FlaskForm):
 class SignupForm(FlaskForm):
     dealership_name = StringField(
         'Dealership Name', validators=[DataRequired()], render_kw={"placeholder": "Your dealership name"})
-    email = StringField('Email', validators=[DataRequired(), Email()], render_kw={"placeholder": "example@email.com"})
-    phone = StringField('Phone', render_kw={"placeholder": "256712345678"})
+    email = StringField('Email', validators=[Optional(), Email()], render_kw={"placeholder": "example@email.com"})
+    phone = StringField('Phone', validators=[Optional()],render_kw={"placeholder": "256712345678"})
     password = PasswordField('Password', validators=[DataRequired()], render_kw={"placeholder": "Create a strong password"})
     confirm_password = PasswordField('Confirm Password', validators=[
                                      DataRequired(), EqualTo('password')], render_kw={"placeholder": "Repeat your password"})
@@ -784,17 +784,31 @@ def signup():
         return redirect(url_for('home'))
     form = SignupForm()
     if form.validate_on_submit():
-        email_clean = form.email.data.strip().lower()
+        email_clean = form.email.data.strip().lower() if form.email.data else None
+        phone_clean = User.clean_phone(form.phone.data)
+
+        if not email_clean and not phone_clean:
+            flash('Please provide either an email or a phone number', 'danger')
+            return redirect(url_for('signup'))
+            
         if User.query.filter_by(email=email_clean).first():
             flash('Email already registered', 'danger')
             return redirect(url_for('signup'))
-        if User.query.filter_by(dealership_name=form.dealership_name.data.strip()).first():
+
+        if phone_clean and User.query.filter_by(phone=phone_clean).first():
+            flash('This phone number is already registered', 'danger')
+            return redirect(url_for('signup'))
+
+        dealership_name_clean = form.dealership_name.data.strip()
+        if User.query.filter_by(dealership_name=dealership_name_clean).first():
             flash('Dealership name already taken', 'danger')
             return redirect(url_for('signup'))
+            
+    
         user = User(
-            dealership_name = form.dealership_name.data.strip(),
+            dealership_name = dealership_name_clean,
             email           = email_clean,
-            phone           = User.clean_phone(form.phone.data)
+            phone           = phone_clean
         )
         user.set_password(form.password.data)
         db.session.add(user)
