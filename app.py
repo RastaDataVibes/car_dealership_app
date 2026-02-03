@@ -764,9 +764,9 @@ def login():
         identifier = form.identifier.data.strip()
         user = User.query.filter_by(email=identifier.lower()).first()
         if user is None:
-            normalized_phone = User.normalize_phone(identifier)
-            if normalized_phone:
-                user = User.query.filter_by(phone=normalized_phone).first()
+            clean_phone = User.clean_phone(identifier)
+            if clean_phone:
+                user = User.query.filter_by(phone=clean_phone).first()
         if user is None or not user.check_password(form.password.data):
             flash('Invalid email/phone or password', 'danger')
             return redirect(url_for('login'))
@@ -782,16 +782,17 @@ def signup():
         return redirect(url_for('home'))
     form = SignupForm()
     if form.validate_on_submit():
-        if User.query.filter_by(email=form.email.data).first():
+        email_clean = form.email.data.strip().lower()
+        if User.query.filter_by(email=email_clean).first():
             flash('Email already registered', 'danger')
             return redirect(url_for('signup'))
         if User.query.filter_by(dealership_name=form.dealership_name.data).first():
             flash('Dealership name already taken', 'danger')
             return redirect(url_for('signup'))
         user = User(
-            dealership_name=form.dealership_name.data,
-            email=form.email.data,
-            phone=form.phone.data
+            dealership_name = form.dealership_name.data.strip(),
+            email           = email_clean,
+            phone           = User.clean_phone(form.phone.data)
         )
         user.set_password(form.password.data)
         db.session.add(user)
