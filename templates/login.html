@@ -136,8 +136,15 @@
             {{ form.hidden_tag() }} <!-- CSRF protection -->
 
             <div class="form-group">
-                <label for="email">Email</label>
-                {{ form.email(id="email", autocomplete="username", placeholder="Enter your email") }}
+                <label for="identifier">Email or Phone Number</label>
+                {{ form.identifier(
+                    id="identifier",
+                    autocomplete="username",
+                    placeholder="Phone or email"
+                ) }}
+                <small style="color: #666; font-size: 13px; display: block; margin-top: 5px;">
+                    Use your registered email or phone number
+                </small>
             </div>
 
             <div class="form-group password-group">
