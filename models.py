@@ -126,8 +126,8 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     dealership_name = db.Column(db.String(100), nullable=False, unique=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    phone = db.Column(db.String(20))
+    email = db.Column(db.String(120), unique=True, nullable=True)
+    phone = db.Column(db.String(20), unique=True, nullable=True)
     password_hash = db.Column(db.Text)
     is_trial = db.Column(db.Boolean, default=True)  # True = free trial
     trial_start = db.Column(db.DateTime, default=datetime.utcnow)
@@ -142,12 +142,9 @@ class User(UserMixin, db.Model):
     def clean_phone(cls, phone):
         if not phone:
             return None
-        # Keep only numbers (remove spaces, +, -, etc.)
         numbers = ''.join(c for c in str(phone) if c.isdigit())
-        # If it starts with 0, change to 256
         if numbers.startswith('0'):
             numbers = '256' + numbers[1:]
-        # If it's too short, we say it's not a real phone
         if len(numbers) < 9:
             return None
         return numbers
