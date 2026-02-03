@@ -812,7 +812,26 @@ def signup():
         )
         user.set_password(form.password.data)
         db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            error_str = str(e).lower()
+            if 'not null' in error_str and 'email' in error_str:
+                flash('Email is required if you provide one', 'danger')
+            elif 'unique constraint' in error_str:
+                if 'phone' in error_str:
+                    flash('This phone number is already registered', 'danger')
+                elif 'email' in error_str:
+                    flash('Email already registered', 'danger')
+                elif 'dealership_name' in error_str:
+                    flash('Dealership name already taken', 'danger')
+                else:
+                    flash('Something is already taken — check your details', 'danger')
+            else:
+                flash('An error occurred. Please try again.', 'danger')
+            return redirect(url_for('signup'))
+            
         login_user(user)  # NEW: Log in right away
         flash('Welcome! Choose your plan to start your 30-day free trial.', 'success')
         return redirect(url_for('subscribe'))  # NEW: Go to subscribe page
