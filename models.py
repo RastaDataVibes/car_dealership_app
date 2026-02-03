@@ -1,10 +1,3 @@
-# Full models.py file
-# Tweaks Summary:
-# 1. Added helpers: update_expenses_total() and calculate_profit() to model classes. These query sum expenses, update fields, and commit. Achieves: Accurate totals/profit on AJAX ops, ensuring table shows correct values on reload.
-# 2. Event listener: Simplified to only handle date_added (if purchase_price set), status/date_sold (if selling_price). Removed id-dependent queries (fail on insert). Achieves: Safe auto-updates without errors during insert.
-# 3. Expense date_added: Used lambda default for UTC now. Achieves: Consistent timestamps.
-# 4. Added import for Session if needed, but used db.session directly. Kept __table_args__ extend_existing for schema flexibility.
-# 5. No other changes; relationships and repr intact.
 
 '''from app import db'''
 from extensions import db
