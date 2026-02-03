@@ -241,12 +241,12 @@ class LoginForm(FlaskForm):
 
 class SignupForm(FlaskForm):
     dealership_name = StringField(
-        'Dealership Name', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    phone = StringField('Phone (optional)')
-    password = PasswordField('Password', validators=[DataRequired()])
+        'Dealership Name', validators=[DataRequired()], render_kw={"placeholder": "Your dealership name"})
+    email = StringField('Email', validators=[DataRequired(), Email()], render_kw={"placeholder": "example@email.com"})
+    phone = StringField('Phone', render_kw={"placeholder": "256712345678"})
+    password = PasswordField('Password', validators=[DataRequired()], render_kw={"placeholder": "Create a strong password"})
     confirm_password = PasswordField('Confirm Password', validators=[
-                                     DataRequired(), EqualTo('password')])
+                                     DataRequired(), EqualTo('password')], render_kw={"placeholder": "Repeat your password"})
     submit = SubmitField('Sign Up')
 
 
