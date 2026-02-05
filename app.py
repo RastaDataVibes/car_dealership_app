@@ -792,7 +792,7 @@ def signup():
             return redirect(url_for('signup'))
             
         if User.query.filter_by(email=email_clean).first():
-            flash('Email already registered', 'danger')
+            flash('Email/phone already registered', 'danger')
             return redirect(url_for('signup'))
 
         if phone_clean and User.query.filter_by(phone=phone_clean).first():
