@@ -1119,6 +1119,14 @@
           <div class="profile-dropdown" id="profileDropdown">
             <input type="text" id="nameInput" placeholder="Enter name">
             <input type="email" id="emailInput" placeholder="Enter email">
+            <label for="currencySelect" style="display:block; margin:10px 0 5px 10px; font-weight:bold;">Preferred Currency</label>
+            <select id="currencySelect" name="currency" style="width:90%; margin:0 auto 10px; padding:8px; border-radius:4px;">
+              <option value="UGX" {% if current_user.currency == 'UGX' %}selected{% endif %}>Ugandan Shilling – UGX</option>
+              <option value="KES" {% if current_user.currency == 'KES' %}selected{% endif %}>Kenyan Shilling – KSh</option>
+              <option value="TZS" {% if current_user.currency == 'TZS' %}selected{% endif %}>Tanzanian Shilling – TSh</option>
+              <option value="RWF" {% if current_user.currency == 'RWF' %}selected{% endif %}>Rwandan Franc – FRw</option>
+              <option value="ETB" {% if current_user.currency == 'ETB' %}selected{% endif %}>Ethiopian Birr – Br</option>
+            </select>
             <input type="file" id="photoInput" accept="image/*">
             <button id="saveProfile">Save</button>
             <a href="{{ url_for('logout') }}" class="profile-logout">Logout</a>
@@ -1141,13 +1149,13 @@
         </div>
         <div class="kpi-card blue" id="totalSalesCard">
           <div class="kpi-money">
-            <h3 class="kpi-title">Total sales(UGX)</h3> <!-- TITLE: Bold top -->
+            <h3 class="kpi-title">Total sales</h3> <!-- TITLE: Bold top -->
             <div class="kpi-value-normal" id="totalSalesValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
           </div>
         </div>
         <div class="kpi-card purple" id="totalProfitsCard">
           <div class="kpi-money">
-            <h3 class="kpi-title">Total profits(UGX)</h3> <!-- TITLE: Bold top -->
+            <h3 class="kpi-title">Total profits</h3> <!-- TITLE: Bold top -->
             <div class="kpi-value-normal" id="totalProfitsValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
           </div>
         </div>
@@ -1297,7 +1305,28 @@
       }
     });
   </script>
-
+  
+  <script>
+    // User's currency from backend (Jinja-rendered)
+    window.USER_CURRENCY = "{{ current_user.currency or 'UGX' }}";
+  
+    // Simple formatter for KPI totals (matches backend :,.0f style)
+    function formatMoney(value) {
+      if (value === null || value === undefined || isNaN(value)) return '—';
+      const num = Number(value);
+      const symbol = {
+        'UGX': 'UGX',
+        'KES': 'KSh',
+        'TZS': 'TSh',
+        'RWF': 'FRw',
+        'ETB': 'Br'
+      }[window.USER_CURRENCY] || window.USER_CURRENCY;
+      let formatted = Math.abs(num).toLocaleString('en-US');
+      const sign = num > 0 ? '+' : (num < 0 ? '-' : '');
+      return `${sign}${symbol} ${formatted}`;
+    }
+  </script>
+  
   <script>
     function formatNumberWithCommasLive(input) {
       const cursorPos = input.selectionStart;
@@ -1420,10 +1449,41 @@
       if (["nameInput", "emailInput", "photoInput", "saveProfile"].includes(e.target.id)) return;
       profileDropdown.classList.toggle('open');
     });
-    saveBtn.addEventListener('click', () => {
-      if (nameInput.value) profileName.textContent = nameInput.value;
-      if (photoInput.files[0]) { const reader = new FileReader(); reader.onload = e => profilePhoto.src = e.target.result; reader.readAsDataURL(photoInput.files[0]); }
-      profileDropdown.classList.remove('open');
+    saveBtn.addEventListener('click', async () => {
+      const formData = new FormData();
+      if (nameInput.value) formData.append('name', nameInput.value);
+      if (document.getElementById('currencySelect').value) {
+        formData.append('currency', document.getElementById('currencySelect').value);
+      }
+      if (photoInput.files[0]) {
+        formData.append('photo', photoInput.files[0]);
+      }
+    
+      try {
+        const res = await fetch('/update_profile', {
+          method: 'POST',
+          body: formData
+        });
+        if (res.ok) {
+          // Update UI immediately
+          if (nameInput.value) profileName.textContent = nameInput.value;
+          if (photoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => profilePhoto.src = e.target.result;
+            reader.readAsDataURL(photoInput.files[0]);
+          }
+          // Optional: Show success message
+          alert('Profile updated!');
+          profileDropdown.classList.remove('open');
+          // Reload page to refresh currency everywhere (simplest way)
+          location.reload();
+        } else {
+          alert('Failed to update profile.');
+        }
+      } catch (err) {
+        console.error('Profile update error:', err);
+        alert('Error saving changes.');
+      }
     });
     const addCarBtn = document.getElementById('addCarBtn'), addCarForm = document.getElementById('addCarForm');
     const addExpenseBtn = document.getElementById('addExpenseBtn'), addExpenseForm = document.getElementById('addExpenseForm');
@@ -1520,29 +1580,7 @@
   <script>
     let sortColumn = null;
     let sortAscending = false;
-    function formatCurrency(value) {
-      if (!value || value.trim() === '') return 'N/A';
-      let formatted = value.replace(/\$/g, 'UGX ');
-      // ADDED: Align +/- - Add '+' for positive values if not already signed
-      const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
-      if (num > 0 && !formatted.startsWith('+') && !formatted.startsWith('-')) {
-        formatted = '+' + formatted;
-      }
-      return formatted;
-    }
-    function formatField(value) {
-      return value || 'N/A';
-    }
-    function getNaClass(value) {
-      const formatted = formatField(value);
-      return formatted === 'N/A' ? 'na-faint' : '';
-    }
-    function getFormattedCurrencyCell(value) {
-      const formatted = formatCurrency(value);
-      const naClass = formatted === 'N/A' ? 'na-faint' : '';
-      return `<span class="${naClass}">${formatted}</span>`;
-    }
-
+    
     // UPDATED: loadInventoryTable() - uses cached data (OPTIMIZATION: Step 1)
     async function loadInventoryTable(forceRefresh = false) {  // Optional force param
       try {
@@ -1575,11 +1613,21 @@
             <td class="${getNaClass(v.sourced_from)}">${formatField(v.sourced_from)}</td>
             <td class="numeric ${getNaClass(v.mileage)}">${formatField(v.mileage)}</td>
             <td class="${getNaClass(v.status)}">${formatField(v.status)}</td>
-            <td class="numeric">${getFormattedCurrencyCell(v.purchase_price)}</td>
-            <td class="numeric">${getFormattedCurrencyCell(v.expenses_amount)}</td>
-            <td class="numeric">${getFormattedCurrencyCell(v.fixed_selling_price)}</td>
-            <td class="numeric">${getFormattedCurrencyCell(v.booked_profit)}</td>
-            <td class="numeric">${getFormattedCurrencyCell(v.balance_due)}</td>
+            <td class="numeric <%= !v.purchase_price ? 'na-faint' : '' %>">
+              <%= v.purchase_price || 'N/A' %>
+            </td>
+            <td class="numeric <%= !v.expenses_amount ? 'na-faint' : '' %>">
+              <%= v.expenses_amount || 'N/A' %>
+            </td>
+            <td class="numeric <%= !v.fixed_selling_price ? 'na-faint' : '' %>">
+              <%= v.fixed_selling_price || 'N/A' %>
+            </td>
+            <td class="numeric <%= !v.booked_profit ? 'na-faint' : '' %>">
+              <%= v.booked_profit || 'N/A' %>
+            </td>
+            <td class="numeric <%= !v.balance_due ? 'na-faint' : '' %>">
+              <%= v.balance_due || 'N/A' %>
+            </td>
             <td class="${getNaClass(v.sale_date)}">${formatField(v.sale_date)}</td>
             <td class="${getNaClass(v.sold_to)}">${formatField(v.sold_to)}</td>
             <td class="${getNaClass(v.notes)}">${formatField(v.notes)}</td>
@@ -2095,7 +2143,7 @@
         }
 
         console.log('BLUE SALES SUM: ' + totalSales + ' (formatted: ' + formattedSales + ')');
-        document.getElementById('totalSalesValue').textContent = formattedSales;
+        document.getElementById('totalSalesValue').textContent = formatMoney(totalSales);
 
         console.log('SALES KPI LOADED: ' + formattedSales);
       } catch (err) {
@@ -2148,7 +2196,7 @@
         }
 
         console.log('PURPLE PROFITS SUM: ' + totalProfits + ' (formatted: ' + formattedProfits + ')');
-        document.getElementById('totalProfitsValue').textContent = formattedProfits; // Set "UGX +2.5M"
+        document.getElementById('totalProfitsValue').textContent = formatMoney(totalProfits);
 
         console.log('PROFITS KPI LOADED: ' + formattedProfits);
       } catch (err) {
@@ -2498,6 +2546,11 @@
         }
       });
     });
+
+    // Make KPI titles show the user's currency
+    const currency = window.USER_CURRENCY || 'UGX';
+    document.querySelector('#totalSalesCard .kpi-title').textContent = `Total sales (${currency})`;
+    document.querySelector('#totalProfitsCard .kpi-title').textContent = `Total profits (${currency})`;
   </script>
 
   <script>
