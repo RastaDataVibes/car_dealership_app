@@ -131,7 +131,7 @@ def initiate_pesapal_payment(amount, plan, user):
     
     order_data = {
         "id": merchant_ref,
-        "currency": "UGX",
+        "currency": user.currency,
         "amount": float(amount),  # force number
         "description": f"GreenChain {plan} subscription",
         "callback_url": PESAPAL_CALLBACK_URL,
@@ -247,6 +247,13 @@ class SignupForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()], render_kw={"placeholder": "Create a strong password"})
     confirm_password = PasswordField('Confirm Password', validators=[
                                      DataRequired(), EqualTo('password')], render_kw={"placeholder": "Repeat your password"})
+    currency = SelectField('Preferred Currency', choices=[
+        ('UGX', 'Ugandan Shilling – UGX'),
+        ('KES', 'Kenyan Shilling – KSh'),
+        ('TZS', 'Tanzanian Shilling – TSh'),
+        ('RWF', 'Rwandan Franc – FRw'),
+        ('ETB', 'Ethiopian Birr – Br')
+    ], validators=[DataRequired()], default='UGX')
     submit = SubmitField('Sign Up')
 
 
@@ -333,7 +340,8 @@ def add_vehicle_ajax():
         notes=notes,
         photo_filename=filename,
         date_added=datetime.now(timezone.utc),
-        dealership_id=current_user.id
+        dealership_id=current_user.id,
+        currency=current_user.currency
         
     )
     db.session.add(vehicle)
@@ -353,7 +361,7 @@ def add_expense_ajax():
     amount = clean_float(request.form.get('expense_amount'))
 
     expense = Expense(vehicle_id=vehicle_id,
-                      expense_category=category, expense_amount=amount)
+                      expense_category=category, expense_amount=amount, currency=current_user.currency)
     db.session.add(expense)
     db.session.commit()
 
@@ -445,7 +453,8 @@ def record_sale_ajax():
         vehicle_id=vehicle.id,
         amount=add_installment,
         category=f"Installment #{next_number}",
-        notes=notes or None
+        notes=notes or None,
+        currency=current_user.currency
     )
     db.session.add(payment)
     db.session.commit()
@@ -524,69 +533,62 @@ def superset_guest_token(dashboard_id):
 @subscription_required
 def get_inventory():
     vehicles = Inventory.query.filter_by(dealership_id=current_user.id).all()
-    # Shows if data fetched
     print(f"DEBUG: Raw query found {len(vehicles)} vehicles")
-
     formatted_data = []
     max_profit = 0
     max_price = 0
     profits = []
     prices = []
-
     current_date = date(2025, 10, 27)
+    
+    # Currency-aware formatting (same for all money fields)
+    def format_numeric(val, currency='UGX'):
+        if val is None:
+            return ""
+        symbol = {
+            'UGX': 'UGX',
+            'KES': 'KSh',
+            'TZS': 'TSh',
+            'RWF': 'FRw',
+            'ETB': 'Br'
+        }.get(currency, currency)
+        sign = '+' if val >= 0 else ''
+        return f"{sign}{symbol} {abs(val):,.0f}"   # no decimals — clean look
 
     for v in vehicles:
         try:
-            # Per-row check
             print(f"DEBUG: Processing ID {v.id} (make: {v.make or 'NULL'})")
-
-            # Safe days_in_inventory
             days_in_inventory = "Fresh"
             if v.date_added:
                 delta = (current_date - v.date_added.date()).days
                 if delta > 30:
                     days_in_inventory = "⚠️ Over 30 Days"
-
-            # Safe dates (handles NULL or bad format)
-            date_added = ""
-            if v.date_added:
-                try:
-                    date_added = v.date_added.strftime("%d-%m-%Y %H:%M:%S")
-                except:
-                    date_added = str(v.date_added)[:19] if v.date_added else ""
-            sale_date = ""
-            if v.sale_date:
-                try:
-                    sale_date = v.sale_date.strftime("%d-%m-%Y %H:%M:%S")
-                except:
-                    sale_date = str(v.sale_date)[:19] if v.sale_date else ""
-
-            # Safe numerics (handles NULL)
-            def format_numeric(val):
-                if val is None:
-                    return ""
-                try:
-                    sign = '+' if val >= 0 else ''
-                    return f"{sign}${abs(val):,.2f}"
-                except:
-                    return f"${val or 0:.2f}"
-
-            purchase_price = format_numeric(v.purchase_price)
-            expenses_amount = format_numeric(v.expenses_amount)
+            
+            date_added = v.date_added.strftime("%d-%m-%Y %H:%M:%S") if v.date_added else ""
+            sale_date = v.sale_date.strftime("%d-%m-%Y %H:%M:%S") if v.sale_date else ""
+            
+            # Format ALL money fields using the vehicle's currency
+            purchase_price = format_numeric(v.purchase_price, v.currency)
+            expenses_amount = format_numeric(v.expenses_amount, v.currency)
+            fixed_selling_price = format_numeric(v.fixed_selling_price, v.currency)
+            booked_profit = format_numeric(v.booked_profit, v.currency)
+            
             total_paid = db.session.query(db.func.sum(Payment.amount)).filter_by(
                 vehicle_id=v.id).scalar() or 0
+            total_paid_formatted = format_numeric(total_paid, v.currency)
+            
             balance_due = (v.fixed_selling_price or 0) - total_paid
-
-            cost = (v.purchase_price or 0) + (v.expenses_amount or 0)
-            realized_profit = total_paid - cost
-            # Safe max
+            balance_due_formatted = format_numeric(balance_due, v.currency)
+            
+            realized_profit = total_paid - (v.purchase_price or 0) - (v.expenses_amount or 0)
+            realized_profit_formatted = format_numeric(realized_profit, v.currency)
+            
+            # For max calculations (use raw numbers, not formatted)
             if v.booked_profit is not None:
-                profits.append(float(v.booked_profit)
-                               if v.booked_profit else 0)
+                profits.append(float(v.booked_profit or 0))
             if v.fixed_selling_price is not None:
-                prices.append(float(v.fixed_selling_price)
-                              if v.fixed_selling_price else 0)
-
+                prices.append(float(v.fixed_selling_price or 0))
+            
             formatted_data.append({
                 "id": v.id,
                 "date_added": date_added,
@@ -599,27 +601,25 @@ def get_inventory():
                 "sold_to": v.sold_to or '',
                 "notes": v.notes or '',
                 "status": v.status or '',
-                "purchase_price": format_numeric(v.purchase_price),
-                "expenses_amount": format_numeric(v.expenses_amount),
-                "fixed_selling_price": format_numeric(v.fixed_selling_price),
-                "total_paid": format_numeric(total_paid),
-                "balance_due": format_numeric(balance_due),
-                "booked_profit": format_numeric(v.booked_profit),
-                "realized_profit": format_numeric(realized_profit),
+                "purchase_price": purchase_price,
+                "expenses_amount": expenses_amount,
+                "fixed_selling_price": fixed_selling_price,
+                "total_paid": total_paid_formatted,
+                "balance_due": balance_due_formatted,
+                "booked_profit": booked_profit,
+                "realized_profit": realized_profit_formatted,
                 "sale_date": sale_date,
                 "photo_filename": v.photo_filename or '',
                 "days_in_inventory": days_in_inventory
             })
             print(f"DEBUG: Added row for ID {v.id}")
-
         except Exception as e:
             print(f"DEBUG: Skipped ID {v.id} error: {e}")
             continue
-
+    
     max_profit = max(profits) if profits else 1
     max_price = max(prices) if prices else 1
     print(f"DEBUG: Returning {len(formatted_data)} rows")
-
     return jsonify({
         "formatted_data": formatted_data,
         "max_profit": max_profit,
@@ -671,58 +671,56 @@ def superset_token(dashboard_id):
 # ------------------------
 # Tweak: Added route for /inventory (optional standalone page); formats data like API, renders template with all rows. Achieves: Exact Superset if accessed directly, but dashboard uses API for integration.
 
-
 @app.route('/inventory')
 @subscription_required
 def inventory():
-    # No limit; all data like LIMIT 100000 (but query.all() for model)
     vehicles = Inventory.query.filter_by(dealership_id=current_user.id).all()
-
     rows = []
     max_profit = 0
     max_price = 0
     profits = []
     prices = []
-
-    # Tweak: Same fixed date and formatting as API
     current_date = date(2025, 10, 27)
-
+    
     for v in vehicles:
         days_in_inventory = "Fresh"
         if v.date_added:
             delta = (current_date - v.date_added.date()).days
             if delta > 30:
                 days_in_inventory = "⚠️ Over 30 Days"
-
-        sale_date = v.sale_date.strftime(
-            "%d-%m-%Y %H:%M:%S") if v.date_added else ""
-        sale_date = v.sale_date.strftime(
-            "%d-%m-%Y %H:%M:%S") if v.sale_date else ""
-
-        def format_numeric(val):
+        
+        sale_date = v.sale_date.strftime("%d-%m-%Y %H:%M:%S") if v.sale_date else ""
+        
+        # Currency-aware formatting — same function as /api/inventory
+        def format_numeric(val, currency=v.currency):
             if val is None:
                 return ""
+            symbol = {
+                'UGX': 'UGX',
+                'KES': 'KSh',
+                'TZS': 'TSh',
+                'RWF': 'FRw',
+                'ETB': 'Br'
+            }.get(currency, currency)  # fallback to code if unknown
             sign = '+' if val >= 0 else ''
-            return f"{sign}${abs(val):,.2f}"
-
+            return f"{sign}{symbol} {abs(val):,.0f}"
+        
         purchase_price = format_numeric(v.purchase_price)
         expenses_amount = format_numeric(v.expenses_amount)
         total_paid = db.session.query(db.func.sum(Payment.amount)).filter_by(
             vehicle_id=v.id).scalar() or 0
         balance_due = (v.fixed_selling_price or 0) - total_paid
-
         cost = (v.purchase_price or 0) + (v.expenses_amount or 0)
         realized_profit = total_paid - cost
-
+        
         if v.booked_profit is not None:
             profits.append(float(v.booked_profit) if v.booked_profit else 0)
         if v.fixed_selling_price is not None:
-            prices.append(float(v.fixed_selling_price)
-                          if v.fixed_selling_price else 0)
-
+            prices.append(float(v.fixed_selling_price) if v.fixed_selling_price else 0)
+        
         row = {
             "id": v.id,
-            "date_added": date_added,
+            "date_added": v.date_added.strftime("%d-%m-%Y %H:%M:%S") if v.date_added else "",
             "make": v.make or '',
             "model": v.model or '',
             "year": v.year or '',
@@ -732,8 +730,8 @@ def inventory():
             "sold_to": v.sold_to or '',
             "notes": v.notes or '',
             "status": v.status or '',
-            "purchase_price": format_numeric(v.purchase_price),
-            "expenses_amount": format_numeric(v.expenses_amount),
+            "purchase_price": purchase_price,
+            "expenses_amount": expenses_amount,
             "fixed_selling_price": format_numeric(v.fixed_selling_price),
             "total_paid": format_numeric(total_paid),
             "balance_due": format_numeric(balance_due),
@@ -744,11 +742,10 @@ def inventory():
             "days_in_inventory": days_in_inventory
         }
         rows.append(row)
-
+    
     max_profit = max(profits) if profits else 1
     max_price = max(prices) if prices else 1
     count = len(rows)
-
     return render_template('inventory.html',
                            rows=rows,
                            count=count,
@@ -808,7 +805,8 @@ def signup():
         user = User(
             dealership_name = dealership_name_clean,
             email           = email_clean,
-            phone           = phone_clean
+            phone           = phone_clean,
+            currency        = form.currency.data
         )
         user.set_password(form.password.data)
         db.session.add(user)
@@ -999,7 +997,13 @@ def ai_chat():
     car_details = []
     for v in vehicles:
         status = "Sold" if v.status == 'Sold' else "Available"
-        
+
+        # Get currency symbol for this vehicle (fallback to UGX)
+        symbol = {
+            'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
+            'RWF': 'FRw', 'ETB': 'Br'
+        }.get(v.currency, 'UGX')
+
         # EVERY EXPENSE — category, amount, date
         expenses_list = []
         total_expenses = 0
@@ -1008,7 +1012,7 @@ def ai_chat():
             total_expenses += amount
             date_str = exp.date_created.strftime('%d %B %Y') if exp.date_created else 'Unknown date'
             category = exp.expense_category or 'Unknown'
-            expenses_list.append(f"   → {category}: UGX {amount:,.0f} on {date_str}")
+            expenses_list.append(f"   → {category}: {symbol} {amount:,.0f} on {date_str}")
         expenses_text = "\n".join(expenses_list) if expenses_list else "   → No expenses"
         
         # EVERY PAYMENT — amount, date, note
@@ -1029,9 +1033,9 @@ def ai_chat():
         car_details.append(f"""
 • Car ID: {v.id} | {v.make or 'Unknown'} {v.model or ''} {v.year or ''} (Reg: {v.registration_number or 'None'})
   Status: {status} | Sold to: {v.sold_to or 'None'}
-  Buy price: UGX {clean_float(v.purchase_price):,.0f} | Sell price: UGX {clean_float(v.fixed_selling_price):,.0f}
-  Booked profit: UGX {clean_float(v.booked_profit):,.0f}
-  Total paid: UGX {total_paid:,.0f} | Balance due: UGX {balance_due:,.0f}
+  Buy price: {symbol} {clean_float(v.purchase_price):,.0f} | Sell price: UGX {clean_float(v.fixed_selling_price):,.0f}
+  Booked profit: {symbol} {clean_float(v.booked_profit):,.0f}
+  Total paid: {symbol} {total_paid:,.0f} | Balance due: UGX {balance_due:,.0f}
   Days in stock: {days_in_stock} | Mileage: {v.mileage or 'N/A'} km
   Notes: {v.notes or 'None'}
 
@@ -1043,20 +1047,26 @@ def ai_chat():
 """)
     
     all_cars_text = "\n".join(car_details)
+
+    # Use the current user's preferred currency for overall totals (fallback to UGX)
+    user_symbol = {
+        'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
+        'RWF': 'FRw', 'ETB': 'Br'
+    }.get(current_user.currency, 'UGX')
     
     system_prompt = f"""
 You are GreenChain AI — expert adviser for this Ugandan car dealership.
 
-REAL DATA TODAY (December 18, 2025):
+REAL DATA TODAY ({date.today().strftime('%B %d, %Y')}):
 - Total cars: {total_cars} | Available: {available_cars} | Sold: {sold_cars}
-- Total sales: UGX {total_sales:,.0f} | Total profit: UGX {total_profit:,.0f}
+- Total sales: {user_symbol} {total_sales:,.0f} | Total profit: {user_symbol} {total_profit:,.0f}
 
 EVERY CAR WITH FULL EXPENSES & PAYMENTS:
 {all_cars_text}
 
 YOUR JOB:
 - List exact expenses and payments with dates and categories when asked
-- Example: "Brakes: UGX 3,000,000 on 10 December 2025"
+- Example: "Brakes: {user_symbol} 3,000,000 on 10 December 2025"
 - Show totals and balance clearly
 - Give smart advice: "High expenses on this car", "Customer paying well"
 - Be friendly and clear. Use full dates.
