@@ -848,10 +848,14 @@ def logout():
 @login_required
 def update_profile():
     name = request.form.get('name')
+    currency = request.form.get('currency')
     photo_file = request.files.get('photo')
 
     if name:
-        current_user.profile_name = name
+        current_user.profile_name = name.strip()
+
+    if currency in ['UGX', 'KES', 'TZS', 'RWF', 'ETB']:  # Validate allowed values
+        current_user.currency = currency
 
     if photo_file and photo_file.filename:
         filename = secure_filename(photo_file.filename)
