@@ -34,6 +34,7 @@ class Inventory(db.Model):
     sale_date = db.Column(db.DateTime)
     notes = db.Column(db.Text)
     dealership_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    currency = db.Column(db.String(3), nullable=False, default='UGX')
 
     # Relationship to Expenses
     expenses = db.relationship(
@@ -88,6 +89,7 @@ class Expense(db.Model):
     # Tweak: Changed to lambda for default to avoid issues
     date_created = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc))
+    currency = db.Column(db.String(3), nullable=False, default='UGX')
 
     def __repr__(self):
         return f"<Expense {self.expense_category} - {self.expense_amount}>"
@@ -109,11 +111,11 @@ class Payment(db.Model):
     # e.g. "Installment #1", "Final Payment"
     category = db.Column(db.String(100), default="Installment")
     notes = db.Column(db.Text)
-
     created_at = db.Column(db.DateTime,
                            nullable=False,
                            default=lambda: datetime.now(timezone.utc),
                            server_default=func.now())
+    currency = db.Column(db.String(3), nullable=False, default='UGX')
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -130,6 +132,7 @@ class User(UserMixin, db.Model):
     date_created = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     profile_name = db.Column(db.String(100))
     profile_photo_filename = db.Column(db.String(300))
+    currency = db.Column(db.String(3), nullable=False, default='UGX')
 
     @classmethod
     def clean_phone(cls, phone):
