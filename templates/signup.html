@@ -141,6 +141,9 @@
             <small style="color: #666; font-size: 13px; display: block; margin-top: 5px;">
             </small>
 
+            <label for="currency">Preferred Currency <span style="color:red;">*</span></label>
+            {{ form.currency(id="currency") }}
+
             <div class="password-group">
                 <label for="password">Password</label>
                 {{ form.password(id="password", autocomplete="new-password", placeholder="Enter password") }}
