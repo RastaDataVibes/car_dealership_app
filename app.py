@@ -540,9 +540,10 @@ def get_inventory():
     profits = []
     prices = []
     current_date = date(2025, 10, 27)
-    
+
+    user_currency = current_user.currency or 'UGX'
     # Currency-aware formatting (same for all money fields)
-    def format_numeric(val, currency='UGX'):
+    def format_numeric(val, currency='user_currency'):
         if val is None:
             return ""
         symbol = {
@@ -568,20 +569,20 @@ def get_inventory():
             sale_date   = v.sale_date.isoformat().split('.')[0] if v.sale_date else ""
             
             # Format ALL money fields using the vehicle's currency
-            purchase_price = format_numeric(v.purchase_price, v.currency)
-            expenses_amount = format_numeric(v.expenses_amount, v.currency)
-            fixed_selling_price = format_numeric(v.fixed_selling_price, v.currency)
-            booked_profit = format_numeric(v.booked_profit, v.currency)
+            purchase_price = format_numeric(v.purchase_price)
+            expenses_amount = format_numeric(v.expenses_amount)
+            fixed_selling_price = format_numeric(v.fixed_selling_price)
+            booked_profit = format_numeric(v.booked_profit)
             
             total_paid = db.session.query(db.func.sum(Payment.amount)).filter_by(
                 vehicle_id=v.id).scalar() or 0
-            total_paid_formatted = format_numeric(total_paid, v.currency)
+            total_paid_formatted = format_numeric(total_paid)
             
             balance_due = (v.fixed_selling_price or 0) - total_paid
-            balance_due_formatted = format_numeric(balance_due, v.currency)
+            balance_due_formatted = format_numeric(balance_due)
             
             realized_profit = total_paid - (v.purchase_price or 0) - (v.expenses_amount or 0)
-            realized_profit_formatted = format_numeric(realized_profit, v.currency)
+            realized_profit_formatted = format_numeric(realized_profit)
             
             # For max calculations (use raw numbers, not formatted)
             if v.booked_profit is not None:
