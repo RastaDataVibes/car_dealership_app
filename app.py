@@ -564,8 +564,8 @@ def get_inventory():
                 if delta > 30:
                     days_in_inventory = "⚠️ Over 30 Days"
             
-            date_added = v.date_added.strftime("%d-%m-%Y %H:%M:%S") if v.date_added else ""
-            sale_date = v.sale_date.strftime("%d-%m-%Y %H:%M:%S") if v.sale_date else ""
+            date_added = v.date_added.isoformat().split('.')[0] if v.date_added else ""  # "2025-12-15T14:30:00"
+            sale_date   = v.sale_date.isoformat().split('.')[0] if v.sale_date else ""
             
             # Format ALL money fields using the vehicle's currency
             purchase_price = format_numeric(v.purchase_price, v.currency)
