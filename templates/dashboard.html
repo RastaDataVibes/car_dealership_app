@@ -1672,31 +1672,44 @@
     });
     /* CHANGED: Updated addCellBars to wrap the formatted value in bar-text span within bar-container, ensuring the bar acts as a horizontal extension (length based on value percent) starting from the left vertical grid line (x-axis), spanning the full inner cell height along the horizontal space, mimicking a horizontal bar graph where bar length visually represents magnitude for easy comparison. */
     function addCellBars(maxProfit, maxPrice) {
-      const barCols = [7, 8, 9, 10, 11, 12, 13]; /* purchase, expenses, selling, profit */
-      const isProfitCol = [false, false, false, true];
+      const barCols = [7, 8, 9, 10, 11, 12, 13]; /* purchase, expenses, selling, profit, balance due */
+      const isProfitCol = [false, false, false, true, false]; /* profit is index 10 (4th in array) */
+    
       document.querySelectorAll('#inventoryTable tbody tr').forEach(tr => {
         barCols.forEach((colIdx, i) => {
           const cell = tr.cells[colIdx];
-          let valStr = cell.innerHTML.replace(/<[^>]*>/g, '').trim(); /* Extract text content robustly */
-          const val = parseFloat(valStr.replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
-          if (isNaN(val) || val === 0) return; /* Skip for N/A or zero */
+          
+          // Extract clean text content (remove any inner HTML tags and trim)
+          let valStr = cell.innerHTML.replace(/<[^>]*>/g, '').trim();
+          
+          // UPDATED: Remove ALL non-numeric characters except digits, decimal point, minus sign
+          const cleanVal = valStr.replace(/[^0-9.-]/g, '');
+          
+          const val = parseFloat(cleanVal) || 0;
+          
+          if (isNaN(val) || val === 0) return; /* Skip for N/A, empty, or zero */
+    
           const maxVal = isProfitCol[i] ? maxProfit : maxPrice;
-          if (maxVal > 0) {
-            const percent = (Math.abs(val) / maxVal) * 100;
-            const colorClass = val >= 0 ? 'bar-positive' : 'bar-negative';
-            /* CHANGED: HTML structure for horizontal bar graph effect: bar-container sets inner height, bar fills bottom-to-top (full height) and left-to-percent width, bar-text overlays the value right-aligned for visibility over the bar. */
-            cell.innerHTML = `<div class="bar-container"><div class="bar ${colorClass}" style="width: ${percent}%"></div><span class="bar-text">${valStr}</span></div>`;
-          }
+          if (maxVal <= 0) return; /* Avoid division by zero */
+    
+          const percent = (Math.abs(val) / maxVal) * 100;
+          const colorClass = val >= 0 ? 'bar-positive' : 'bar-negative';
+    
+          // Keep the original formatted string (with commas + symbol) for display
+          cell.innerHTML = `
+            <div class="bar-container">
+              <div class="bar ${colorClass}" style="width: ${percent}%"></div>
+              <span class="bar-text">${valStr}</span>
+            </div>
+          `;
         });
       });
     }
-
   </script>
   <!-- EMBEDDED REAL CHART JS - ADDED LEGEND 'SUM(PROFIT)', FIXED VALUE LABELS ON ALL BARS, ENHANCED VERTICAL DOTTED LINE, AND PROMINENT GREY GRID -->
   <script>
-    // ADD THIS LINE AT SCRIPT TOP — YOUR ORIGINAL
     if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
-
+  
     // GLOBAL CROSSHAIR — REGISTER ONCE (FIXES LAG + REDECLARE)
     const crosshairPlugin = {
       id: 'crosshair',
@@ -1717,18 +1730,18 @@
       }
     };
     Chart.register(crosshairPlugin);
-
+  
     // GLOBAL INSTANCES — DECLARED ONCE
     let profitChartInstance = null;
     let salesChartInstance = null;
-
+  
     // CHANGE 1: Abbreviate number function — YOUR ORIGINAL
     function abbreviateNumber(num) {
       if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
       if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
       return num.toString();
     }
-
+  
     document.addEventListener('DOMContentLoaded', function () {
       const canvas = document.getElementById('profitChart');
       if (!canvas) {
@@ -1736,60 +1749,63 @@
         return;
       }
       console.log('Canvas ready - fetching real data for bars!');
-
+  
       // GLOBAL + FORCE REFRESH + DESTROY OLD
       window.loadProfitData = function (forceRefresh = false) {
         getInventoryData(forceRefresh)
           .then(function (response) {
             var data = response.formatted_data || [];
             console.log('Total cars loaded: ' + data.length);
-
             data = data.filter(car => car.status === 'Sold');
             console.log('Sold cars: ' + data.length);
-
+  
             if (data.length === 0) {
               document.querySelector('.profit-make').innerHTML = '<p style="color:white;text-align:center;padding:30px;">No sold cars—add & sell one!</p>';
               if (profitChartInstance) profitChartInstance.destroy();
               profitChartInstance = null;
               return;
             }
-
+  
             var makeProfits = {};
             data.forEach(function (car) {
               var make = car.make || 'Unknown';
               var profitStr = car.booked_profit || '';
-              var cleanProfit = profitStr.replace(/UGX |[+$]/g, '').replace(/,/g, '');
+  
+              // UPDATED: Clean any currency symbol — keep only digits, decimal, minus
+              var cleanProfit = profitStr.replace(/[^0-9.-]/g, '');
               var profit = parseFloat(cleanProfit) || 0;
+  
               makeProfits[make] = (makeProfits[make] || 0) + profit;
             });
+  
             console.log('Profits summed by make: ', makeProfits);
-
+  
             var makes = Object.keys(makeProfits);
             var profits = Object.values(makeProfits);
-
+  
             var sortedIndex = profits
               .map((p, i) => ({ profit: p, index: i }))
               .sort((a, b) => b.profit - a.profit)
               .map(item => item.index);
-
+  
             makes = sortedIndex.map(i => makes[i]);
             profits = sortedIndex.map(i => profits[i]);
-
+  
             if (profits.every(p => p === 0)) {
               document.querySelector('.profit-make').innerHTML = '<p style="color:white;text-align:center;padding:30px;">No profits to plot</p>';
               if (profitChartInstance) profitChartInstance.destroy();
               profitChartInstance = null;
               return;
             }
-
+  
             var grandTotal = profits.reduce((a, b) => a + b, 0);
+  
             var ctx = canvas.getContext('2d');
-
             if (profitChartInstance) {
               profitChartInstance.destroy();
               profitChartInstance = null;
             }
-
+  
             profitChartInstance = new Chart(ctx, {
               type: 'bar',
               data: {
@@ -1840,7 +1856,7 @@
                 }
               }
             });
-
+  
             console.log('Profit chart updated on submit!');
           })
           .catch(err => {
@@ -1848,7 +1864,7 @@
             document.querySelector('.profit-make').innerHTML = '<p style="color:white;">Failed: ' + err.message + '</p>';
           });
       };
-
+  
       loadProfitData(); // Initial
     });
   </script>
@@ -2110,101 +2126,58 @@
         const response = await getInventoryData(forceRefresh);
         let data = response.formatted_data || [];
         console.log('BLUE BOX SEES: ' + data.length + ' total cars');
-
         const soldData = data.filter(car => car.status === 'Sold');
         let totalSales = 0;
         soldData.forEach(car => {
           let priceStr = (car.fixed_selling_price || '0').trim();
           console.log('Raw price for ' + (car.make || 'car') + ': "' + priceStr + '"'); // Spy raw
-          priceStr = priceStr.replace(/[ +UGX$-]/g, '').replace(/,/g, ''); // Clean +UGX, commas
-          let multiplier = 1;
-          if (priceStr.toUpperCase().endsWith('M')) {
-            multiplier = 1000000;
-            priceStr = priceStr.slice(0, -1);
-          } else if (priceStr.toUpperCase().endsWith('K')) {
-            multiplier = 1000;
-            priceStr = priceStr.slice(0, -1);
-          }
-          const cleanPrice = parseFloat(priceStr) * multiplier || 0;
+          
+          // UPDATED: Clean any currency symbol, commas, spaces — keep only digits, decimal, minus
+          priceStr = priceStr.replace(/[^0-9.-]/g, '');  
+          
+          const cleanPrice = parseFloat(priceStr) || 0;
           totalSales += cleanPrice;
           console.log('Cleaned price: ' + cleanPrice); // Spy cleaned
         });
-
-        // FIXED FORMAT: toFixed(2) for precision, no blind chop
-        let formattedSales = 'UGX 0';
-        if (totalSales >= 1000000) {
-          const mValue = (totalSales / 1000000).toFixed(2); // "4.04"
-          formattedSales = `${mValue.replace(/\.?0+$/, '')}M`; // "4.04M" (drops trailing 0s only)
-        } else if (totalSales >= 1000) {
-          const kValue = (totalSales / 1000).toFixed(0); // "4040K"
-          formattedSales = `${kValue}K`;
-        } else {
-          formattedSales = `${Math.round(totalSales)}`;
-        }
-
-        console.log('BLUE SALES SUM: ' + totalSales + ' (formatted: ' + formattedSales + ')');
+        
+        // Use formatMoney for display (already handles symbol and formatting)
         document.getElementById('totalSalesValue').textContent = formatMoney(totalSales);
-
-        console.log('SALES KPI LOADED: ' + formattedSales);
+        
+        console.log('SALES KPI LOADED: Total sales = ' + totalSales);
       } catch (err) {
         console.error('Sales KPI error:', err);
         document.getElementById('totalSalesValue').textContent = 'Error';
       }
     }
-
     // NEW: loadTotalProfitsKPI - Sum profits for sold cars (SQL: SUM(profit) WHERE status = 'Sold')
     async function loadTotalProfitsKPI(forceRefresh = false) {
       try {
         const response = await getInventoryData(forceRefresh);
         let data = response.formatted_data || [];
-        console.log('PURPLE BOX SEES: ' + data.length + ' total cars'); // Spy total
-
-        // FIXED: SQL MATCH - Filter sold, sum profit
+        console.log('PURPLE BOX SEES: ' + data.length + ' total cars');
         const soldData = data.filter(car => car.status === 'Sold');
         let totalProfits = 0;
         soldData.forEach(car => {
           let profitStr = (car.booked_profit || '0').trim();
           console.log('Raw profit for ' + (car.make || 'car') + ': "' + profitStr + '"'); // Spy raw
-          // CLEAN: Strip UGX, +, -, commas
-          profitStr = profitStr.replace(/[ +UGX$-]/g, '').replace(/,/g, '');
-          // ABREV: M/K to full
-          let multiplier = 1;
-          if (profitStr.toUpperCase().endsWith('M')) {
-            multiplier = 1000000;
-            profitStr = profitStr.slice(0, -1);
-          } else if (profitStr.toUpperCase().endsWith('K')) {
-            multiplier = 1000;
-            profitStr = profitStr.slice(0, -1);
-          }
-          const cleanProfit = parseFloat(profitStr) * multiplier || 0;
+          
+          // UPDATED: Remove everything except digits, decimal point, and minus sign
+          profitStr = profitStr.replace(/[^0-9.-]/g, '');
+          
+          const cleanProfit = parseFloat(profitStr) || 0;
           totalProfits += cleanProfit;
-          console.log('Cleaned profit: ' + cleanProfit); // Spy cleaned
+          console.log('Cleaned profit: ' + cleanProfit);
         });
-
-        // FORMAT: Abbrev + sign for positive (e.g., +UGX 2.5M)
-        let formattedProfits = 'UGX 0';
-        const isPositive = totalProfits > 0;
-        const absTotal = Math.abs(totalProfits);
-        if (absTotal >= 1000000) {
-          const mValue = (absTotal / 1000000).toFixed(2).replace(/\.?0+$/, '');
-          formattedProfits = `${isPositive ? '+' : '-'}${mValue}M`;
-        } else if (absTotal >= 1000) {
-          const kValue = (absTotal / 1000).toFixed(0);
-          formattedProfits = `${isPositive ? '+' : '-'}${kValue}K`;
-        } else {
-          formattedProfits = `${isPositive ? '+' : '-'}${Math.round(absTotal)}`;
-        }
-
-        console.log('PURPLE PROFITS SUM: ' + totalProfits + ' (formatted: ' + formattedProfits + ')');
+        
+        // Display using formatMoney (already handles symbol and formatting)
         document.getElementById('totalProfitsValue').textContent = formatMoney(totalProfits);
-
-        console.log('PROFITS KPI LOADED: ' + formattedProfits);
+        
+        console.log('PROFITS KPI LOADED: Total profits = ' + totalProfits);
       } catch (err) {
         console.error('Profits KPI error:', err);
         document.getElementById('totalProfitsValue').textContent = 'Error';
       }
     }
-
     // OPTIMIZED: queueRefresh - Instant KPI/table, batch charts (fewer fetches = speed)
     async function queueRefresh(forceRefresh = false) {
       if (refreshPending) {
@@ -2263,16 +2236,17 @@
       fetch('/api/inventory')
         .then(res => res.json())
         .then(data => {
-          let csv = 'ID,Date Added,Make,Model,Year,Registration Number,Mileage,Status,Purchase Price,Expenses,Fixed Selling Price,Profit,Sale Date,Photo,Days in Inventory\n'; // FULL HEADERS
+          let csv = 'ID,Date Added,Make,Model,Year,Registration Number,Mileage,Status,Purchase Price,Expenses,Fixed Selling Price,Profit,Sale Date,Photo,Days in Inventory\n';
           data.formatted_data.forEach(car => {
-            // CLEAN NUMBERS: Strip UGX/+, commas for prices/profit
-            const cleanPurchase = parseFloat((car.purchase_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
-            const cleanExpenses = parseFloat((car.expenses_amount || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
-            const cleanSelling = parseFloat((car.fixed_selling_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
-            const cleanProfit = parseFloat((car.booked_profit || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+            // UPDATED: Clean any currency symbol — keep only digits, decimal, minus
+            const cleanPurchase = parseFloat((car.purchase_price  || '0').replace(/[^0-9.-]/g, '')) || 0;
+            const cleanExpenses = parseFloat((car.expenses_amount || '0').replace(/[^0-9.-]/g, '')) || 0;
+            const cleanSelling = parseFloat((car.fixed_selling_price|| '0').replace(/[^0-9.-]/g, '')) || 0;
+            const cleanProfit  = parseFloat((car.booked_profit   || '0').replace(/[^0-9.-]/g, '')) || 0;
+            
             const cleanMileage = parseInt(car.mileage || 0) || 0;
-            const cleanDays = parseInt(car.days_in_inventory || 0) || 0;
-
+            const cleanDays    = parseInt(car.days_in_inventory || 0) || 0;
+            
             csv += `"${car.id}","${car.date_added || ''}","${car.make || ''}","${car.model || ''}",${car.year || ''},"${car.registration_number || ''}",${cleanMileage},"${car.status || ''}",${cleanPurchase},${cleanExpenses},${cleanSelling},${cleanProfit},"${car.sale_date || ''}","${car.photo_filename || ''}",${cleanDays}\n`;
           });
           const blob = new Blob([csv], { type: 'text/csv' });
@@ -2282,9 +2256,11 @@
           link.click();
           reportForm.classList.remove('open');
         })
-        .catch(err => alert('Try again!'));
+        .catch(err => {
+          console.error('Download error:', err);
+          alert('Failed to download — try again!');
+        });
     }
-
     // FIXED: Available Cars CSV - Unsold only, clean numbers
     function downloadAvailableCars() {
       fetch('/api/inventory')
@@ -2293,10 +2269,11 @@
           let csv = 'ID,Make,Model,Year,Registration Number,Mileage,Purchase Price,Fixed Selling Price\n'; // HEADERS for available
           const available = data.formatted_data.filter(car => car.status !== 'Sold');
           available.forEach(car => {
-            const cleanPurchase = parseFloat((car.purchase_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
-            const cleanSelling = parseFloat((car.fixed_selling_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '')) || 0;
+            // UPDATED: Clean any currency symbol — keep only digits, decimal point, minus sign
+            const cleanPurchase = parseFloat((car.purchase_price || '0').replace(/[^0-9.-]/g, '')) || 0;
+            const cleanSelling = parseFloat((car.fixed_selling_price || '0').replace(/[^0-9.-]/g, '')) || 0;
             const cleanMileage = parseInt(car.mileage || 0) || 0;
-
+    
             csv += `"${car.id}","${car.make || ''}","${car.model || ''}",${car.year || ''},"${car.registration_number || ''}",${cleanMileage},${cleanPurchase},${cleanSelling}\n`;
           });
           const blob = new Blob([csv], { type: 'text/csv' });
@@ -2306,7 +2283,10 @@
           link.click();
           reportForm.classList.remove('open');
         })
-        .catch(err => alert('Try again!'));
+        .catch(err => {
+          console.error('Download available cars error:', err);
+          alert('Failed to download available cars — try again!');
+        });
     }
 
     // FIXED: Sales Story Text - Proper grand total (clean prices)
@@ -2315,17 +2295,25 @@
         .then(res => res.json())
         .then(data => {
           let text = 'My Sales Story\n\n';
-          let totalSold = 0, totalMoney = 0;
+          let totalSold = 0;
+          let totalMoney = 0;
+          
           const sold = data.formatted_data.filter(car => car.status === 'Sold');
+          
           sold.forEach(car => {
-            text += `Sold: ${car.make}  ${car.model} ${car.registration_number} for ${car.fixed_selling_price} (Profit: ${car.booked_profit})\n`;
+            text += `Sold: ${car.make || 'Unknown'} ${car.model || ''} ${car.registration_number || 'No Reg'} for ${car.fixed_selling_price || 'N/A'} (Profit: ${car.booked_profit || 'N/A'})\n`;
             totalSold++;
-            // FIXED CLEAN: Parse money (strip UGX/+, commas)
-            const moneyStr = (car.fixed_selling_price || '0').replace(/UGX |[+$]/g, '').replace(/,/g, '');
+            
+            // UPDATED: Clean any currency symbol — keep only digits, decimal point, minus sign
+            const moneyStr = (car.fixed_selling_price || '0').replace(/[^0-9.-]/g, '');
             const money = parseFloat(moneyStr) || 0;
             totalMoney += money;
           });
-          text += `\nGrand Total: ${totalSold} cars for UGX ${totalMoney}!`; // FIXED: Real sum
+          
+          // UPDATED: Use the same universal cleaning for grand total display
+          const grandTotalStr = totalMoney.toLocaleString('en-US');
+          text += `\nGrand Total: ${totalSold} cars for ${grandTotalStr}!`;
+          
           const blob = new Blob([text], { type: 'text/plain' });
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
@@ -2333,9 +2321,11 @@
           link.click();
           reportForm.classList.remove('open');
         })
-        .catch(err => alert('Try again!'));
+        .catch(err => {
+          console.error('Download sales story error:', err);
+          alert('Failed to download sales story — try again!');
+        });
     }
-
     // TOGGLE SETTINGS DRAWER (like Report)
     const settingsBtn = document.getElementById('settingsBtn');
     const settingsForm = document.getElementById('settingsForm');
