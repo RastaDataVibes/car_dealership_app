@@ -1603,38 +1603,44 @@
         tbody.innerHTML = '';
         data.forEach((v) => {
           const row = document.createElement('tr');
+
+          const getCellClass = (val) => (val ? '' : 'na-faint');
+          const getCellContent = (val) => (val || 'N/A');
           row.innerHTML = `
-            <td class="success-bg numeric ${getNaClass(v.id)}">${formatField(v.id)}</td>
-            <td class="${getNaClass(v.date_added)}">${formatField(v.date_added)}</td>
-            <td class="${getNaClass(v.make)}">${formatField(v.make)}</td>
-            <td class="${getNaClass(v.model)}">${formatField(v.model)}</td>
-            <td class="numeric ${getNaClass(v.year)}">${formatField(v.year)}</td>
-            <td class="${getNaClass(v.registration_number)}">${formatField(v.registration_number)}</td>
-            <td class="${getNaClass(v.sourced_from)}">${formatField(v.sourced_from)}</td>
-            <td class="numeric ${getNaClass(v.mileage)}">${formatField(v.mileage)}</td>
-            <td class="${getNaClass(v.status)}">${formatField(v.status)}</td>
-            <td class="numeric <%= !v.purchase_price ? 'na-faint' : '' %>">
-              <%= v.purchase_price || 'N/A' %>
+            <td class="success-bg numeric">${v.id || '—'}</td>
+            <td class="${getCellClass(v.date_added)}">${getCellContent(v.date_added)}</td>
+            <td class="${getCellClass(v.make)}">${getCellContent(v.make)}</td>
+            <td class="${getCellClass(v.model)}">${getCellContent(v.model)}</td>
+            <td class="numeric ${getCellClass(v.year)}">${getCellContent(v.year)}</td>
+            <td class="${getCellClass(v.registration_number)}">${getCellContent(v.registration_number)}</td>
+            <td class="${getCellClass(v.sourced_from)}">${getCellContent(v.sourced_from)}</td>
+            <td class="numeric ${getCellClass(v.mileage)}">${getCellContent(v.mileage)}</td>
+            <td class="${getCellClass(v.status)}">${getCellContent(v.status)}</td>
+        
+            <!-- Money columns with na-faint when empty -->
+            <td class="numeric ${getCellClass(v.purchase_price)}">${getCellContent(v.purchase_price)}</td>
+            <td class="numeric ${getCellClass(v.expenses_amount)}">${getCellContent(v.expenses_amount)}</td>
+            <td class="numeric ${getCellClass(v.fixed_selling_price)}">${getCellContent(v.fixed_selling_price)}</td>
+            <td class="numeric ${getCellClass(v.booked_profit)}">${getCellContent(v.booked_profit)}</td>
+            <td class="numeric ${getCellClass(v.balance_due)}">${getCellContent(v.balance_due)}</td>
+        
+            <td class="${getCellClass(v.sale_date)}">${getCellContent(v.sale_date)}</td>
+            <td class="${getCellClass(v.sold_to)}">${getCellContent(v.sold_to)}</td>
+            <td class="${getCellClass(v.notes)}">${getCellContent(v.notes)}</td>
+        
+            <td class="photo-cell">
+              ${v.photo_filename 
+                ? `<img src="/static/uploads/${v.photo_filename}" alt="${v.photo_filename}" onerror="this.style.display='none'">` 
+                : '<span class="na-faint">N/A</span>'}
             </td>
-            <td class="numeric <%= !v.expenses_amount ? 'na-faint' : '' %>">
-              <%= v.expenses_amount || 'N/A' %>
+        
+            <td class="${getCellClass(v.days_in_inventory)}">${getCellContent(v.days_in_inventory)}</td>
+        
+            <td class="delete-cell">
+              <button onclick="deleteCar(${v.id})" style="background: red; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">🗑️ Delete</button>
             </td>
-            <td class="numeric <%= !v.fixed_selling_price ? 'na-faint' : '' %>">
-              <%= v.fixed_selling_price || 'N/A' %>
-            </td>
-            <td class="numeric <%= !v.booked_profit ? 'na-faint' : '' %>">
-              <%= v.booked_profit || 'N/A' %>
-            </td>
-            <td class="numeric <%= !v.balance_due ? 'na-faint' : '' %>">
-              <%= v.balance_due || 'N/A' %>
-            </td>
-            <td class="${getNaClass(v.sale_date)}">${formatField(v.sale_date)}</td>
-            <td class="${getNaClass(v.sold_to)}">${formatField(v.sold_to)}</td>
-            <td class="${getNaClass(v.notes)}">${formatField(v.notes)}</td>
-            <td class="photo-cell">${v.photo_filename ? `<img src="/static/uploads/${v.photo_filename}" alt="${v.photo_filename}" onerror="this.style.display='none'">` : '<span class="na-faint">N/A</span>'}</td>
-            <td class="${getNaClass(v.days_in_inventory)}">${formatField(v.days_in_inventory)}</td>
-            <td class="delete-cell"><button onclick="deleteCar(${v.id})" style="background: red; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">🗑️ Delete</button></td>
           `;
+        
           tbody.appendChild(row);
         });
         const tableSearchInput = document.getElementById('tableSearch');
