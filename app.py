@@ -543,7 +543,7 @@ def get_inventory():
 
     user_currency = current_user.currency or 'UGX'
     # Currency-aware formatting (same for all money fields)
-    def format_numeric(val, currency='user_currency'):
+    def format_numeric(val, currency=user_currency):
         if val is None:
             return ""
         symbol = {
@@ -682,6 +682,8 @@ def inventory():
     profits = []
     prices = []
     current_date = date(2025, 10, 27)
+
+    user_currency = current_user.currency or 'UGX'
     
     for v in vehicles:
         days_in_inventory = "Fresh"
@@ -693,7 +695,7 @@ def inventory():
         sale_date = v.sale_date.strftime("%d-%m-%Y %H:%M:%S") if v.sale_date else ""
         
         # Currency-aware formatting — same function as /api/inventory
-        def format_numeric(val, currency=v.currency):
+        def format_numeric(val, currency=user_currency):
             if val is None:
                 return ""
             symbol = {
@@ -702,7 +704,7 @@ def inventory():
                 'TZS': 'TSh',
                 'RWF': 'FRw',
                 'ETB': 'Br'
-            }.get(currency, currency)  # fallback to code if unknown
+            }.get(currency, 'UGX')  # fallback to code if unknown
             sign = '+' if val >= 0 else ''
             return f"{sign}{symbol} {abs(val):,.0f}"
         
