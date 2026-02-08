@@ -28,7 +28,6 @@
       align-items: stretch;
       gap: 20px;
       max-width: 100%;
-      width: 100%;
     }
     .sidebar {
       width: 232px;
@@ -71,7 +70,6 @@
       flex-direction: column;
       gap: 20px;
       flex: 1;
-      min-width: 0;
     }
     .topbar {
       display: flex;
@@ -139,7 +137,7 @@
     }
     .profile-name {
       font-size: 16px;
-      max-width: 140px;
+      max-width: 140px; /* or 120px on very small screens */
       display: inline-block;
       white-space: nowrap;
       overflow: hidden;
@@ -161,16 +159,19 @@
       transform: translateY(-8px);
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+  
     .profile-dropdown.open {
       max-height: 480px;
       opacity: 1;
       transform: translateY(0);
     }
+  
     .dropdown-header {
       padding: 12px 16px;
       border-bottom: 1px solid #eff3f4;
       background: #f7f9f9;
     }
+  
     .dropdown-user-name {
       display: block;
       font-size: 15px;
@@ -181,9 +182,11 @@
       text-overflow: ellipsis;
       max-width: 100%;
     }
+  
     .form-group {
       padding: 12px 16px;
     }
+  
     .form-group label {
       display: block;
       font-size: 13px;
@@ -191,6 +194,7 @@
       color: #536471;
       margin-bottom: 6px;
     }
+  
     .form-group input,
     .form-group select {
       width: 100%;
@@ -201,15 +205,18 @@
       background: #fff;
       transition: all 0.2s ease;
     }
+  
     .form-group input:focus,
     .form-group select:focus {
       outline: none;
       border-color: #1d9bf0;
       box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.3);
     }
+  
     .select-wrapper {
       position: relative;
     }
+  
     .select-wrapper select {
       appearance: none;
       padding-right: 32px;
@@ -257,15 +264,13 @@
     .btn-logout:hover {
       background: #ffeef0;
     }
+  
     .kpi-container {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
-      justify-content: center;
     }
     .kpi-card {
-      flex: 1 1 180px;
-      max-width: 240px;
       height: 95px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -277,16 +282,132 @@
       font-size: 16px;
     }
     .green {
+      width: 193px;
       background-color: #70b583FF;
     }
     .yellow {
+      width: 207px;
       background-color: #b5a01eFF;
     }
+    #soldCarsCard .kpi-big-number {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* CENTER: Title top, number middle */
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      padding: 10px;
+      /* PAD: Breathing room */
+      text-align: center;
+      background-color: #b5a01eFF;
+      /* YELLOW INSIDE */
+      border-radius: inherit;
+      position: relative;
+      overflow: hidden;
+      color: white;
+      /* WHITE TEXT: Contrast on yellow */
+    }
+    #soldCarsCard .kpi-title {
+      font-size: 1em;
+      /* MEDIUM: Clear title */
+      margin: 0 0 8px 0;
+      /* GAP BELOW: To number */
+      opacity: 1;
+      font-weight: bold;
+    }
+    #soldCarsCard .kpi-value {
+      font-size: 3em;
+      /* GIANT: Number dominates */
+      font-weight: bold;
+      margin: 0;
+      line-height: 1;
+    }
     .blue {
+      width: 222px;
       background-color: #3f7db5FF;
     }
+    #totalSalesCard .kpi-big-number {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* CENTER: Title top, number middle */
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      padding: 10px;
+      text-align: center;
+      background-color: #3f7db5FF;
+      border-radius: inherit;
+      position: relative;
+      overflow: hidden;
+      color: white;
+    }
+    #totalSalesCard .kpi-title {
+      font-size: 1em;
+      /* MEDIUM: Clear title */
+      margin: 0 0 6px 0;
+      /* GAP BELOW: To number */
+      opacity: 1;
+      font-weight: bold;
+      width: 100%;
+      order: 1;
+    }
+    #totalSalesCard .kpi-value {
+      font-size: 2em;
+      font-weight: bold;
+      margin: 0;
+      line-height: 1;
+      word-break: break-word;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      order: 2;
+      max-width: 100%;
+    }
     .purple {
+      width: 222px;
       background-color: #9658b5FF;
+    }
+    #totalProfitsCard .kpi-big-number {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* CENTER: Title top, number middle */
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      padding: 10px;
+      /* PAD: Breathing room */
+      text-align: center;
+      background-color: #9658b5FF;
+      /* PURPLE INSIDE */
+      border-radius: inherit;
+      position: relative;
+      overflow: hidden;
+      color: white;
+      /* WHITE TEXT: Contrast on purple */
+    }
+    #totalProfitsCard .kpi-title {
+      font-size: 1em;
+      /* MEDIUM: Clear title */
+      margin: 0 0 6px 0;
+      /* GAP BELOW: To number */
+      opacity: 1;
+      font-weight: bold;
+      width: 100%;
+      order: 1;
+    }
+    #totalProfitsCard .kpi-value {
+      font-size: 2em;
+      /* GIANT: Number dominates */
+      font-weight: bold;
+      margin: 0;
+      line-height: 1;
+      word-break: break-word;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      order: 2;
+      max-width: 100%;
     }
     .chart-row {
       display: flex;
@@ -297,27 +418,26 @@
       background-color: #B1B2B5FF;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      padding: 0;
-      flex: 1;
-      min-width: 300px;
-      overflow: hidden;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
     }
-    .sales-trend,
-    .profit-make {
+    .sales-trend {
+      width: 541px;
       height: 300px;
-      background-color: black !important;
-      padding: 0;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      flex: 1;
-      min-width: 340px;
+    }
+    .profit-make {
+      width: 343px;
+      height: 300px;
     }
     .inventory-table {
-      width: 100%;
+      width: 904px;
       max-height: 346px;
       overflow-y: auto;
       padding: 0;
-      background-color: #B1B2B5FF;
     }
     .dashboard-overlay {
       display: none;
@@ -396,14 +516,19 @@
     }
     .table-wrapper {
       flex: 1;
+      /* Grow to fill remaining height, but don't shrink below content if needed */
       overflow: auto;
+      /* Enable horizontal and vertical scrolling as needed */
       min-height: 0;
+      /* Allow flex child to shrink for scrolling */
       scrollbar-width: thin;
+      /* Firefox */
       scrollbar-color: #ccc #f8f9fa;
       background-color: #B1B2B5FF;
     }
     .table-wrapper::-webkit-scrollbar {
       width: 8px;
+      /* Thin scrollbar like Superset */
       height: 8px;
     }
     .table-wrapper::-webkit-scrollbar-track {
@@ -440,6 +565,7 @@
     th:hover::after,
     td:hover::after {
       content: attr(title);
+      /* Uses title attribute set in JS */
       position: absolute;
       background: #333;
       color: white;
@@ -488,9 +614,11 @@
       color: #666 !important;
       font-style: italic;
     }
+    /* CHANGED: Updated CSS for cell bars to mimic horizontal bar graph: bar-container full inner height, bar positioned at bottom spanning full available height and percentage width, text overlaid with right alignment for numeric cells, ensuring bar "sits" on vertical grid (left border as x-axis start) and extends horizontally along the cell's inner space (like bar length/height in horizontal orientation). Border-radius 0 to align flush with grid lines where possible. */
     .bar-container {
       position: relative;
       height: 24px;
+      /* Adjusted for cell height 40px minus top/bottom padding 8px each */
       line-height: 24px;
       width: 100%;
       display: block;
@@ -502,13 +630,16 @@
       left: 0;
       height: 100%;
       border-radius: 0;
+      /* Flush with edges for grid alignment */
       opacity: 0.8;
     }
     .bar-positive {
       background-color: #28a745;
+      /* Success green */
     }
     .bar-negative {
       background-color: #dc3545;
+      /* Red for negative */
     }
     .bar-text {
       position: relative;
@@ -516,13 +647,16 @@
       display: block;
       padding: 0 8px;
       text-align: right;
+      /* Align with numeric right-align */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    /* CHANGE 1: Black background for chart canvas - expect: dark chart area, bars/lines pop against black */
     #profitChart {
       background-color: black !important;
     }
+    /* CHANGE 2: White text for chart elements to contrast black background - expect: Y-axis ticks, legend, and tooltips in white for readability */
     #profitChart .chartjs-render-monitor,
     #profitChart text,
     .chartjs-legend li,
@@ -533,21 +667,28 @@
     .chartjs-tooltip {
       color: white !important;
     }
+    /* CHANGE 3: White grid lines for y-axis to stand out on black - expect: subtle white lines for better readability without clutter */
     #profitChart .chartjs-grid,
     #salesTrendChart .chartjs-grid {
       color: rgba(128, 128, 128, 0.3) !important;
     }
+    /* CHANGE 4: Seamless chart in card - set profit-make card background to black - expect: canvas black blends with card, single rounded black border from card's border-radius/box-shadow, no double borders like inventory table */
     .profit-make,
     .sales-trend {
       background-color: black !important;
       padding: 0;
+      /* CHANGE 5: Remove padding - expect: canvas fills card edge-to-edge, seamless like table */
       border-radius: 8px;
+      /* CHANGE 6: Ensure rounded corners on card - expect: chart edges round, no sharp canvas corners */
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      /* CHANGE 7: Darker shadow - expect: more prominent depth, blends seamless with black, similar to table's subtle shadow */
     }
+    /* CHANGE 8: Canvas inherits rounded corners - expect: #profitChart matches card's 8px radius, no double borders, fully seamless */
     #profitChart,
     #salesTrendChart {
       border-radius: 8px !important;
     }
+    /* UPDATED: Styles for Big Number KPI with Trend Line (mimics Superset) */
     .kpi-big-number {
       display: flex;
       flex-direction: column;
@@ -558,6 +699,7 @@
       padding: 12px 8px 4px 8px;
       text-align: center;
       background-color: #70b583FF;
+      /* ORIGINAL: Keep your green color */
       border-radius: inherit;
       position: relative;
       overflow: hidden;
@@ -565,18 +707,23 @@
     }
     .kpi-value {
       font-size: 3em;
+      /* Large Big Number Font Size - adjusted for 95px height */
       font-weight: bold;
       margin: 0 auto;
       line-height: 1;
       flex-grow: 1;
     }
+    /* UPDATED: Title style - bold, prominent, full opacity (replaces subtitle) */
     .kpi-title {
       font-size: 1em;
+      /* Slightly larger for emphasis */
       margin: 0 0 8px 0;
       opacity: 1;
+      /* Full visibility */
       font-weight: bold;
       width: 100%;
     }
+    /* Ensure canvas fits tightly */
     #totalCarsTrend {
       background-color: transparent;
       height: 15px !important;
@@ -596,56 +743,88 @@
     }
     body.dark-mode .kpi-card {
       background-color: #555;
+      /* Darker cards */
     }
+    /* FULL RESPONSIVE: Mobile/Tablet Adaptations (Builds on Your Existing) */
     @media (max-width: 768px) {
+      /* TABLET/PHONE */
       .dashboard-container {
         flex-direction: column;
+        /* STACK: Sidebar below main */
         gap: 10px;
       }
       .sidebar {
         width: 100%;
+        /* FULL WIDTH: No side squeeze */
       }
       .main {
         padding: 5px;
+        /* SMALL PAD: Fits small screen */
       }
       .topbar {
         flex-direction: column;
+        /* STACK ARROWS/SEARCH */
         height: auto;
         padding: 10px;
         gap: 5px;
       }
       .kpi-container {
         flex-direction: column;
+        /* STACK KPIS: One per row */
         align-items: center;
         gap: 10px;
       }
       .kpi-card {
-        width: 100%;
-        max-width: none;
+        width: 90vw;
+        /* FULL PHONE WIDTH */
         height: 80px;
+        /* SHORTER: Thumb-friendly */
+      }
+      .kpi-money {
+        text-align: center;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+      }
+      .kpi-title {
+        font-size: 0.9em !important;
+      }
+      .kpi-value {
+        font-size: 2.5em !important;
+        /* SHRINK NUMBER: Fits */
       }
       .chart-row {
         flex-direction: column;
+        /* STACK CHARTS: Vertical */
       }
       .sales-trend,
       .profit-make {
         width: 100%;
+        /* FULL WIDTH */
         height: 250px;
+        /* SHORTER */
       }
       .inventory-table {
         width: 100%;
+        /* FULL TABLE */
         max-height: 300px;
+        /* ADJUST HEIGHT */
       }
       .table-search input {
         width: 100%;
+        /* FULL SEARCH */
       }
       .sidebar-btn {
         font-size: 14px;
+        /* SMALLER BUTTONS: Touch easy */
       }
     }
     @media (max-width: 480px) {
       .kpi-value {
         font-size: 2em !important;
+        /* TINY NUMBERS: Quick glance */
       }
       .kpi-title {
         font-size: 0.8em !important;
@@ -658,6 +837,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start !important;
+      /* Title at top */
       align-items: center;
       text-align: center;
       height: 100%;
@@ -686,6 +866,7 @@
       text-overflow: ellipsis;
       max-width: 100%;
     }
+    /* Mobile: Smaller numbers for Sales & Profits */
     @media (max-width: 768px) {
       .kpi-money .kpi-value-normal {
         font-size: 1.9em !important;
@@ -699,6 +880,7 @@
         font-size: 0.9em !important;
       }
     }
+    /* Make dashboard container full-screen and let iframe fill it */
     #dashboardContainer {
       position: fixed !important;
       top: 0 !important;
@@ -712,41 +894,45 @@
       overflow: hidden;
       border: none;
     }
+  
+    /* Force the iframe created by Superset SDK to fill the container */
     #dashboardContainer iframe {
       width: 100% !important;
       height: 100% !important;
       border: none !important;
     }
+  
     #closeDashboardBtn {
       position: fixed;
-      top: 24px;
-      right: 24px;
-      z-index: 9999999;
-      width: 48px;
+      top: 24px; /* Distance from top edge – adjustable */
+      right: 24px; /* Distance from right edge – adjustable */
+      z-index: 9999999; /* Ensures it's always above iframe content */
+      width: 48px; /* Balanced size – visible but not enormous */
       height: 48px;
-      border-radius: 50%;
-      background-color: rgba(0, 0, 0, 0.65);
+      border-radius: 50%; /* Circle shape – modern and clean */
+      background-color: rgba(0, 0, 0, 0.65); /* Semi-transparent dark – blends well */
       color: white;
-      font-size: 28px;
+      font-size: 28px; /* × size – fits perfectly inside */
       font-weight: bold;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+      transition: all 0.2s ease; /* Smooth hover animation */
     }
+  
     #closeDashboardBtn:hover {
-      background-color: rgba(0, 0, 0, 0.85);
-      transform: scale(1.1);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+      background-color: rgba(0, 0, 0, 0.85); /* Darkens slightly on hover */
+      transform: scale(1.1); /* Gentle grow – responsive feel */
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6); /* Stronger shadow on hover */
     }
     #closeDashboardBtn:active {
-      transform: scale(0.96);
+      transform: scale(0.96); /* Slight press-down feedback */
     }
     #closeDashboardBtn:focus {
-      outline: 3px solid #4a90e2;
+      outline: 3px solid #4a90e2; /* Blue focus ring for keyboard users */
       outline-offset: 2px;
     }
   </style>
