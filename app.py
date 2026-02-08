@@ -553,8 +553,8 @@ def get_inventory():
             'RWF': 'FRw',
             'ETB': 'Br'
         }.get(currency, 'UGX')
-        sign = '+' if val >= 0 else ''
-        return f"{sign}{symbol} {abs(val):,.0f}"   # no decimals — clean look
+        return f"{symbol} {abs(val):,.0f}" if val >= 0 else f"-{symbol} {abs(val):,.0f}"
+        
 
     for v in vehicles:
         try:
@@ -705,8 +705,7 @@ def inventory():
                 'RWF': 'FRw',
                 'ETB': 'Br'
             }.get(currency, 'UGX')  # fallback to code if unknown
-            sign = '+' if val >= 0 else ''
-            return f"{sign}{symbol} {abs(val):,.0f}"
+            return f"{symbol} {abs(val):,.0f}" if val >= 0 else f"-{symbol} {abs(val):,.0f}"
         
         purchase_price = format_numeric(v.purchase_price)
         expenses_amount = format_numeric(v.expenses_amount)
