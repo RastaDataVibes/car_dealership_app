@@ -1314,6 +1314,8 @@
     function formatMoney(value) {
       if (value === null || value === undefined || isNaN(value)) return '—';
       const num = Number(value);
+      const absNum = Math.abs(num);
+
       const symbol = {
         'UGX': 'UGX',
         'KES': 'KSh',
@@ -1321,8 +1323,19 @@
         'RWF': 'FRw',
         'ETB': 'Br'
       }[window.USER_CURRENCY] || window.USER_CURRENCY;
-      let formatted = Math.abs(num).toLocaleString('en-US');
-      const sign = num > 0 ? '+' : (num < 0 ? '-' : '');
+      
+      let formatted;
+      if (absNum >= 1_000_000_000) {
+        formatted = (absNum / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B';
+      } else if (absNum >= 1_000_000) {
+        formatted = (absNum / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+      } else if (absNum >= 1_000) {
+        formatted = (absNum / 1_000).toFixed(0) + 'K';
+      } else {
+        formatted = absNum.toLocaleString('en-US');
+      }
+      
+      const sign = num < 0 ? '-' : '';
       return `${sign}${symbol} ${formatted}`;
     }
   </script>
