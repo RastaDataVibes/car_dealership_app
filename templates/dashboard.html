@@ -121,6 +121,7 @@
       background: none;
       border: none;
     }
+
     .profile-container {
       position: relative;
       display: flex;
@@ -128,6 +129,7 @@
       gap: 5px;
       cursor: pointer;
     }
+
     .profile-photo {
       width: 40px;
       height: 40px;
@@ -135,136 +137,43 @@
       object-fit: cover;
       border: 1px solid #ccc;
     }
+
     .profile-name {
       font-size: 16px;
-      max-width: 140px; /* or 120px on very small screens */
-      display: inline-block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
+
     .profile-dropdown {
       position: absolute;
-      top: 52px;
+      top: 55px;
       right: 0;
-      width: 280px;
       background: #fff;
-      border-radius: 12px;
-      border: 1px solid #d0d5da;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+      border: 1px solid #ccc;
+      border-radius: 6px;
       overflow: hidden;
-      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      width: 200px;
       max-height: 0;
-      opacity: 0;
-      transform: translateY(-8px);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: max-height 0.3s ease;
     }
-  
+
     .profile-dropdown.open {
-      max-height: 480px;
-      opacity: 1;
-      transform: translateY(0);
+      max-height: 300px;
     }
-  
-    .dropdown-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid #eff3f4;
-      background: #f7f9f9;
-    }
-  
-    .dropdown-user-name {
+
+    .profile-dropdown input {
+      width: 90%;
+      margin: 10px auto;
       display: block;
-      font-size: 15px;
-      font-weight: 700;
-      color: #0f1419;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
+      padding: 5px;
     }
-  
-    .form-group {
-      padding: 12px 16px;
-    }
-  
-    .form-group label {
+
+    .profile-dropdown button {
+      margin: 10px auto;
       display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #536471;
-      margin-bottom: 6px;
-    }
-  
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d0d5da;
-      border-radius: 8px;
-      font-size: 15px;
-      background: #fff;
-      transition: all 0.2s ease;
-    }
-  
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #1d9bf0;
-      box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.3);
-    }
-  
-    .select-wrapper {
-      position: relative;
-    }
-  
-    .select-wrapper select {
-      appearance: none;
-      padding-right: 32px;
-    }
-    .select-arrow {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-      color: #536471;
-      font-size: 12px;
-    }
-    .actions {
-      padding: 12px 16px;
-      border-top: 1px solid #eff3f4;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .btn-primary {
-      background: #1d9bf0;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 9999px;
-      font-weight: 700;
-      font-size: 15px;
+      padding: 5px 10px;
       cursor: pointer;
-      transition: background 0.2s ease;
     }
-    .btn-primary:hover {
-      background: #1a8cd8;
-    }
-    .btn-logout {
-      color: #e0245e;
-      text-align: center;
-      font-weight: 600;
-      font-size: 15px;
-      padding: 10px;
-      border-radius: 9999px;
-      transition: background 0.2s ease;
-      text-decoration: none;
-    }
-    .btn-logout:hover {
-      background: #ffeef0;
-    }
-  
+    
     .kpi-container {
       display: flex;
       gap: 20px;
@@ -934,6 +843,150 @@
     #closeDashboardBtn:focus {
       outline: 3px solid #4a90e2; /* Blue focus ring for keyboard users */
       outline-offset: 2px;
+    }
+
+    .profile-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .profile-photo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #ccc;
+    }
+    .profile-name {
+      font-size: 16px;
+      max-width: 140px; /* or 120px on very small screens */
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .profile-dropdown {
+      position: absolute;
+      top: 52px;
+      right: 0;
+      width: 280px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #d0d5da;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+      overflow: hidden;
+      z-index: 1000;
+      max-height: 0;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  
+    .profile-dropdown.open {
+      max-height: 480px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+  
+    .dropdown-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #eff3f4;
+      background: #f7f9f9;
+    }
+  
+    .dropdown-user-name {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f1419;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+  
+    .form-group {
+      padding: 12px 16px;
+    }
+  
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #536471;
+      margin-bottom: 6px;
+    }
+  
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d0d5da;
+      border-radius: 8px;
+      font-size: 15px;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+  
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #1d9bf0;
+      box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.3);
+    }
+  
+    .select-wrapper {
+      position: relative;
+    }
+  
+    .select-wrapper select {
+      appearance: none;
+      padding-right: 32px;
+    }
+    .select-arrow {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #536471;
+      font-size: 12px;
+    }
+    .actions {
+      padding: 12px 16px;
+      border-top: 1px solid #eff3f4;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: #1d9bf0;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .btn-primary:hover {
+      background: #1a8cd8;
+    }
+    .btn-logout {
+      color: #e0245e;
+      text-align: center;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 10px;
+      border-radius: 9999px;
+      transition: background 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-logout:hover {
+      background: #ffeef0;
     }
   </style>
 </head>
