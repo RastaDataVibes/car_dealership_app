@@ -552,7 +552,7 @@ def get_inventory():
             'TZS': 'TSh',
             'RWF': 'FRw',
             'ETB': 'Br'
-        }.get(currency, currency)
+        }.get(currency, 'UGX')
         sign = '+' if val >= 0 else ''
         return f"{sign}{symbol} {abs(val):,.0f}"   # no decimals — clean look
 
