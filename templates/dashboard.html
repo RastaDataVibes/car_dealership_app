@@ -146,7 +146,7 @@
     }
     .profile-dropdown {
       position: absolute;
-      top: 52px;
+      top: 100px;
       right: 0;
       width: 280px;
       background: #fff;
@@ -154,17 +154,21 @@
       border: 1px solid #d0d5da;
       box-shadow: 0 8px 28px rgba(0,0,0,0.18);
       overflow: hidden;
-      z-index: 1000;
+      z-index: 100000;
       max-height: 0;
       opacity: 0;
       transform: translateY(-8px);
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      contain: strict !important;
+      pointer-events: none;
     }
   
     .profile-dropdown.open {
       max-height: 480px;
       opacity: 1;
       transform: translateY(0);
+      visibility: visible;
+      pointer-events: auto;
     }
   
     .dropdown-header {
@@ -1076,7 +1080,6 @@
           <input type="text" class="search-input" id="searchInput" placeholder="Type to search...">
           <button class="search-btn" id="searchBtn">&#128269;</button>
         </div>
-        <!--
         <div class="profile-container" id="profileContainer">
           <img 
             src="{% if current_user.profile_photo_filename %}/static/uploads/{{ current_user.profile_photo_filename }}{% else %}https://via.placeholder.com/40{% endif %}"
@@ -1085,26 +1088,26 @@
             'User') | truncate(10, true, '...') }}</span>
           <div class="profile-dropdown" id="profileDropdown">
             <!-- Header with truncated current name -->
-            <!--div class="dropdown-header">
+            <div class="dropdown-header">
               <span class="dropdown-user-name">
                 {{ (current_user.profile_name or current_user.dealership_name or 'User') | truncate(10, true, '...') }}
               </span>
             </div>
           
             <!-- Name -->
-            <!--div class="form-group">
+            <div class="form-group">
               <label for="nameInput">Name</label>
               <input type="text" id="nameInput" placeholder="Enter name" value="{{ current_user.profile_name or '' }}">
             </div>
           
             <!-- Email -->
-            <!--div class="form-group">
+            <div class="form-group">
               <label for="emailInput">Email</label>
               <input type="email" id="emailInput" placeholder="Enter email" value="{{ current_user.email or '' }}">
             </div>
           
             <!-- Currency -->
-            <!--div class="form-group">
+            <div class="form-group">
               <label for="currencySelect">Preferred Currency</label>
               <div class="select-wrapper">
                 <select id="currencySelect" name="currency">
@@ -1119,18 +1122,17 @@
             </div>
           
             <!-- Photo upload -->
-            <!--div class="form-group">
+            <div class="form-group">
               <label for="photoInput">Profile Photo</label>
               <input type="file" id="photoInput" accept="image/*">
             </div>
           
             <!-- Actions -->
-            <!--div class="actions">
+            <div class="actions">
               <button id="saveProfile" class="btn-primary">Save</button>
               <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
             </div>
         </div>
-      -->
       </div>
       <div class="kpi-container">
         <div class="kpi-card green" id="kpiCard1">
