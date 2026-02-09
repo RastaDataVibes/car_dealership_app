@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,52 +10,54 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
         }
-
         .container {
             background: white;
             padding: 40px;
             border-radius: 10px;
-            width: 400px;
+            width: 420px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
-
         img {
             height: 100px;
             margin-bottom: 20px;
         }
-
         h2 {
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
-
+        .currency-note {
+            color: #70b583;
+            font-weight: bold;
+            margin: 15px 0;
+            font-size: 18px;
+        }
         .plan {
             background: #f9f9f9;
             padding: 25px;
             margin: 20px 0;
             border-radius: 8px;
+            border: 2px solid transparent;
         }
-
         .trial-plan {
             border: 4px solid #70b583;
             background: #f0faf0;
         }
-
         .plan h3 {
             color: #70b583;
             margin: 0 0 10px 0;
+            font-size: 24px;
         }
-
-        .plan p {
-            color: #666;
-            margin: 5px 0;
+        .price {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
         }
-
         button {
             background: #70b583;
             color: white;
@@ -67,18 +68,17 @@
             font-size: 18px;
             margin-top: 15px;
             width: 100%;
+            transition: 0.3s;
         }
-
         button:hover {
             background: #5a8f6b;
         }
-
         .trial-button {
             background: #70b583;
-            font-size: 20px;
+            font-size: 22px;
             padding: 18px;
+            font-weight: bold;
         }
-
         .message {
             color: #666;
             margin: 20px 0;
@@ -86,59 +86,83 @@
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <img src="/static/uploads/logo.png" alt="GreenChain">
-        <h2>Welcome! Choose how to start</h2>
+        <h2>Welcome, {{ current_user.dealership_name or 'Dealer' }}!</h2>
+        <p class="currency-note">
+            All prices are in <strong>{{ current_user.currency }}</strong>
+        </p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        {% for category, message in messages %}
-        <p class="message {{ category }}">{{ message }}</p>
-        {% endfor %}
+            {% for category, message in messages %}
+                <p class="message {{ category }}">{{ message }}</p>
+            {% endfor %}
         {% endif %}
         {% endwith %}
 
-        <!-- FREE TRIAL - BIG AND FIRST -->
+        <!-- FREE TRIAL -->
         <div class="plan trial-plan">
             <h3>30-Day Free Trial</h3>
-            <p>No payment required</p>
-            <p style="color: #70b583; font-weight: bold;">Full access to all features</p>
-            <p>Cancel anytime · No card needed</p>
-            <button class="trial-button" onclick="startTrial()">Start Free Trial</button>
+            <p>No payment required · Full access</p>
+            <p style="color: #70b583; font-weight: bold;">Cancel anytime · No card needed</p>
+            <button class="trial-button" onclick="startTrial()">Start Free Trial Now</button>
         </div>
 
-        <!-- MONTHLY -->
+        <!-- MONTHLY PLAN -->
         <div class="plan">
             <h3>Monthly Plan</h3>
-            <p>USh 50,000 / month</p>
-            <p>Best for small dealerships</p>
-            <button onclick="payWithPesapal(50000, 'monthly')">Subscribe Monthly</button>
+            <div class="price">
+                {% if current_user.currency == 'UGX' %}UGX 10,000{% endif %}
+                {% if current_user.currency == 'KES' %}KSh 360{% endif %}
+                {% if current_user.currency == 'TZS' %}TSh 22,000{% endif %}
+                <small style="font-size:16px; color:#666;">/ month</small>
+            </div>
+            <p>Perfect for small dealerships</p>
+            <button onclick="payWithPesapal(getMonthlyAmount(), 'monthly')">
+                Subscribe Monthly
+            </button>
         </div>
 
-        <!-- YEARLY -->
+        <!-- YEARLY PLAN -->
         <div class="plan">
             <h3>Yearly Plan (Save 20%)</h3>
-            <p>USh 480,000 / year</p>
-            <p>Best value for growing dealerships</p>
-            <button onclick="payWithPesapal(480000, 'yearly')">Subscribe Yearly</button>
+            <div class="price">
+                {% if current_user.currency == 'UGX' %}UGX 150,000{% endif %}
+                {% if current_user.currency == 'KES' %}KSh 5,400{% endif %}
+                {% if current_user.currency == 'TZS' %}TSh 330,000{% endif %}
+                <small style="font-size:16px; color:#666;">/ year</small>
+            </div>
+            <p>Best value · Save 20%</p>
+            <button onclick="payWithPesapal(getYearlyAmount(), 'yearly')">
+                Subscribe Yearly (Best Deal)
+            </button>
         </div>
 
-        <p class="message">You can upgrade or cancel anytime.</p>
+        <p class="message">You can upgrade, downgrade or cancel anytime.</p>
     </div>
 
     <script>
+        // Return correct amount based on user's currency
+        function getMonthlyAmount() {
+            const curr = "{{ current_user.currency }}";
+            if (curr === 'KES') return 360;
+            if (curr === 'TZS') return 22000;
+            return 10000; // UGX default
+        }
+
+        function getYearlyAmount() {
+            const curr = "{{ current_user.currency }}";
+            if (curr === 'KES') return 5400;
+            if (curr === 'TZS') return 330000;
+            return 150000; // UGX default
+        }
+
         function startTrial() {
             fetch('/start_trial', { method: 'POST' })
-                .then(response => {
-                    if (response.ok) {
-                        alert('Free trial started! Enjoy 30 days of full access.');
-                        window.location.href = '/';
-                    } else {
-                        alert('Error starting trial. Try again.');
-                    }
-                });
+                .then(r => r.ok ? location.href = '/' : alert('Error starting trial'))
+                .catch(() => alert('Network error'));
         }
 
         function payWithPesapal(amount, plan) {
@@ -147,16 +171,15 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ amount: amount, plan: plan })
             })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.redirect_url) {
-                        window.location.href = data.redirect_url;
-                    } else {
-                        alert('Payment error');
-                    }
-                });
+            .then(r => r.json())
+            .then(data => {
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert('Payment failed — please try again');
+                }
+            });
         }
     </script>
 </body>
-
 </html>
