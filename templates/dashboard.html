@@ -1083,7 +1083,6 @@
           <span class="profile-name" id="profileName">{{ (current_user.profile_name or current_user.dealership_name or
             'User') | truncate(10, true, '...') }}</span>
           <div class="profile-dropdown" id="profileDropdown">
-            <!-- Header with truncated current name -->
             <div class="dropdown-header">
               <span class="dropdown-user-name">
                 {{ (current_user.profile_name or current_user.dealership_name or 'User') | truncate(10, true, '...') }}
