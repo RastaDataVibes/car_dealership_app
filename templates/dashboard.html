@@ -154,21 +154,17 @@
       border: 1px solid #d0d5da;
       box-shadow: 0 8px 28px rgba(0,0,0,0.18);
       overflow: hidden;
-      z-index: 100000;
+      z-index: 1000;
       max-height: 0;
       opacity: 0;
       transform: translateY(-8px);
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      contain: strict !important;
-      pointer-events: none;
     }
   
     .profile-dropdown.open {
       max-height: 480px;
       opacity: 1;
       transform: translateY(0);
-      visibility: visible;
-      pointer-events: auto;
     }
   
     .dropdown-header {
