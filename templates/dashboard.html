@@ -159,12 +159,14 @@
       opacity: 0;
       transform: translateY(-8px);
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
     }
   
     .profile-dropdown.open {
       max-height: 480px;
       opacity: 1;
       transform: translateY(0);
+      pointer-events: auto;
     }
   
     .dropdown-header {
@@ -935,14 +937,6 @@
     #closeDashboardBtn:focus {
       outline: 3px solid #4a90e2; /* Blue focus ring for keyboard users */
       outline-offset: 2px;
-    }
-
-    .topbar {
-      height: 91px !important;
-      min-height: 91px !important;
-      max-height: 91px !important;
-      overflow: hidden !important;
-      flex-shrink: 0 !important;
     }
     
   </style>
