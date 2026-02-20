@@ -18,7 +18,7 @@ from extensions import db
 from datetime import datetime, timezone, date, timedelta
 from dashboard_view import dashboard_bp
 # Tweak: Uncommented/ensured import for models
-from models import Inventory, Expense, Payment, User
+from models import Inventory, Expense, Payment, User, Loan, Transaction
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
@@ -495,13 +495,30 @@ def add_transaction_ajax():
     if transaction_type == 'expense':
         expense_subcategory = request.form.get('expense_subcategory') or None
 
+    # NEW: Capture optional loan_id from form (only used for repayments)
+    loan_id = request.form.get('loan_id', type=int) or None
+    
     transaction = Transaction(
         user_id=current_user.id,
         transaction_type=transaction_type,
         expense_subcategory=expense_subcategory,
         amount=amount,
-        notes=request.form.get('notes') or None
+        notes=request.form.get('notes') or None,
+        loan_id=loan_id
     )
+
+    # NEW: If repayment and linked to a loan → reduce its balance
+    if transaction_type == 'loan_out' and loan_id:
+        loan = Loan.query.filter_by(id=loan_id, user_id=current_user.id).first()
+        if loan:
+            loan.balance -= amount
+            if loan.balance < 0:
+                loan.balance = 0  # prevent negative balance
+            db.session.add(loan)  # ensure loan is updated
+        else:
+            # Optional: return error if loan not found or not owned
+            return jsonify({'message': 'Invalid or unauthorized loan ID'}), 400
+        
     db.session.add(transaction)
     db.session.commit()
 
@@ -533,6 +550,19 @@ def add_loan_ajax():
     db.session.commit()
     
     return jsonify({'message': f'Loan from {lender} added!'})
+
+# NEW: Route to get active loans for the dropdown
+@app.route('/get_active_loans')
+@subscription_required
+def get_active_loans():
+    # Show all loans, or filter to only those with balance > 0
+    loans = Loan.query.filter_by(user_id=current_user.id).all()
+    return jsonify([{
+        'id': l.id,
+        'lender': l.lender,
+        'balance': l.balance,
+        'due_date': l.due_date.strftime('%Y-%m-%d') if l.due_date else None
+    } for l in loans])
 
 @app.route('/delete_vehicle/<int:car_id>', methods=['DELETE'])
 @subscription_required
