@@ -1035,6 +1035,16 @@
           <button type="submit">Save Transaction</button>
         </form>
       </div>
+      <button class="sidebar-btn" id="addLoanBtn">🏦 Add Loan</button>
+      <div class="sidebar-form" id="addLoanForm">
+        <form id="addLoanFormElement">
+          <input type="text" name="lender" placeholder="Lender (e.g. Stanbic, Equity)" required>
+          <input type="text" name="principal" placeholder="Amount Borrowed" inputmode="numeric" oninput="formatNumberWithCommasLive(this)" required>
+          <input type="date" name="due_date" placeholder="Due Date">
+          <input type="text" name="notes" placeholder="Notes (optional)">
+          <button type="submit">Save Loan</button>
+        </form>
+      </div>
       <button class="sidebar-btn" id="reportBtn">📈 Report</button>
       <div class="sidebar-form" id="reportForm">
         <div style="padding: 10px; background: #e8e8e8; border-radius: 5px; text-align: center;">
@@ -2787,7 +2797,31 @@ document.addEventListener('click', e => {
   if (!clickedInside) {
     addTransactionForm.classList.remove('open');
   }
-});    
+});  
+
+const addLoanBtn = document.getElementById('addLoanBtn');
+const addLoanForm = document.getElementById('addLoanForm');
+addLoanBtn.addEventListener('click', () => {
+  addLoanForm.classList.toggle('open');
+  // close others...
+  ['addTransactionForm', 'addCarForm', /* etc */].forEach(id => {
+    const f = document.getElementById(id);
+    if (f) f.classList.remove('open');
+  });
+});
+
+document.getElementById('addLoanFormElement').addEventListener('submit', async e => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const res = await fetch('/add_loan_ajax', { method: 'POST', body: formData });
+  if (res.ok) {
+    alert('Loan added!');
+    e.target.reset();
+    addLoanForm.classList.remove('open');
+  } else {
+    alert('Error saving loan');
+  }
+});
 </script>
 </body>
 
