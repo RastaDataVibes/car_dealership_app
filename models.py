@@ -156,6 +156,23 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f"<User {self.dealership_name}>"
 
+class Transaction(db.Model):
+    __tablename__ = 'transactions'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    transaction_type = db.Column(db.String(50), nullable=False)  # cash_in, loan_in, cash_withdraw, loan_out, expense
+    expense_subcategory = db.Column(db.String(80), nullable=True)  # only when expense
+    amount = db.Column(db.Float, nullable=False)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', backref='transactions', lazy=True)
+
+    def __repr__(self):
+        return f"<Transaction {self.transaction_type} - {self.amount}>"
+
 # ------------------------
 # Automatic behavior for Inventory
 # ------------------------
