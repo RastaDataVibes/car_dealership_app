@@ -1005,6 +1005,36 @@
           <button type="submit">Record Sale/Installment</button>
         </form>
       </div>
+      <button class="sidebar-btn" id="addTransactionBtn">💼 Add Transaction</button>
+      <div class="sidebar-form" id="addTransactionForm">
+        <form id="addTransactionFormElement">
+          <select name="transaction_type" id="transactionTypeSelect" required>
+            <option value="">Select Type</option>
+            <option value="cash_in">Cash In</option>
+            <option value="loan_in">Loan In</option>
+            <option value="cash_withdraw">Cash Withdraw</option>
+            <option value="loan_out">Loan Out</option>
+            <option value="expense">Expense</option>
+          </select>
+      
+          <div id="expenseSubcategoryContainer" style="display:none; margin:10px 0;">
+            <input type="text" name="expense_subcategory" id="expenseSubcategoryInput" placeholder="Pick subcategory" readonly>
+            <div id="expenseSubcategoryScroll" style="max-height:120px; overflow-y:auto; border:1px solid #ccc; border-radius:4px; margin-top:5px; background:#f9f9f9;">
+              <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">Rent</div>
+              <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">Electricity</div>
+              <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">Water</div>
+              <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">Salary</div>
+              <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">Mechanic (general)</div>
+              <div class="scroll-item" style="padding:8px; cursor:pointer;">Other</div>
+            </div>
+          </div>
+      
+          <input type="text" name="amount" placeholder="Amount" inputmode="numeric" oninput="formatNumberWithCommasLive(this)" required>
+          <input type="text" name="notes" placeholder="Notes (optional)">
+      
+          <button type="submit">Save Transaction</button>
+        </form>
+      </div>
       <button class="sidebar-btn" id="reportBtn">📈 Report</button>
       <div class="sidebar-form" id="reportForm">
         <div style="padding: 10px; background: #e8e8e8; border-radius: 5px; text-align: center;">
@@ -2695,6 +2725,69 @@
       sendAIMessage();
     }
   });
+
+// Toggle subcategory visibility
+document.getElementById('transactionTypeSelect').addEventListener('change', function() {
+  document.getElementById('expenseSubcategoryContainer').style.display =
+    this.value === 'expense' ? 'block' : 'none';
+});
+
+// Pick subcategory from list
+document.querySelectorAll('#expenseSubcategoryScroll .scroll-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.getElementById('expenseSubcategoryInput').value = this.textContent.trim();
+  });
+});
+
+// Form submit – exact same pattern as your other forms
+const addTransactionFormElement = document.getElementById('addTransactionFormElement');
+addTransactionFormElement.addEventListener('submit', async e => {
+  e.preventDefault();
+  const formData = new FormData(addTransactionFormElement);
+
+  const res = await fetch('/add_transaction_ajax', {
+    method: 'POST',
+    body: formData
+  });
+
+  if (res.ok) {
+    const data = await res.json();
+    alert(data.message);
+    addTransactionFormElement.reset();
+    document.getElementById('addTransactionForm').classList.remove('open');
+    document.getElementById('expenseSubcategoryContainer').style.display = 'none';
+
+    // Optional: refresh anything that needs it (like future cash KPIs)
+    // queueRefresh(true);  ← uncomment later when you add cash KPIs
+  } else {
+    alert('Error saving transaction');
+  }
+});
+
+// Toggle button – same as your other sidebar buttons
+const addTransactionBtn = document.getElementById('addTransactionBtn');
+const addTransactionForm = document.getElementById('addTransactionForm');
+
+addTransactionBtn.addEventListener('click', () => {
+  addTransactionForm.classList.toggle('open');
+
+  // Close all others (copy your existing pattern)
+  [
+    'addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm',
+    'reportForm', 'settingsForm', 'aiAdviserForm'
+  ].forEach(id => {
+    const f = document.getElementById(id);
+    if (f && f !== addTransactionForm) f.classList.remove('open');
+  });
+});
+
+// Close forms when clicking outside (add to your existing document click listener if you want)
+document.addEventListener('click', e => {
+  const clickedInside = addTransactionBtn.contains(e.target) || addTransactionForm.contains(e.target);
+  if (!clickedInside) {
+    addTransactionForm.classList.remove('open');
+  }
+});    
 </script>
 </body>
 
