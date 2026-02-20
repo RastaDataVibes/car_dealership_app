@@ -1029,6 +1029,10 @@ def ai_chat():
     
     if not user_message:
         return jsonify({"reply": "Ask me about cars, expenses, payments, or advice! 🚗💸"})
+
+    # Personalize with dealership name (used in greeting + prompt)
+    dealership_name = current_user.dealership_name or current_user.profile_name or "your dealership"
+    user_name = current_user.profile_name or "boss"
     
     vehicles = Inventory.query.filter_by(dealership_id=current_user.id).all()
     
@@ -1098,23 +1102,69 @@ def ai_chat():
         'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
         'RWF': 'FRw', 'ETB': 'Br'
     }.get(current_user.currency, 'UGX')
-    
-    system_prompt = f"""
-You are GreenChain AI — expert adviser for this Ugandan car dealership.
 
-REAL DATA TODAY ({date.today().strftime('%B %d, %Y')}):
+    # NEW: Fetch and summarize general business transactions (user-specific only)
+    transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.created_at.desc()).all()
+    transaction_details = []
+    total_cash_in = 0
+    total_cash_out = 0
+    total_general_expenses = 0
+    for t in transactions:
+        type_display = t.transaction_type.replace('_', ' ').title()
+        subcategory = f" ({t.expense_subcategory})" if t.expense_subcategory else ""
+        amount_str = f"{user_symbol} {t.amount:,.0f}"
+        date_str = t.created_at.strftime('%d %B %Y') if t.created_at else 'Unknown'
+        transaction_details.append(f"• {type_display}{subcategory}: {amount_str} on {date_str}. Notes: {t.notes or 'None'}")
+        
+        if t.transaction_type in ['cash_in', 'loan_in']:
+            total_cash_in += t.amount
+        if t.transaction_type in ['cash_withdraw', 'loan_out', 'expense']:
+            total_cash_out += t.amount
+        if t.transaction_type == 'expense':
+            total_general_expenses += t.amount
+
+    transaction_text = "\n".join(transaction_details) if transaction_details else "No general business transactions yet."
+
+    # NEW: Calculate estimated cash (combines transactions + car installments)
+    installments_received = db.session.query(db.func.sum(Payment.amount)).join(Inventory).filter(
+        Inventory.dealership_id == current_user.id
+    ).scalar() or 0.0
+
+    estimated_cash = (total_cash_in + installments_received) - total_cash_out
+
+    # NEW: Enhanced business summaries
+    business_summary = f"""
+Business Overview:
 - Total cars: {total_cars} | Available: {available_cars} | Sold: {sold_cars}
-- Total sales: {user_symbol} {total_sales:,.0f} | Total profit: {user_symbol} {total_profit:,.0f}
+- Total sales from cars: {user_symbol} {total_sales:,.0f}
+- Total profit from cars: {user_symbol} {total_profit:,.0f}
+- Estimated available cash: {user_symbol} {estimated_cash:,.0f} (includes general inflows + car installments - outflows)
+- General inflows (cash/loan in): {user_symbol} {total_cash_in:,.0f}
+- General outflows (withdraw/loan out/expenses): {user_symbol} {total_cash_out:,.0f}
+- General expenses only: {user_symbol} {total_general_expenses:,.0f}
+"""
+
+    # Greeting + full prompt
+    greeting = f"Hi {user_name}! I'm your GreenChain AI adviser for {dealership_name}."
+    system_prompt = f"""{greeting}
+
+You are GreenChain AI — a modern, smart business adviser for {dealership_name}.
+REAL DATA TODAY ({date.today().strftime('%B %d, %Y')}):
+{business_summary}
 
 EVERY CAR WITH FULL EXPENSES & PAYMENTS:
 {all_cars_text}
 
-YOUR JOB:
-- List exact expenses and payments with dates and categories when asked
-- Example: "Brakes: {user_symbol} 3,000,000 on 10 December 2025"
-- Show totals and balance clearly
-- Give smart advice: "High expenses on this car", "Customer paying well"
-- Be friendly and clear. Use full dates.
+GENERAL BUSINESS TRANSACTIONS (not tied to cars):
+{transaction_text}
+
+YOUR JOB — BE MODERN & HELPFUL:
+- Answer key business questions: cash flow, total assets (cash + unsold cars value), profitability, expenses breakdown, sales trends.
+- Give smart advice: "Your cash is low — focus on collecting balances", "High rent? Negotiate or cut other costs", "Sell old stock to boost profits".
+- Be friendly, clear, use simple numbers. Suggest next actions: "Record a cash_in if you added money today".
+- If asked for totals, combine cars + general transactions accurately.
+- Use full dates and user currency ({user_symbol}).
+- Keep replies short & actionable — no fluff.
 """
 
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
