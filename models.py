@@ -168,10 +168,31 @@ class Transaction(db.Model):
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+    loan_id = db.Column(db.Integer, db.ForeignKey('loans.id'), nullable=True)
+    
     user = db.relationship('User', backref='transactions', lazy=True)
-
+    loan = db.relationship('Loan', backref='transactions', lazy=True)
+    
     def __repr__(self):
         return f"<Transaction {self.transaction_type} - {self.amount}>"
+
+class Loan(db.Model):
+    __tablename__ = 'loans'
+    __table_args__ = {'extend_existing': True}
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    lender = db.Column(db.String(100), nullable=False)          # e.g. "Stanbic", "Equity", "Friend John"
+    principal = db.Column(db.Float, nullable=False)             # original amount borrowed
+    balance = db.Column(db.Float, nullable=False)               # current remaining to pay
+    due_date = db.Column(db.DateTime, nullable=True)            # when the loan is due (or next payment due)
+    start_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    notes = db.Column(db.Text, nullable=True)
+
+    user = db.relationship('User', backref='loans', lazy=True)
+
+    def __repr__(self):
+        return f"<Loan {self.lender} - Balance {self.balance}>"
 
 # ------------------------
 # Automatic behavior for Inventory
