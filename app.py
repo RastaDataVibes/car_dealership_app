@@ -507,6 +507,33 @@ def add_transaction_ajax():
 
     return jsonify({'message': f'{transaction_type.replace("_", " ").title()} recorded!'})
 
+@app.route('/add_loan_ajax', methods=['POST'])
+@subscription_required
+def add_loan_ajax():
+    lender = request.form.get('lender', '').strip()
+    if not lender:
+        return jsonify({'message': 'Enter lender name'}), 400
+    
+    principal = clean_float(request.form.get('principal'))
+    if principal <= 0:
+        return jsonify({'message': 'Enter valid amount'}), 400
+    
+    due_date_str = request.form.get('due_date') or None
+    due_date = datetime.strptime(due_date_str, '%Y-%m-%d') if due_date_str else None
+    
+    loan = Loan(
+        user_id=current_user.id,
+        lender=lender,
+        principal=principal,
+        balance=principal,  # initially full amount owed
+        due_date=due_date,
+        notes=request.form.get('notes') or None
+    )
+    db.session.add(loan)
+    db.session.commit()
+    
+    return jsonify({'message': f'Loan from {lender} added!'})
+
 @app.route('/delete_vehicle/<int:car_id>', methods=['DELETE'])
 @subscription_required
 def delete_vehicle(car_id):
