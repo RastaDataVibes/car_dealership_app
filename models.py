@@ -161,7 +161,7 @@ class Transaction(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     transaction_type = db.Column(db.String(50), nullable=False)  # cash_in, loan_in, cash_withdraw, loan_out, expense
     expense_subcategory = db.Column(db.String(80), nullable=True)  # only when expense
     amount = db.Column(db.Float, nullable=False)
@@ -181,7 +181,7 @@ class Loan(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     lender = db.Column(db.String(100), nullable=False)          # e.g. "Stanbic", "Equity", "Friend John"
     principal = db.Column(db.Float, nullable=False)             # original amount borrowed
     balance = db.Column(db.Float, nullable=False)               # current remaining to pay
