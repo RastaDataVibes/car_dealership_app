@@ -229,6 +229,19 @@ class RecordSaleForm(FlaskForm):
     notes = StringField('Notes (optional)', validators=[Optional()])
     submit = SubmitField('Record Sale')
 
+class TransactionForm(FlaskForm):
+    transaction_type = SelectField('Type', choices=[
+        ('cash_in', 'Cash In'),
+        ('loan_in', 'Loan In'),
+        ('cash_withdraw', 'Cash Withdraw'),
+        ('loan_out', 'Loan Out'),
+        ('expense', 'Expense')
+    ], validators=[DataRequired()])
+    expense_subcategory = StringField('Subcategory', validators=[Optional()])
+    amount = FloatField('Amount', validators=[DataRequired()])
+    notes = StringField('Notes (optional)', validators=[Optional()])
+    submit = SubmitField('Save Transaction')
+
 class LoginForm(FlaskForm):
     identifier = StringField(
         'Email or Phone Number',
@@ -467,6 +480,32 @@ def record_sale_ajax():
         'installment_number': next_number
     })
 
+@app.route('/add_transaction_ajax', methods=['POST'])
+@subscription_required
+def add_transaction_ajax():
+    transaction_type = request.form.get('transaction_type')
+    if not transaction_type:
+        return jsonify({'message': 'Select transaction type'}), 400
+
+    amount = clean_float(request.form.get('amount'))
+    if amount <= 0:
+        return jsonify({'message': 'Enter valid amount'}), 400
+
+    expense_subcategory = None
+    if transaction_type == 'expense':
+        expense_subcategory = request.form.get('expense_subcategory') or None
+
+    transaction = Transaction(
+        user_id=current_user.id,
+        transaction_type=transaction_type,
+        expense_subcategory=expense_subcategory,
+        amount=amount,
+        notes=request.form.get('notes') or None
+    )
+    db.session.add(transaction)
+    db.session.commit()
+
+    return jsonify({'message': f'{transaction_type.replace("_", " ").title()} recorded!'})
 
 @app.route('/delete_vehicle/<int:car_id>', methods=['DELETE'])
 @subscription_required
