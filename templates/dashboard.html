@@ -1029,9 +1029,14 @@
             </div>
           </div>
       
+          <div id="loanContainer" style="display:none; margin:10px 0;">
+            <select name="loan_id" id="loanSelect">
+              <option value="">No specific loan</option>
+              <!-- populated by JS -->
+            </select>
+          </div>
           <input type="text" name="amount" placeholder="Amount" inputmode="numeric" oninput="formatNumberWithCommasLive(this)" required>
           <input type="text" name="notes" placeholder="Notes (optional)">
-      
           <button type="submit">Save Transaction</button>
         </form>
       </div>
@@ -1625,6 +1630,108 @@
         fetch('/flush_superset_cache', { method: 'POST' });
       }
     });
+
+// NEW: Add Loan form toggle and submit – same pattern as your other forms
+  const addLoanBtn = document.getElementById('addLoanBtn');
+  const addLoanForm = document.getElementById('addLoanForm');
+
+  addLoanBtn.addEventListener('click', () => {
+    addLoanForm.classList.toggle('open');
+    // Close all other forms
+    ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm', 'addTransactionForm', 'reportForm', 'settingsForm', 'aiAdviserForm'].forEach(id => {
+      const f = document.getElementById(id);
+      if (f && f !== addLoanForm) f.classList.remove('open');
+    });
+  });
+
+  document.getElementById('addLoanFormElement').addEventListener('submit', async e => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const res = await fetch('/add_loan_ajax', { method: 'POST', body: formData });
+    if (res.ok) {
+      const data = await res.json();
+      alert(data.message);
+      e.target.reset();
+      addLoanForm.classList.remove('open');
+    } else {
+      alert('Error saving loan');
+    }
+  });
+
+  // NEW + UPDATED: Transaction type change handler – now controls expense subcategory AND loan dropdown
+  document.getElementById('transactionTypeSelect').addEventListener('change', function() {
+    const type = this.value;
+    const isExpense = type === 'expense';
+    const isRepayment = type === 'loan_out';
+
+    document.getElementById('expenseSubcategoryContainer').style.display = isExpense ? 'block' : 'none';
+    document.getElementById('loanContainer').style.display = isRepayment ? 'block' : 'none';
+
+    if (isRepayment) {
+      fetch('/get_active_loans')
+        .then(res => res.json())
+        .then(data => {
+          const select = document.getElementById('loanSelect');
+          select.innerHTML = '<option value="">No specific loan</option>';
+          data.forEach(loan => {
+            const opt = document.createElement('option');
+            opt.value = loan.id;
+            let due = loan.due_date ? ` (due ${loan.due_date})` : '';
+            opt.textContent = `${loan.lender} - Owe ${loan.balance.toLocaleString()} ${due}`;
+            select.appendChild(opt);
+          });
+        })
+        .catch(err => console.log('Loans load error:', err));
+    }
+  });
+
+  // NEW: Pick subcategory from scroll list (your existing code, kept here for completeness)
+  document.querySelectorAll('#expenseSubcategoryScroll .scroll-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.getElementById('expenseSubcategoryInput').value = this.textContent.trim();
+    });
+  });
+
+  // NEW + UPDATED: Add Transaction form submit – exact same pattern as your others
+  const addTransactionFormElement = document.getElementById('addTransactionFormElement');
+  addTransactionFormElement.addEventListener('submit', async e => {
+    e.preventDefault();
+    const formData = new FormData(addTransactionFormElement);
+    const res = await fetch('/add_transaction_ajax', {
+      method: 'POST',
+      body: formData
+    });
+    if (res.ok) {
+      const data = await res.json();
+      alert(data.message);
+      addTransactionFormElement.reset();
+      document.getElementById('addTransactionForm').classList.remove('open');
+      document.getElementById('expenseSubcategoryContainer').style.display = 'none';
+      document.getElementById('loanContainer').style.display = 'none';
+    } else {
+      alert('Error saving transaction');
+    }
+  });
+
+  // Your existing Add Transaction toggle (updated to close addLoanForm too)
+  const addTransactionBtn = document.getElementById('addTransactionBtn');
+  const addTransactionForm = document.getElementById('addTransactionForm');
+  addTransactionBtn.addEventListener('click', () => {
+    addTransactionForm.classList.toggle('open');
+    ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm', 'reportForm', 'settingsForm', 'aiAdviserForm', 'addLoanForm'].forEach(id => {
+      const f = document.getElementById(id);
+      if (f && f !== addTransactionForm) f.classList.remove('open');
+    });
+  });
+
+  // Your existing outside-click close (updated to include addLoanForm)
+  document.addEventListener('click', e => {
+    const openForms = [addCarForm, addExpenseForm, editCarForm, recordSaleForm, addTransactionForm, addLoanForm, document.getElementById('aiAdviserForm')].filter(f => f);
+    const buttons = [addCarBtn, addExpenseBtn, editCarBtn, recordSaleBtn, addTransactionBtn, addLoanBtn, document.getElementById('aiAdviserBtn')].filter(b => b);
+    const clickedInside = openForms.some(f => f.contains(e.target)) || buttons.some(b => b.contains(e.target));
+    if (!clickedInside) openForms.forEach(f => f.classList.remove('open'));
+  });
+    
   </script>
   <script>
     let sortColumn = null;
@@ -2736,92 +2843,6 @@
     }
   });
 
-// Toggle subcategory visibility
-document.getElementById('transactionTypeSelect').addEventListener('change', function() {
-  document.getElementById('expenseSubcategoryContainer').style.display =
-    this.value === 'expense' ? 'block' : 'none';
-});
-
-// Pick subcategory from list
-document.querySelectorAll('#expenseSubcategoryScroll .scroll-item').forEach(item => {
-  item.addEventListener('click', function() {
-    document.getElementById('expenseSubcategoryInput').value = this.textContent.trim();
-  });
-});
-
-// Form submit – exact same pattern as your other forms
-const addTransactionFormElement = document.getElementById('addTransactionFormElement');
-addTransactionFormElement.addEventListener('submit', async e => {
-  e.preventDefault();
-  const formData = new FormData(addTransactionFormElement);
-
-  const res = await fetch('/add_transaction_ajax', {
-    method: 'POST',
-    body: formData
-  });
-
-  if (res.ok) {
-    const data = await res.json();
-    alert(data.message);
-    addTransactionFormElement.reset();
-    document.getElementById('addTransactionForm').classList.remove('open');
-    document.getElementById('expenseSubcategoryContainer').style.display = 'none';
-
-    // Optional: refresh anything that needs it (like future cash KPIs)
-    // queueRefresh(true);  ← uncomment later when you add cash KPIs
-  } else {
-    alert('Error saving transaction');
-  }
-});
-
-// Toggle button – same as your other sidebar buttons
-const addTransactionBtn = document.getElementById('addTransactionBtn');
-const addTransactionForm = document.getElementById('addTransactionForm');
-
-addTransactionBtn.addEventListener('click', () => {
-  addTransactionForm.classList.toggle('open');
-
-  // Close all others (copy your existing pattern)
-  [
-    'addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm',
-    'reportForm', 'settingsForm', 'aiAdviserForm'
-  ].forEach(id => {
-    const f = document.getElementById(id);
-    if (f && f !== addTransactionForm) f.classList.remove('open');
-  });
-});
-
-// Close forms when clicking outside (add to your existing document click listener if you want)
-document.addEventListener('click', e => {
-  const clickedInside = addTransactionBtn.contains(e.target) || addTransactionForm.contains(e.target);
-  if (!clickedInside) {
-    addTransactionForm.classList.remove('open');
-  }
-});  
-
-const addLoanBtn = document.getElementById('addLoanBtn');
-const addLoanForm = document.getElementById('addLoanForm');
-addLoanBtn.addEventListener('click', () => {
-  addLoanForm.classList.toggle('open');
-  // close others...
-  ['addTransactionForm', 'addCarForm', /* etc */].forEach(id => {
-    const f = document.getElementById(id);
-    if (f) f.classList.remove('open');
-  });
-});
-
-document.getElementById('addLoanFormElement').addEventListener('submit', async e => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const res = await fetch('/add_loan_ajax', { method: 'POST', body: formData });
-  if (res.ok) {
-    alert('Loan added!');
-    e.target.reset();
-    addLoanForm.classList.remove('open');
-  } else {
-    alert('Error saving loan');
-  }
-});
 </script>
 </body>
 
