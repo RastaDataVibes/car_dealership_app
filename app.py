@@ -547,6 +547,17 @@ def add_loan_ajax():
         notes=request.form.get('notes') or None
     )
     db.session.add(loan)
+
+    # Automatically record the loan as money coming in (loan_in transaction)
+    transaction = Transaction(
+        user_id=current_user.id,
+        transaction_type='loan_in',
+        amount=principal,
+        loan_id=loan.id,           # links to this loan (just like your repayments do)
+        notes=f"Loan received from {lender}"
+    )
+    db.session.add(transaction)
+    
     db.session.commit()
     
     return jsonify({'message': f'Loan from {lender} added!'})
