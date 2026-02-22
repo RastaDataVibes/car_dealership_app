@@ -756,6 +756,9 @@ def get_inventory():
         Loan.balance > 0  # only loans that still have debt
     ).scalar() or 0.0
 
+    # NEW: Capital (Equity) = Assets - Liabilities
+    capital = total_assets - total_liabilities
+    
     return jsonify({
         "formatted_data": formatted_data,
         "max_profit": max_profit,
@@ -763,7 +766,8 @@ def get_inventory():
         "unsold_value": unsold_value,
         "estimated_cash": estimated_cash,
         "total_assets": total_assets,
-        "total_liabilities": total_liabilities
+        "total_liabilities": total_liabilities,
+        "capital": capital
     })
 
 @app.route('/flush_superset_cache', methods=['POST'])
