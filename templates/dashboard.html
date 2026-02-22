@@ -2167,6 +2167,7 @@
     }
 
     // FIXED: loadTotalCarsKPI - Total "10" display, VISIBLE trend (bolder line), SPEED (15 days, no anim), NO ERROR on forms (retry + soft catch)
+    /*
     let trendChartInstance = null; // REUSE: Faster redraws, no lag
     async function loadTotalCarsKPI(forceRefresh = false) {
       try {
@@ -2260,6 +2261,7 @@
         document.getElementById('totalCarsValue').textContent = parseInt(document.getElementById('totalCarsValue').textContent) || 0;
       }
     }
+    */
 
 
     // NEW: Load and display Total Assets KPI
@@ -2368,10 +2370,12 @@
 
       try {
         // INSTANT: Await KPIs/table/charts (fresh data)
+        /*
         await loadTotalCarsKPI(forceRefresh);
         await loadSoldCarsKPI(forceRefresh);
         await loadTotalSalesKPI(forceRefresh);
         await loadTotalProfitsKPI(forceRefresh);
+        */
         // ← Add ONLY this one line here
         await loadAssetsKPI(forceRefresh);
         await loadInventoryTable(forceRefresh);
