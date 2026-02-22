@@ -2281,6 +2281,23 @@
         document.getElementById('assetsValue').textContent = 'Error';
       }
     }
+
+    async function loadLiabilitiesKPI(forceRefresh = false) {
+      try {
+        const response = await getInventoryData(forceRefresh);
+        
+        // Get the total remaining loan balances from backend
+        const liabilities = response.total_liabilities || 0;
+        
+        // Format with currency symbol, commas, M/K/B — same as Assets/Sales/Profits
+        document.getElementById('liabilitiesValue').textContent = formatMoney(liabilities);
+        
+        console.log("Liabilities KPI loaded:", formatMoney(liabilities));
+      } catch (err) {
+        console.error("Liabilities KPI error:", err);
+        document.getElementById('liabilitiesValue').textContent = 'Error';
+      }
+    }
     
     // NEW: loadSoldCarsKPI - Count sold cars (SQL: COUNT(status) WHERE status = 'Sold')
     async function loadSoldCarsKPI(forceRefresh = false) {
@@ -2378,6 +2395,7 @@
         */
         // ← Add ONLY this one line here
         await loadAssetsKPI(forceRefresh);
+        await loadLiabilitiesKPI(forceRefresh);
         await loadInventoryTable(forceRefresh);
         await loadProfitData(forceRefresh);
         await loadSalesData(forceRefresh);
