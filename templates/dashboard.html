@@ -2282,6 +2282,23 @@
       }
     }
 
+    async function loadCapitalKPI(forceRefresh = false) {
+      try {
+        const response = await getInventoryData(forceRefresh);
+        
+        // Get capital from backend (Assets - Liabilities)
+        const capital = response.capital || 0;
+        
+        // Format with currency symbol, commas, M/K/B — same as others
+        document.getElementById('capitalValue').textContent = formatMoney(capital);
+        
+        console.log("Capital KPI loaded:", formatMoney(capital));
+      } catch (err) {
+        console.error("Capital KPI error:", err);
+        document.getElementById('capitalValue').textContent = 'Error';
+      }
+    }
+    
     async function loadLiabilitiesKPI(forceRefresh = false) {
       try {
         const response = await getInventoryData(forceRefresh);
@@ -2395,6 +2412,7 @@
         */
         // ← Add ONLY this one line here
         await loadAssetsKPI(forceRefresh);
+        await loadCapitalKPI(forceRefresh);
         await loadLiabilitiesKPI(forceRefresh);
         await loadInventoryTable(forceRefresh);
         await loadProfitData(forceRefresh);
