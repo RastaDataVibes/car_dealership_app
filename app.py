@@ -724,11 +724,28 @@ def get_inventory():
             # Use selling price if set, else purchase price
             car_value = clean_float(v.fixed_selling_price) if clean_float(v.fixed_selling_price) > 0 else clean_float(v.purchase_price)
             unsold_value += car_value
+
+    # NEW: Cash estimate (money in - money out)
+    installments_received = db.session.query(db.func.sum(Payment.amount)).join(Inventory).filter(
+        Inventory.dealership_id == current_user.id
+    ).scalar() or 0.0
+    
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+    cash_in = sum(t.amount for t in transactions if t.transaction_type in ['cash_in', 'loan_in'])
+    cash_out = sum(t.amount for t in transactions if t.transaction_type in ['cash_withdraw', 'loan_out', 'expense'])
+    
+    estimated_cash = (cash_in + installments_received) - cash_out
+    
+    # Full Assets = unsold cars + cash
+    total_assets = unsold_value + estimated_cash
+
     return jsonify({
         "formatted_data": formatted_data,
         "max_profit": max_profit,
         "max_price": max_price,
-        "unsold_value": unsold_value
+        "unsold_value": unsold_value,
+        "estimated_cash": estimated_cash,
+        "total_assets": total_assets
     })
 
 @app.route('/flush_superset_cache', methods=['POST'])
