@@ -1175,25 +1175,25 @@
         </div>
       </div>
       <div class="kpi-container">
-        <div class="kpi-card green" id="kpiCard1">
+        <div class="kpi-card green" id="totalassetsCard">
           <div class="kpi-money">
             <h3 class="kpi-title">Total Assets</h3> <!-- TITLE ONLY: At top, bold & small -->
             <div class="kpi-value-normal" id="assetsValue">0</div> <!-- BIG NUMBER: Front & center, no sub below it -->
           </div>
         </div>
-        <div class="kpi-card yellow" id="soldCarsCard">
+        <div class="kpi-card yellow" id="capitalCard">
           <div class="kpi-money">
             <h3 class="kpi-title">Capital</h3> <!-- TITLE: Bold top -->
             <div class="kpi-value-normal" id="capitalValue">0</div> <!-- BIG NUMBER: Center, from SQL count -->
           </div>
         </div>
-        <div class="kpi-card blue" id="totalSalesCard">
+        <div class="kpi-card blue" id="liabilitiesCard">
           <div class="kpi-money">
             <h3 class="kpi-title">Liabilities</h3> <!-- TITLE: Bold top -->
             <div class="kpi-value-normal" id="liabilitiesValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
           </div>
         </div>
-        <div class="kpi-card purple" id="totalProfitsCard">
+        <div class="kpi-card purple" id="cashCard">
           <div class="kpi-money">
             <h3 class="kpi-title">Estimated Cash</h3> <!-- TITLE: Bold top -->
             <div class="kpi-value-normal" id="cashValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
@@ -2261,6 +2261,25 @@
       }
     }
 
+
+    // NEW: Load and display Total Assets KPI
+    async function loadAssetsKPI(forceRefresh = false) {
+      try {
+        const response = await getInventoryData(forceRefresh);
+        
+        // Use the full total_assets from backend (cars + cash)
+        const assets = response.total_assets || 0;
+        
+        // Format it with currency symbol, commas, M/K/B — same as Total Sales/Profits
+        document.getElementById('assetsValue').textContent = formatMoney(assets);
+        
+        console.log("Assets KPI loaded:", formatMoney(assets));
+      } catch (err) {
+        console.error("Assets KPI error:", err);
+        document.getElementById('assetsValue').textContent = 'Error';
+      }
+    }
+    
     // NEW: loadSoldCarsKPI - Count sold cars (SQL: COUNT(status) WHERE status = 'Sold')
     async function loadSoldCarsKPI(forceRefresh = false) {
       try {
@@ -2353,10 +2372,13 @@
         await loadSoldCarsKPI(forceRefresh);
         await loadTotalSalesKPI(forceRefresh);
         await loadTotalProfitsKPI(forceRefresh);
+        // ← Add ONLY this one line here
+        await loadAssetsKPI(forceRefresh);
         await loadInventoryTable(forceRefresh);
         await loadProfitData(forceRefresh);
         await loadSalesData(forceRefresh);
 
+        
         // NUCLEAR FIX: FORCE CANVAS REDRAW — OLD PIXELS GONE
         const profitCtx = document.getElementById('profitChart')?.getContext('2d');
         const salesCtx = document.getElementById('salesTrendChart')?.getContext('2d');
