@@ -2315,6 +2315,23 @@
         document.getElementById('liabilitiesValue').textContent = 'Error';
       }
     }
+
+    async function loadCashKPI(forceRefresh = false) {
+      try {
+        const response = await getInventoryData(forceRefresh);
+        
+        // Get estimated_cash from backend (cash in - out)
+        const cash = response.estimated_cash || 0;
+        
+        // Format with currency symbol, commas, M/K/B — same as others
+        document.getElementById('cashValue').textContent = formatMoney(cash);
+        
+        console.log("Cash KPI loaded:", formatMoney(cash));
+      } catch (err) {
+        console.error("Cash KPI error:", err);
+        document.getElementById('cashValue').textContent = 'Error';
+      }
+    }
     
     // NEW: loadSoldCarsKPI - Count sold cars (SQL: COUNT(status) WHERE status = 'Sold')
     async function loadSoldCarsKPI(forceRefresh = false) {
@@ -2414,6 +2431,7 @@
         await loadAssetsKPI(forceRefresh);
         await loadCapitalKPI(forceRefresh);
         await loadLiabilitiesKPI(forceRefresh);
+        await loadCashKPI(forceRefresh);
         await loadInventoryTable(forceRefresh);
         await loadProfitData(forceRefresh);
         await loadSalesData(forceRefresh);
