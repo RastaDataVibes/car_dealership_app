@@ -750,13 +750,20 @@ def get_inventory():
     # Full Assets = unsold cars + cash
     total_assets = unsold_value + estimated_cash
 
+    # NEW: Total Liabilities = sum of all remaining loan balances
+    total_liabilities = db.session.query(db.func.sum(Loan.balance)).filter(
+        Loan.user_id == current_user.id,
+        Loan.balance > 0  # only loans that still have debt
+    ).scalar() or 0.0
+
     return jsonify({
         "formatted_data": formatted_data,
         "max_profit": max_profit,
         "max_price": max_price,
         "unsold_value": unsold_value,
         "estimated_cash": estimated_cash,
-        "total_assets": total_assets
+        "total_assets": total_assets,
+        "total_liabilities": total_liabilities
     })
 
 @app.route('/flush_superset_cache', methods=['POST'])
