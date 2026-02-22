@@ -1177,25 +1177,25 @@
       <div class="kpi-container">
         <div class="kpi-card green" id="totalassetsCard">
           <div class="kpi-money">
-            <h3 class="kpi-title">Total Assets</h3> <!-- TITLE ONLY: At top, bold & small -->
+            <h3 class="kpi-title">Total Assets(<span id="assetsCurrency">UGX</span>)</h3> <!-- TITLE ONLY: At top, bold & small -->
             <div class="kpi-value-normal" id="assetsValue">0</div> <!-- BIG NUMBER: Front & center, no sub below it -->
           </div>
         </div>
         <div class="kpi-card yellow" id="capitalCard">
           <div class="kpi-money">
-            <h3 class="kpi-title">Capital</h3> <!-- TITLE: Bold top -->
+            <h3 class="kpi-title">Capital(<span id="capitalCurrency">UGX</span>)</h3> <!-- TITLE: Bold top -->
             <div class="kpi-value-normal" id="capitalValue">0</div> <!-- BIG NUMBER: Center, from SQL count -->
           </div>
         </div>
         <div class="kpi-card blue" id="liabilitiesCard">
           <div class="kpi-money">
-            <h3 class="kpi-title">Liabilities</h3> <!-- TITLE: Bold top -->
+            <h3 class="kpi-title">Liabilities(<span id="liabilitiesCurrency">UGX</span>)</h3> <!-- TITLE: Bold top -->
             <div class="kpi-value-normal" id="liabilitiesValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
           </div>
         </div>
         <div class="kpi-card purple" id="cashCard">
           <div class="kpi-money">
-            <h3 class="kpi-title">Estimated Cash</h3> <!-- TITLE: Bold top -->
+            <h3 class="kpi-title">Estimated Cash(<span id="cashCurrency">UGX</span>)</h3> <!-- TITLE: Bold top -->
             <div class="kpi-value-normal" id="cashValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
           </div>
         </div>
@@ -1376,7 +1376,7 @@
       }
       
       const sign = num < 0 ? '-' : '';
-      return `${sign}${symbol} ${formatted}`;
+      return `${sign}${formatted}`;
     }
   </script>
   
@@ -2274,7 +2274,7 @@
         
         // Format it with currency symbol, commas, M/K/B — same as Total Sales/Profits
         document.getElementById('assetsValue').textContent = formatMoney(assets);
-        
+        document.getElementById('assetsCurrency').textContent = window.USER_CURRENCY || 'UGX';
         console.log("Assets KPI loaded:", formatMoney(assets));
       } catch (err) {
         console.error("Assets KPI error:", err);
@@ -2291,7 +2291,7 @@
         
         // Format with currency symbol, commas, M/K/B — same as others
         document.getElementById('capitalValue').textContent = formatMoney(capital);
-        
+        document.getElementById('capitalCurrency').textContent = window.USER_CURRENCY || 'UGX';
         console.log("Capital KPI loaded:", formatMoney(capital));
       } catch (err) {
         console.error("Capital KPI error:", err);
@@ -2308,7 +2308,7 @@
         
         // Format with currency symbol, commas, M/K/B — same as Assets/Sales/Profits
         document.getElementById('liabilitiesValue').textContent = formatMoney(liabilities);
-        
+        document.getElementById('liabilitiesCurrency').textContent = window.USER_CURRENCY || 'UGX';
         console.log("Liabilities KPI loaded:", formatMoney(liabilities));
       } catch (err) {
         console.error("Liabilities KPI error:", err);
@@ -2325,7 +2325,7 @@
         
         // Format with currency symbol, commas, M/K/B — same as others
         document.getElementById('cashValue').textContent = formatMoney(cash);
-        
+        document.getElementById('cashCurrency').textContent = window.USER_CURRENCY || 'UGX';
         console.log("Cash KPI loaded:", formatMoney(cash));
       } catch (err) {
         console.error("Cash KPI error:", err);
