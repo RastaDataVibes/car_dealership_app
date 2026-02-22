@@ -746,6 +746,14 @@ def get_inventory():
     cash_out = sum(t.amount for t in transactions if t.transaction_type in ['cash_withdraw', 'loan_out', 'expense'])
     
     estimated_cash = (cash_in + installments_received) - cash_out
+
+    car_expenses_total = db.session.query(db.func.sum(Expense.expense_amount)).join(
+        Inventory, Expense.vehicle_id == Inventory.id
+    ).filter(
+        Inventory.dealership_id == current_user.id
+    ).scalar() or 0.0
+    
+    estimated_cash -= car_expenses_total
     
     # Full Assets = unsold cars + cash
     total_assets = unsold_value + estimated_cash
