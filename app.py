@@ -717,10 +717,18 @@ def get_inventory():
     max_profit = max(profits) if profits else 1
     max_price = max(prices) if prices else 1
     print(f"DEBUG: Returning {len(formatted_data)} rows")
+    # NEW: Calculate value of unsold cars (Option 2)
+    unsold_value = 0.0
+    for v in vehicles:
+        if v.status != 'Sold':  # only unsold cars
+            # Use selling price if set, else purchase price
+            car_value = clean_float(v.fixed_selling_price) if clean_float(v.fixed_selling_price) > 0 else clean_float(v.purchase_price)
+            unsold_value += car_value
     return jsonify({
         "formatted_data": formatted_data,
         "max_profit": max_profit,
-        "max_price": max_price
+        "max_price": max_price,
+        "unsold_value": unsold_value
     })
 
 @app.route('/flush_superset_cache', methods=['POST'])
