@@ -1065,6 +1065,20 @@
           <button onclick="downloadSalesStory()"
             style="background: #b5a01e; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">Sales
             Story</button>
+          <button onclick="downloadBalanceSheet()"
+            style="background: #9658b5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">
+            Balance Sheet
+          </button>
+          <br>
+          <button onclick="downloadLoans()"
+            style="background: #e67e22; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">
+            Loans & Repayments
+          </button>
+          <br>
+          <button onclick="downloadCashFlow()"
+            style="background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">
+            Cash Flow Summary
+          </button>
         </div>
       </div>
       <button class="sidebar-btn" id="settingsBtn">⚙️ Settings</button>
@@ -2921,6 +2935,62 @@
       sendAIMessage();
     }
   });
+
+function downloadBalanceSheet() {
+  fetch('/api/inventory')
+    .then(res => res.json())
+    .then(data => {
+      let text = 'My Balance Sheet\n\n';
+      text += `Total Assets: ${formatMoney(data.total_assets || 0)}\n`;
+      text += `Total Liabilities: ${formatMoney(data.total_liabilities || 0)}\n`;
+      text += `Capital (Equity): ${formatMoney(data.capital || 0)}\n`;
+      text += `\nEstimated Cash: ${formatMoney(data.estimated_cash || 0)}\n`;
+      text += "\nAssets = Liabilities + Capital";
+      const blob = new Blob([text], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'balance_sheet.txt';
+      link.click();
+      document.getElementById('reportForm').classList.remove('open');
+    })
+    .catch(err => alert('Failed to download balance sheet'));
+}
+
+function downloadLoans() {
+  fetch('/api/inventory')
+    .then(res => res.json())
+    .then(data => {
+      let text = 'Loans & Repayments\n\n';
+      // Loans data not in /api/inventory yet - placeholder for now
+      text += "Loans summary coming soon (add loans route if needed)\n";
+      text += "Current liabilities: " + formatMoney(data.total_liabilities || 0) + "\n";
+      const blob = new Blob([text], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'loans.txt';
+      link.click();
+      document.getElementById('reportForm').classList.remove('open');
+    })
+    .catch(err => alert('Failed to download loans report'));
+}
+
+function downloadCashFlow() {
+  fetch('/api/inventory')
+    .then(res => res.json())
+    .then(data => {
+      let text = 'Cash Flow Summary\n\n';
+      text += `Estimated Cash: ${formatMoney(data.estimated_cash || 0)}\n`;
+      // Inflows & outflows not in /api/inventory yet - placeholder
+      text += "Full inflows/outflows coming soon (add to /api/inventory if needed)\n";
+      const blob = new Blob([text], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'cash_flow.txt';
+      link.click();
+      document.getElementById('reportForm').classList.remove('open');
+    })
+    .catch(err => alert('Failed to download cash flow report'));
+}
 
 </script>
 </body>
