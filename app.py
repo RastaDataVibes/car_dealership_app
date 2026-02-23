@@ -766,6 +766,16 @@ def get_inventory():
 
     # NEW: Capital (Equity) = Assets - Liabilities
     capital = total_assets - total_liabilities
+
+    loans_list = Loan.query.filter_by(user_id=current_user.id).all()
+    loans_data = [{
+        'id': l.id,
+        'lender': l.lender,
+        'principal': l.principal,
+        'balance': l.balance,
+        'due_date': l.due_date.strftime('%Y-%m-%d') if l.due_date else None,
+        'notes': l.notes or None
+    } for l in loans_list]
     
     return jsonify({
         "formatted_data": formatted_data,
@@ -775,7 +785,8 @@ def get_inventory():
         "estimated_cash": estimated_cash,
         "total_assets": total_assets,
         "total_liabilities": total_liabilities,
-        "capital": capital
+        "capital": capital,
+        "loans": loans_data
     })
 
 @app.route('/flush_superset_cache', methods=['POST'])
