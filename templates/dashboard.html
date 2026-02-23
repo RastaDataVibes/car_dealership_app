@@ -1392,6 +1392,21 @@
       const sign = num < 0 ? '-' : '';
       return `${sign}${formatted}`;
     }
+
+    function formatFullNumber(value) {
+      if (value === null || value === undefined || isNaN(value)) return '0';
+      const num = Number(value);
+      const sign = num < 0 ? '-' : '';
+      const currency = window.USER_CURRENCY || 'UGX';  // Gets the user's currency
+      const symbol = {
+        'UGX': 'UGX',
+        'KES': 'KSh',
+        'TZS': 'TSh',
+        'RWF': 'FRw',
+        'ETB': 'Br'
+      }[currency] || currency;
+      return sign + symbol + ' ' + Math.abs(num).toLocaleString('en-US');
+    }
   </script>
   
   <script>
@@ -2940,56 +2955,72 @@ function downloadBalanceSheet() {
   fetch('/api/inventory')
     .then(res => res.json())
     .then(data => {
-      let text = 'My Balance Sheet\n\n';
-      text += `Total Assets: ${formatMoney(data.total_assets || 0)}\n`;
-      text += `Total Liabilities: ${formatMoney(data.total_liabilities || 0)}\n`;
-      text += `Capital (Equity): ${formatMoney(data.capital || 0)}\n`;
-      text += `\nEstimated Cash: ${formatMoney(data.estimated_cash || 0)}\n`;
-      text += "\nAssets = Liabilities + Capital";
+      let text = 'GREENCHAIN BALANCE SHEET\n';
+      text += 'Date: ' + new Date().toLocaleDateString() + '\n\n';
+      text += 'Total Assets:     ' + formatFullNumber(data.total_assets || 0) + '\n';
+      text += 'Total Liabilities: ' + formatFullNumber(data.total_liabilities || 0) + '\n';
+      text += 'Capital (Equity):  ' + formatFullNumber(data.capital || 0) + '\n';
+      text += '\nEstimated Cash:    ' + formatFullNumber(data.estimated_cash || 0) + '\n';
+      text += '\nNote: Assets = Liabilities + Capital';
+      
       const blob = new Blob([text], { type: 'text/plain' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'balance_sheet.txt';
+      link.download = 'Balance_Sheet.txt';
       link.click();
       document.getElementById('reportForm').classList.remove('open');
     })
-    .catch(err => alert('Failed to download balance sheet'));
+    .catch(err => alert('Failed to download'));
 }
 
-function downloadLoans() {
+function downloadLoansReport() {
   fetch('/api/inventory')
     .then(res => res.json())
     .then(data => {
-      let text = 'Loans & Repayments\n\n';
-      // Loans data not in /api/inventory yet - placeholder for now
-      text += "Loans summary coming soon (add loans route if needed)\n";
-      text += "Current liabilities: " + formatMoney(data.total_liabilities || 0) + "\n";
+      let text = 'LOANS & REPAYMENTS REPORT\n';
+      text += 'Date: ' + new Date().toLocaleDateString() + '\n\n';
+      text += 'Total Amount Owed (Liabilities): ' + formatFullNumber(data.total_liabilities || 0) + '\n\n';
+      text += 'Individual Loans:\n';
+      
+      if (data.loans && data.loans.length > 0) {
+        data.loans.forEach(loan => {
+          text += `• Lender: ${loan.lender}\n`;
+          text += `  Borrowed: ${formatFullNumber(loan.principal)}\n`;
+          text += `  Remaining Balance: ${formatFullNumber(loan.balance)}\n`;
+          text += `  Due Date: ${loan.due_date || 'No due date'}\n`;
+          text += `  Notes: ${loan.notes || 'None'}\n\n`;
+        });
+      } else {
+        text += 'No loans recorded yet.\n';
+      }
+      
       const blob = new Blob([text], { type: 'text/plain' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'loans.txt';
+      link.download = 'Loans_Report.txt';
       link.click();
       document.getElementById('reportForm').classList.remove('open');
     })
-    .catch(err => alert('Failed to download loans report'));
+    .catch(err => alert('Failed to download Loans Report'));
 }
-
+    
 function downloadCashFlow() {
   fetch('/api/inventory')
     .then(res => res.json())
     .then(data => {
-      let text = 'Cash Flow Summary\n\n';
-      text += `Estimated Cash: ${formatMoney(data.estimated_cash || 0)}\n`;
-      // Inflows & outflows not in /api/inventory yet - placeholder
-      text += "Full inflows/outflows coming soon (add to /api/inventory if needed)\n";
+      let text = 'CASH FLOW SUMMARY\n';
+      text += 'Date: ' + new Date().toLocaleDateString() + '\n\n';
+      text += 'Estimated Cash Right Now: ' + formatFullNumber(data.estimated_cash || 0) + '\n';
+      text += '\nNote: This is cash after all inflows (general + installments) minus outflows (general + car expenses).';
+      
       const blob = new Blob([text], { type: 'text/plain' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'cash_flow.txt';
+      link.download = 'Cash_Flow_Summary.txt';
       link.click();
       document.getElementById('reportForm').classList.remove('open');
     })
-    .catch(err => alert('Failed to download cash flow report'));
+    .catch(() => alert('Could not download Cash Flow'));
 }
 
 </script>
