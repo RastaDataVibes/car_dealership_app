@@ -1138,34 +1138,37 @@ def pesapal_callback():
 def ai_chat():
     data = request.get_json()
     user_message = data.get('message', '').strip()
-    
+   
     if not user_message:
-        return jsonify({"reply": "Ask me about cars, expenses, payments, or advice! 🚗💸"})
-
-    # Personalize with dealership name (used in greeting + prompt)
+        return jsonify({"reply": "Ask me about cars, expenses, payments, loans, finances, KPIs, charts, balance sheet, or advice! 🚗💸"})
+   
+    # Personalize with user/dealership name
     dealership_name = current_user.dealership_name or current_user.profile_name or "your dealership"
     user_name = current_user.profile_name or "boss"
-    
+   
+    # User's preferred currency for all summaries
+    user_symbol = {
+        'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
+        'RWF': 'FRw', 'ETB': 'Br'
+    }.get(current_user.currency, 'UGX')
+   
+    # 1. Fetch all cars/inventory with full details (expenses, payments per car)
     vehicles = Inventory.query.filter_by(dealership_id=current_user.id).all()
-    
     total_cars = len(vehicles)
     sold_cars = len([v for v in vehicles if v.status == 'Sold'])
     available_cars = total_cars - sold_cars
-    
     total_sales = sum(clean_float(v.fixed_selling_price or 0) for v in vehicles if v.status == 'Sold')
     total_profit = sum(clean_float(v.booked_profit or 0) for v in vehicles if v.status == 'Sold')
-    
+   
     car_details = []
     for v in vehicles:
         status = "Sold" if v.status == 'Sold' else "Available"
-
-        # Get currency symbol for this vehicle (fallback to UGX)
         symbol = {
             'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
             'RWF': 'FRw', 'ETB': 'Br'
-        }.get(v.currency, 'UGX')
-
-        # EVERY EXPENSE — category, amount, date
+        }.get(v.currency or current_user.currency, 'UGX')
+       
+        # Expenses per car
         expenses_list = []
         total_expenses = 0
         for exp in sorted(v.expenses, key=lambda e: e.date_created or datetime.min):
@@ -1173,10 +1176,10 @@ def ai_chat():
             total_expenses += amount
             date_str = exp.date_created.strftime('%d %B %Y') if exp.date_created else 'Unknown date'
             category = exp.expense_category or 'Unknown'
-            expenses_list.append(f"   → {category}: {symbol} {amount:,.0f} on {date_str}")
-        expenses_text = "\n".join(expenses_list) if expenses_list else "   → No expenses"
-        
-        # EVERY PAYMENT — amount, date, note
+            expenses_list.append(f" → {category}: {symbol} {amount:,.0f} on {date_str}")
+        expenses_text = "\n".join(expenses_list) if expenses_list else " → No expenses"
+       
+        # Payments per car
         payments_list = []
         total_paid = 0
         for pay in sorted(v.payments, key=lambda p: p.payment_date or datetime.min):
@@ -1184,38 +1187,29 @@ def ai_chat():
             total_paid += amount
             date_str = pay.payment_date.strftime('%d %B %Y') if pay.payment_date else 'Unknown date'
             note = pay.notes or pay.category or 'No note'
-            payments_list.append(f"   → UGX {amount:,.0f} on {date_str} ({note})")
-        payments_text = "\n".join(payments_list) if payments_list else "   → No payments"
-        
+            payments_list.append(f" → {symbol} {amount:,.0f} on {date_str} ({note})")
+        payments_text = "\n".join(payments_list) if payments_list else " → No payments"
+       
         balance_due = clean_float(v.fixed_selling_price or 0) - total_paid
-        
         days_in_stock = (date.today() - v.date_added.date()).days if v.date_added else "Unknown"
-        
+       
         car_details.append(f"""
 • Car ID: {v.id} | {v.make or 'Unknown'} {v.model or ''} {v.year or ''} (Reg: {v.registration_number or 'None'})
   Status: {status} | Sold to: {v.sold_to or 'None'}
-  Buy price: {symbol} {clean_float(v.purchase_price):,.0f} | Sell price: UGX {clean_float(v.fixed_selling_price):,.0f}
+  Buy price: {symbol} {clean_float(v.purchase_price):,.0f} | Sell price: {symbol} {clean_float(v.fixed_selling_price):,.0f}
   Booked profit: {symbol} {clean_float(v.booked_profit):,.0f}
-  Total paid: {symbol} {total_paid:,.0f} | Balance due: UGX {balance_due:,.0f}
+  Total paid: {symbol} {total_paid:,.0f} | Balance due: {symbol} {balance_due:,.0f}
   Days in stock: {days_in_stock} | Mileage: {v.mileage or 'N/A'} km
   Notes: {v.notes or 'None'}
-
-  Expenses (Total: UGX {total_expenses:,.0f}):
+  Expenses (Total: {symbol} {total_expenses:,.0f}):
 {expenses_text}
-
   Payments:
 {payments_text}
 """)
-    
-    all_cars_text = "\n".join(car_details)
-
-    # Use the current user's preferred currency for overall totals (fallback to UGX)
-    user_symbol = {
-        'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
-        'RWF': 'FRw', 'ETB': 'Br'
-    }.get(current_user.currency, 'UGX')
-
-    # NEW: Fetch and summarize general business transactions (user-specific only)
+   
+    all_cars_text = "\n".join(car_details) or "No cars in inventory yet."
+   
+    # 2. Fetch all general transactions
     transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.created_at.desc()).all()
     transaction_details = []
     total_cash_in = 0
@@ -1227,82 +1221,126 @@ def ai_chat():
         amount_str = f"{user_symbol} {t.amount:,.0f}"
         date_str = t.created_at.strftime('%d %B %Y') if t.created_at else 'Unknown'
         transaction_details.append(f"• {type_display}{subcategory}: {amount_str} on {date_str}. Notes: {t.notes or 'None'}")
-        
+       
         if t.transaction_type in ['cash_in', 'loan_in']:
             total_cash_in += t.amount
         if t.transaction_type in ['cash_withdraw', 'loan_out', 'expense']:
             total_cash_out += t.amount
         if t.transaction_type == 'expense':
             total_general_expenses += t.amount
-
     transaction_text = "\n".join(transaction_details) if transaction_details else "No general business transactions yet."
-
-    # NEW: Calculate estimated cash (combines transactions + car installments)
+   
+    # 3. Fetch all loans + linked repayments
+    loans = Loan.query.filter_by(user_id=current_user.id).all()
+    loan_details = []
+    total_liabilities = 0
+    for l in loans:
+        due_date_str = l.due_date.strftime('%d %B %Y') if l.due_date else 'No due date'
+        # Find repayments for this loan
+        repayments = [t for t in transactions if t.loan_id == l.id and t.transaction_type == 'loan_out']
+        repayment_text = "\n".join([f"  → Repaid {user_symbol} {r.amount:,.0f} on {r.created_at.strftime('%d %B %Y')}" for r in repayments]) if repayments else "  → No repayments yet"
+        loan_details.append(f"• Lender: {l.lender} | Borrowed: {user_symbol} {l.principal:,.0f} | Owe now: {user_symbol} {l.balance:,.0f} | Due: {due_date_str}\n{repayment_text}\n  Notes: {l.notes or 'None'}")
+        total_liabilities += l.balance
+    loan_text = "\n".join(loan_details) if loan_details else "No loans yet."
+   
+    # 4. Calculate full estimated cash (general + car payments - all outflows)
     installments_received = db.session.query(db.func.sum(Payment.amount)).join(Inventory).filter(
         Inventory.dealership_id == current_user.id
     ).scalar() or 0.0
-
-    estimated_cash = (total_cash_in + installments_received) - total_cash_out
-
-    # NEW: Enhanced business summaries
+    car_expenses_total = db.session.query(db.func.sum(Expense.expense_amount)).join(
+        Inventory, Expense.vehicle_id == Inventory.id
+    ).filter(
+        Inventory.dealership_id == current_user.id
+    ).scalar() or 0.0
+    estimated_cash = (total_cash_in + installments_received) - (total_cash_out + car_expenses_total)
+   
+    # 5. Calculate KPIs (copy from /api/inventory)
+    unsold_value = 0.0
+    for v in vehicles:
+        if v.status != 'Sold':
+            car_value = clean_float(v.fixed_selling_price) if clean_float(v.fixed_selling_price) > 0 else clean_float(v.purchase_price)
+            unsold_value += car_value
+    total_assets = unsold_value + estimated_cash
+    capital = total_assets - total_liabilities
+   
+    # 6. Summarize Profit Chart (profit by make)
+    make_profits = {}
+    for v in vehicles:
+        if v.status == 'Sold':
+            make = v.make or 'Unknown'
+            profit = clean_float(v.booked_profit or 0)
+            make_profits[make] = make_profits.get(make, 0) + profit
+    profit_chart_summary = "\n".join([f"• {make}: {user_symbol} {profit:,.0f}" for make, profit in make_profits.items()]) or "No profits yet."
+   
+    # 7. Summarize Sales Trend Chart (monthly sales count)
+    monthly_sales = {}
+    for v in vehicles:
+        if v.status == 'Sold' and v.sale_date:
+            month_key = v.sale_date.strftime('%Y-%m')
+            monthly_sales[month_key] = monthly_sales.get(month_key, 0) + 1
+    sales_chart_summary = "\n".join([f"• {month}: {count} cars" for month, count in sorted(monthly_sales.items())]) or "No sales yet."
+   
+    # 8. Full business summary with all KPIs and chart overviews
     business_summary = f"""
-Business Overview:
+Business Overview for {dealership_name} on {date.today().strftime('%B %d, %Y')}:
 - Total cars: {total_cars} | Available: {available_cars} | Sold: {sold_cars}
 - Total sales from cars: {user_symbol} {total_sales:,.0f}
 - Total profit from cars: {user_symbol} {total_profit:,.0f}
-- Estimated available cash: {user_symbol} {estimated_cash:,.0f} (includes general inflows + car installments - outflows)
+- Estimated cash: {user_symbol} {estimated_cash:,.0f} (general inflows + car payments - all outflows)
 - General inflows (cash/loan in): {user_symbol} {total_cash_in:,.0f}
 - General outflows (withdraw/loan out/expenses): {user_symbol} {total_cash_out:,.0f}
 - General expenses only: {user_symbol} {total_general_expenses:,.0f}
+- Car expenses total: {user_symbol} {car_expenses_total:,.0f}
+- Unsold cars value: {user_symbol} {unsold_value:,.0f}
+- Total Assets: {user_symbol} {total_assets:,.0f} (cash + unsold cars)
+- Total Liabilities (remaining loans): {user_symbol} {total_liabilities:,.0f}
+- Capital (Equity): {user_symbol} {capital:,.0f} (Assets - Liabilities)
+- Profit by Make Chart:
+{profit_chart_summary}
+- Sales Trend Chart (monthly):
+{sales_chart_summary}
 """
-
-    # Greeting + full prompt
+   
+    # 9. Greeting + complete system prompt
     greeting = f"Hi {user_name}! I'm your GreenChain AI adviser for {dealership_name}."
     system_prompt = f"""{greeting}
-
-You are GreenChain AI — a modern, smart business adviser for {dealership_name}.
-REAL DATA TODAY ({date.today().strftime('%B %d, %Y')}):
+You are a smart, modern adviser for a car dealership. Use ALL REAL DATA BELOW to answer EVERY question accurately.
+REAL DATA TODAY:
 {business_summary}
-
-EVERY CAR WITH FULL EXPENSES & PAYMENTS:
+ALL CARS WITH DETAILS:
 {all_cars_text}
-
-GENERAL BUSINESS TRANSACTIONS (not tied to cars):
+GENERAL TRANSACTIONS:
 {transaction_text}
-
-YOUR JOB — BE MODERN & HELPFUL:
-- Answer key business questions: cash flow, total assets (cash + unsold cars value), profitability, expenses breakdown, sales trends.
-- Give smart advice: "Your cash is low — focus on collecting balances", "High rent? Negotiate or cut other costs", "Sell old stock to boost profits".
-- Be friendly, clear, use simple numbers. Suggest next actions: "Record a cash_in if you added money today".
-- If asked for totals, combine cars + general transactions accurately.
-- Use full dates and user currency ({user_symbol}).
-- Keep replies short & actionable — no fluff.
+LOANS (including repayments):
+{loan_text}
+YOUR JOB:
+- Answer about inventory: cars, stock, sales, profits, expenses/payments per car.
+- Answer about finances: cash flow, assets, liabilities, capital, balance sheet (Assets = Liabilities + Capital).
+- Answer about charts: profit by make, sales trend.
+- Give advice: "Collect balances from Car X to boost cash", "Sell old stock", "Pay loan due soon".
+- Use currency ({user_symbol}) in answers.
+- Keep replies short, clear, actionable. Use bullets/lists.
+- If calculation needed, do it from data.
+- Possible questions: car status, profit per car, total owed, cash position, business advice, balance sheet, chart summaries, financial health.
+- If no data, say "No [loans/cars] yet — add some!"
 """
-
-    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-    
+   
+    # 10. Call Groq AI
     try:
-        api_key = os.environ.get("GROQ_API_KEY")
-        if not api_key:
-            return jsonify({"reply": "ERROR: GROQ_API_KEY is missing in Render Environment! Add it and redeploy."})
-        print(f"Using Groq key: {api_key[:5]}...")  # Logs first 5 chars to check
-        client = Groq(api_key=api_key)
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         chat_response = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-70b-versatile",
             temperature=0.6,
             max_tokens=1500
         )
         reply = chat_response.choices[0].message.content.strip()
         return jsonify({"reply": reply})
-    except ImportError as e:
-        return jsonify({"reply": "IMPORT ERROR: groq library not installed — check requirements.txt and redeploy with clear cache!"})
     except Exception as e:
-        error_msg = str(e)
-        return jsonify({"reply": f"CRASH: {error_msg} — check Render logs for details!"})
+        return jsonify({"reply": f"Sorry, error: {str(e)} — try again!"})
 # ==========================================================================
 # ------------------------
 # Run app
