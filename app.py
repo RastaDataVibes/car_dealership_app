@@ -1333,7 +1333,7 @@ YOUR JOB:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
-            model="llama-3.1-70b-versatile",
+            model="llama-3.3-70b-versatile",
             temperature=0.6,
             max_tokens=1500
         )
