@@ -1138,59 +1138,63 @@
           <input type="text" class="search-input" id="searchInput" placeholder="Type to search...">
           <button class="search-btn" id="searchBtn">&#128269;</button>
         </div>
+        <!--
         <div class="profile-container" id="profileContainer">
           <img 
             src="{% if current_user.profile_photo_filename %}/static/uploads/{{ current_user.profile_photo_filename }}{% else %}https://via.placeholder.com/40{% endif %}"
             class="profile-photo" id="profilePhoto">
           <span class="profile-name" id="profileName">{{ (current_user.profile_name or current_user.dealership_name or
             'User') | truncate(10, true, '...') }}</span>
-          <!div class="profile-dropdown" id="profileDropdown">
-            <!div class="dropdown-header">
-              <!span class="dropdown-user-name">
+        
+          
+          <div class="profile-dropdown" id="profileDropdown">
+            <div class="dropdown-header">
+              <span class="dropdown-user-name">
                 {{ (current_user.profile_name or current_user.dealership_name or 'User') | truncate(10, true, '...') }}
-              <!/span>
-            <!/div>
+              </span>
+            </div>
           
-            <!-- Name -->
-            <!div class="form-group">
-              <!label for="nameInput">Name</label>
-              <!input type="text" id="nameInput" placeholder="Enter name" value="{{ current_user.profile_name or '' }}">
-            <!/div>
+            
+            <div class="form-group">
+              <label for="nameInput">Name</label>
+              <input type="text" id="nameInput" placeholder="Enter name" value="{{ current_user.profile_name or '' }}">
+            </div>
           
-            <!-- Email -->
-            <!div class="form-group">
-              <!label for="emailInput">Email</label>
-              <!input type="email" id="emailInput" placeholder="Enter email" value="{{ current_user.email or '' }}">
-            <!/div>
+            
+            <div class="form-group">
+              <label for="emailInput">Email</label>
+              <input type="email" id="emailInput" placeholder="Enter email" value="{{ current_user.email or '' }}">
+            </div>
           
-            <!-- Currency -->
-            <!div class="form-group">
-              <!label for="currencySelect">Preferred Currency</label>
-              <!div class="select-wrapper">
-                <!select id="currencySelect" name="currency">
-                  <!option value="UGX" {% if current_user.currency == 'UGX' %}selected{% endif %}>Ugandan Shilling – UGX</option>
-                  <!option value="KES" {% if current_user.currency == 'KES' %}selected{% endif %}>Kenyan Shilling – KSh</option>
-                  <!option value="TZS" {% if current_user.currency == 'TZS' %}selected{% endif %}>Tanzanian Shilling – TSh</option>
-                  <!option value="RWF" {% if current_user.currency == 'RWF' %}selected{% endif %}>Rwandan Franc – FRw</option>
-                  <!option value="ETB" {% if current_user.currency == 'ETB' %}selected{% endif %}>Ethiopian Birr – Br</option>
-                <!/select>
-                <!span class="select-arrow">▼</span>
-              <!/div>
-            <!/div>
+            
+            <div class="form-group">
+              <label for="currencySelect">Preferred Currency</label>
+              <div class="select-wrapper">
+                <select id="currencySelect" name="currency">
+                  <option value="UGX" {% if current_user.currency == 'UGX' %}selected{% endif %}>Ugandan Shilling – UGX</option>
+                  <option value="KES" {% if current_user.currency == 'KES' %}selected{% endif %}>Kenyan Shilling – KSh</option>
+                  <option value="TZS" {% if current_user.currency == 'TZS' %}selected{% endif %}>Tanzanian Shilling – TSh</option>
+                  <option value="RWF" {% if current_user.currency == 'RWF' %}selected{% endif %}>Rwandan Franc – FRw</option>
+                  <option value="ETB" {% if current_user.currency == 'ETB' %}selected{% endif %}>Ethiopian Birr – Br</option>
+                </select>
+                <span class="select-arrow">▼</span>
+              </div>
+            </div>
           
-            <!-- Photo upload -->
-            <!div class="form-group">
-              <!label for="photoInput">Profile Photo</label>
-              <!input type="file" id="photoInput" accept="image/*">
-            <!/div>
+            
+            <div class="form-group">
+              <label for="photoInput">Profile Photo</label>
+              <input type="file" id="photoInput" accept="image/*">
+            </div>
           
-            <!-- Actions -->
-            <!div class="actions">
-              <!button id="saveProfile" class="btn-primary">Save</button>
-              <!a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
-            <!/div>
-        <!/div>
+            
+            <div class="actions">
+              <button id="saveProfile" class="btn-primary">Save</button>
+              <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </div>
       </div>
+        -->
       <div class="kpi-container">
         <div class="kpi-card green" id="totalassetsCard">
           <div class="kpi-money">
