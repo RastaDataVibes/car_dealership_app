@@ -17,20 +17,21 @@
       padding: 0;
       font-family: Arial, sans-serif;
     }
+    
     body {
       background-color: #f0f0f0;
       display: flex;
       justify-content: center;
       padding: 20px;
     }
+    
     .dashboard-container {
       display: flex;
       align-items: stretch;
       gap: 20px;
-      max-width: 100%;
-      margin: 0 auto;
-      padding: 0 15px;
+      max-width: 100%; 
     }
+    
     .sidebar {
       width: 232px;
       background-color: #B1B2B5FF;
@@ -39,9 +40,8 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      min-height: 80vh;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
+    
     .sidebar-btn {
       width: 90%;
       margin: 0 auto;
@@ -54,9 +54,11 @@
       cursor: pointer;
       transition: background 0.2s;
     }
+    
     .sidebar-btn:hover {
       background: #c0c0c0;
     }
+    
     .sidebar-form {
       max-height: 0;
       overflow: hidden;
@@ -65,19 +67,19 @@
       padding: 0 10px;
       border-radius: 6px;
     }
+    
     .sidebar-form.open {
       max-height: 500px;
       padding: 10px;
     }
+    
     .main {
       display: flex;
       flex-direction: column;
       gap: 20px;
       flex: 1;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
+    
     .topbar {
       display: flex;
       align-items: center;
@@ -89,17 +91,20 @@
       height: 91px;
       flex-wrap: wrap;
     }
+    
     .top-left {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+    
     .app-title {
       font-size: 24px;
       font-weight: bold;
       text-transform: lowercase;
       color: #333;
     }
+    
     .arrow-btn {
       font-size: 20px;
       cursor: pointer;
@@ -107,21 +112,25 @@
       color: grey;
       transition: color 0.2s;
     }
+    
     .arrow-btn.active {
       color: black;
       font-weight: bold;
     }
+    
     .search-container {
       display: flex;
       align-items: center;
       gap: 5px;
     }
+    
     .search-input {
       font-size: 18px;
       padding: 5px 10px;
       border-radius: 4px;
       border: 1px solid #ccc;
     }
+    
     .search-btn {
       font-size: 18px;
       cursor: pointer;
@@ -136,6 +145,7 @@
       gap: 5px;
       cursor: pointer;
     }
+    
     .profile-photo {
       width: 40px;
       height: 40px;
@@ -143,42 +153,65 @@
       object-fit: cover;
       border: 1px solid #ccc;
     }
+    
     .profile-name {
       font-size: 16px;
-      max-width: 140px;
+      /*max-width: 140px;
       display: inline-block;
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
+      text-overflow: ellipsis;*/
     }
+    
     .profile-dropdown {
       position: absolute;
-      top: 100%;
+      top: 55px;
+      /*top: 100%;*/
       right: 0;
-      width: 280px;
+      width: 200px;
+      /*width: 280px;*/
       background: #fff;
-      border-radius: 12px;
+      border-radius: 6px;
+      /*border-radius: 12px;*/
       border: 1px solid #d0d5da;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      /*box-shadow: 0 8px 28px rgba(0,0,0,0.18);*/
       overflow: hidden;
-      z-index: 1000;
+      /*z-index: 1000;*/
       max-height: 0;
-      opacity: 0;
+      transition: max-height 0.3s ease;
+      /*opacity: 0;
       transform: translateY(-8px);
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       pointer-events: none;
-      visibility: hidden;
+      visibility: hidden;*/
     }
  
     .profile-dropdown.open {
-      max-height: 480px;
+      max-height: 300px;
+      /*max-height: 480px;
       opacity: 1;
       transform: translateY(0);
       visibility: visible;
-      pointer-events: auto !important;
+      pointer-events: auto !important;*/
     }
+
+    .profile-dropdown input {
+      width: 90%;
+      margin: 10px auto;
+      display: block;
+      padding: 5px;
+    }*
+
+    .profile-dropdown button {
+      margin: 10px auto;
+      display: block;
+      padding: 5px 10px;
+      cursor: pointer;
+    }*
+
  
-    .dropdown-header {
+    /*.dropdown-header {
       padding: 12px 16px;
       border-bottom: 1px solid #eff3f4;
       background: #f7f9f9;
@@ -275,7 +308,7 @@
     }
     .btn-logout:hover {
       background: #ffeef0;
-    }
+    }*/
    
     .kpi-container {
       display: flex;
@@ -293,14 +326,17 @@
       font-weight: bold;
       font-size: 16px;
     }
+    
     .green {
       width: 193px;
       background-color: #70b583FF;
     }
+    
     .yellow {
       width: 207px;
       background-color: #b5a01eFF;
     }
+    
     #soldCarsCard .kpi-big-number {
       display: flex;
       flex-direction: column;
@@ -320,6 +356,7 @@
       color: white;
       /* WHITE TEXT: Contrast on yellow */
     }
+    
     #soldCarsCard .kpi-title {
       font-size: 1em;
       /* MEDIUM: Clear title */
@@ -328,6 +365,7 @@
       opacity: 1;
       font-weight: bold;
     }
+    
     #soldCarsCard .kpi-value {
       font-size: 3em;
       /* GIANT: Number dominates */
@@ -335,10 +373,12 @@
       margin: 0;
       line-height: 1;
     }
+    
     .blue {
       width: 222px;
       background-color: #3f7db5FF;
     }
+    
     #totalSalesCard .kpi-big-number {
       display: flex;
       flex-direction: column;
@@ -355,6 +395,7 @@
       overflow: hidden;
       color: white;
     }
+    
     #totalSalesCard .kpi-title {
       font-size: 1em;
       /* MEDIUM: Clear title */
@@ -365,6 +406,7 @@
       width: 100%;
       order: 1;
     }
+    
     #totalSalesCard .kpi-value {
       font-size: 2em;
       font-weight: bold;
@@ -376,10 +418,12 @@
       order: 2;
       max-width: 100%;
     }
+    
     .purple {
       width: 222px;
       background-color: #9658b5FF;
     }
+    
     #totalProfitsCard .kpi-big-number {
       display: flex;
       flex-direction: column;
@@ -399,6 +443,7 @@
       color: white;
       /* WHITE TEXT: Contrast on purple */
     }
+    
     #totalProfitsCard .kpi-title {
       font-size: 1em;
       /* MEDIUM: Clear title */
@@ -409,6 +454,7 @@
       width: 100%;
       order: 1;
     }
+    
     #totalProfitsCard .kpi-value {
       font-size: 2em;
       /* GIANT: Number dominates */
@@ -421,11 +467,13 @@
       order: 2;
       max-width: 100%;
     }
+    
     .chart-row {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
     }
+    
     .card {
       background-color: #B1B2B5FF;
       border-radius: 8px;
@@ -437,22 +485,26 @@
       font-weight: bold;
       font-size: 16px;
     }
+    
     .sales-trend {
-      width: 100%;
+      /*width: 100%;*/
       width: 541px;
       height: 300px;
     }
+    
     .profit-make {
-      width: 100%;
+      /*width: 100%;*/
       width: 343px;
       height: 300px;
     }
+    
     .inventory-table {
       width: 904px;
       max-height: 346px;
       overflow-y: auto;
       padding: 0;
     }
+    
     .dashboard-overlay {
       display: none;
       position: fixed;
@@ -464,6 +516,7 @@
       z-index: 99999;
       padding: 0;
     }
+    
     .dashboard-overlay .close-btn {
       position: absolute;
       top: 10px;
@@ -476,6 +529,7 @@
       cursor: pointer;
       z-index: 10000
     }
+    
     @media(max-width:1200px) {
       .topbar {
         flex-direction: column;
@@ -483,6 +537,7 @@
         gap: 5px;
       }
     }
+    
     form input,
     form select {
       width: 100%;
@@ -491,6 +546,7 @@
       border-radius: 4px;
       border: 1px solid #ccc;
     }
+    
     form button {
       padding: 6px 12px;
       border: none;
@@ -499,9 +555,11 @@
       color: white;
       cursor: pointer;
     }
+    
     form button:hover {
       background-color: #2e5e8f;
     }
+    
     .table-container {
       position: relative;
       border: none;
@@ -512,12 +570,14 @@
       flex-direction: column;
       margin: 0;
     }
+    
     .table-search {
       padding: 10px;
       background: #B1B2B5FF;
       border-bottom: 1px solid #dee2e6;
       flex-shrink: 0;
     }
+    
     .table-search input {
       width: 50%;
       padding: 8px;
@@ -528,6 +588,7 @@
       background-color: white;
       color: black;
     }
+    
     .table-wrapper {
       flex: 1;
       /* Grow to fill remaining height, but don't shrink below content if needed */
@@ -540,21 +601,26 @@
       scrollbar-color: #ccc #f8f9fa;
       background-color: #B1B2B5FF;
     }
+    
     .table-wrapper::-webkit-scrollbar {
       width: 8px;
       /* Thin scrollbar like Superset */
       height: 8px;
     }
+    
     .table-wrapper::-webkit-scrollbar-track {
       background: #B1B2B5FF;
     }
+    
     .table-wrapper::-webkit-scrollbar-thumb {
       background: #ccc;
       border-radius: 4px;
     }
+    
     .table-wrapper::-webkit-scrollbar-thumb:hover {
       background: #bbb;
     }
+    
     table {
       min-width: 100%;
       width: 100%;
@@ -562,6 +628,7 @@
       table-layout: auto;
       background-color: #B1B2B5FF;
     }
+    
     th,
     td {
       padding: 8px;
@@ -576,6 +643,7 @@
       color: #000 !important;
       font-size: 16px;
     }
+    
     th:hover::after,
     td:hover::after {
       content: attr(title);
@@ -594,6 +662,7 @@
       transform: translateX(-50%);
       margin-bottom: 4px;
     }
+    
     th {
       background: #B1B2B5FF;
       cursor: pointer;
@@ -602,32 +671,40 @@
       top: 0;
       z-index: 5;
     }
+    
     th:hover {
       background: #a0a1a4;
     }
+    
     th.sort-asc::after {
       content: ' ▲';
     }
+    
     th.sort-desc::after {
       content: ' ▼';
     }
+    
     .numeric {
       text-align: right;
     }
+    
     .success-bg {
       background-color: #d4edda !important;
       color: black !important;
     }
+    
     .photo-cell img {
       max-width: 50px;
       max-height: 40px;
       height: auto;
       vertical-align: middle;
     }
+    
     .na-faint {
       color: #666 !important;
       font-style: italic;
     }
+    
     /* CHANGED: Updated CSS for cell bars to mimic horizontal bar graph: bar-container full inner height, bar positioned at bottom spanning full available height and percentage width, text overlaid with right alignment for numeric cells, ensuring bar "sits" on vertical grid (left border as x-axis start) and extends horizontally along the cell's inner space (like bar length/height in horizontal orientation). Border-radius 0 to align flush with grid lines where possible. */
     .bar-container {
       position: relative;
@@ -638,6 +715,7 @@
       display: block;
       line-height: 40px;
     }
+    
     .bar {
       position: absolute;
       bottom: 0;
@@ -647,14 +725,17 @@
       /* Flush with edges for grid alignment */
       opacity: 0.8;
     }
+    
     .bar-positive {
       background-color: #28a745;
       /* Success green */
     }
+    
     .bar-negative {
       background-color: #dc3545;
       /* Red for negative */
     }
+    
     .bar-text {
       position: relative;
       z-index: 2;
@@ -666,10 +747,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    
     /* CHANGE 1: Black background for chart canvas - expect: dark chart area, bars/lines pop against black */
     #profitChart {
       background-color: black !important;
     }
+    
     /* CHANGE 2: White text for chart elements to contrast black background - expect: Y-axis ticks, legend, and tooltips in white for readability */
     #profitChart .chartjs-render-monitor,
     #profitChart text,
@@ -681,11 +764,13 @@
     .chartjs-tooltip {
       color: white !important;
     }
+    
     /* CHANGE 3: White grid lines for y-axis to stand out on black - expect: subtle white lines for better readability without clutter */
     #profitChart .chartjs-grid,
     #salesTrendChart .chartjs-grid {
       color: rgba(128, 128, 128, 0.3) !important;
     }
+    
     /* CHANGE 4: Seamless chart in card - set profit-make card background to black - expect: canvas black blends with card, single rounded black border from card's border-radius/box-shadow, no double borders like inventory table */
     .profit-make,
     .sales-trend {
@@ -697,11 +782,13 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       /* CHANGE 7: Darker shadow - expect: more prominent depth, blends seamless with black, similar to table's subtle shadow */
     }
+    
     /* CHANGE 8: Canvas inherits rounded corners - expect: #profitChart matches card's 8px radius, no double borders, fully seamless */
     #profitChart,
     #salesTrendChart {
       border-radius: 8px !important;
     }
+    
     /* UPDATED: Styles for Big Number KPI with Trend Line (mimics Superset) */
     .kpi-big-number {
       display: flex;
@@ -719,6 +806,7 @@
       overflow: hidden;
       color: white;
     }
+    
     .kpi-value {
       font-size: 3em;
       /* Large Big Number Font Size - adjusted for 95px height */
@@ -727,6 +815,7 @@
       line-height: 1;
       flex-grow: 1;
     }
+    
     /* UPDATED: Title style - bold, prominent, full opacity (replaces subtitle) */
     .kpi-title {
       font-size: 1em;
@@ -737,6 +826,7 @@
       font-weight: bold;
       width: 100%;
     }
+    
     /* Ensure canvas fits tightly */
     #totalCarsTrend {
       background-color: transparent;
@@ -751,30 +841,37 @@
       overflow: hidden !important;
       z-index: -1;
     }
+    
     body.dark-mode {
       background-color: #333;
       color: white;
     }
+    
     body.dark-mode .kpi-card {
       background-color: #555;
       /* Darker cards */
     }
+    
     /* FULL RESPONSIVE: Mobile/Tablet Adaptations (Builds on Your Existing) */
     @media (max-width: 768px) {
+      
       /* TABLET/PHONE */
       .dashboard-container {
         flex-direction: column;
         /* STACK: Sidebar below main */
         gap: 10px;
       }
+      
       .sidebar {
         width: 100%;
         /* FULL WIDTH: No side squeeze */
       }
+      
       .main {
         padding: 5px;
         /* SMALL PAD: Fits small screen */
       }
+      
       .topbar {
         flex-direction: column;
         /* STACK ARROWS/SEARCH */
@@ -782,18 +879,21 @@
         padding: 10px;
         gap: 5px;
       }
+      
       .kpi-container {
         flex-direction: column;
         /* STACK KPIS: One per row */
         align-items: center;
         gap: 10px;
       }
+      
       .kpi-card {
         width: 90vw;
         /* FULL PHONE WIDTH */
         height: 80px;
         /* SHORTER: Thumb-friendly */
       }
+      
       .kpi-money {
         text-align: center;
         padding: 12px;
@@ -802,17 +902,21 @@
         justify-content: center;
         height: 100%;
       }
+      
       .kpi-title {
         font-size: 0.9em !important;
       }
+      
       .kpi-value {
         font-size: 2.5em !important;
         /* SHRINK NUMBER: Fits */
       }
+      
       .chart-row {
         flex-direction: column;
         /* STACK CHARTS: Vertical */
       }
+      
       .sales-trend,
       .profit-make {
         width: 100%;
@@ -820,33 +924,41 @@
         height: 250px;
         /* SHORTER */
       }
+      
       .inventory-table {
         width: 100%;
         /* FULL TABLE */
         max-height: 300px;
         /* ADJUST HEIGHT */
       }
+      
       .table-search input {
         width: 100%;
         /* FULL SEARCH */
       }
+      
       .sidebar-btn {
         font-size: 14px;
         /* SMALLER BUTTONS: Touch easy */
       }
     }
+    
     @media (max-width: 480px) {
+      
       .kpi-value {
         font-size: 2em !important;
         /* TINY NUMBERS: Quick glance */
       }
+      
       .kpi-title {
         font-size: 0.8em !important;
       }
+      
       .topbar {
         padding: 5px;
       }
     }
+    
     .kpi-money {
       display: flex;
       flex-direction: column;
@@ -861,6 +973,7 @@
       border-radius: inherit;
       overflow: hidden;
     }
+    
     .kpi-money .kpi-title {
       order: 1 !important;
       font-size: 1em !important;
@@ -869,6 +982,7 @@
       opacity: 1;
       width: 100%;
     }
+    
     .kpi-money .kpi-value-normal {
       order: 2 !important;
       font-size: 1.5em !important;
@@ -880,20 +994,24 @@
       text-overflow: ellipsis;
       max-width: 100%;
     }
+    
     /* Mobile: Smaller numbers for Sales & Profits */
     @media (max-width: 768px) {
       .kpi-money .kpi-value-normal {
         font-size: 1.9em !important;
       }
     }
+    
     @media (max-width: 480px) {
       .kpi-money .kpi-value-normal {
         font-size: 1.7em !important;
       }
+      
       .kpi-money .kpi-title {
         font-size: 0.9em !important;
       }
     }
+    
     /* Make dashboard container full-screen and let iframe fill it */
     #dashboardContainer {
       position: fixed !important;
@@ -1155,28 +1273,20 @@
             class="profile-photo" id="profilePhoto">
           <span class="profile-name" id="profileName">{{ (current_user.profile_name or current_user.dealership_name or
             'User') | truncate(10, true, '...') }}</span>
-        
-          
           <div class="profile-dropdown" id="profileDropdown">
             <div class="dropdown-header">
               <span class="dropdown-user-name">
                 {{ (current_user.profile_name or current_user.dealership_name or 'User') | truncate(10, true, '...') }}
               </span>
             </div>
-          
-            
             <div class="form-group">
               <label for="nameInput">Name</label>
               <input type="text" id="nameInput" placeholder="Enter name" value="{{ current_user.profile_name or '' }}">
             </div>
-          
-            
             <div class="form-group">
               <label for="emailInput">Email</label>
               <input type="email" id="emailInput" placeholder="Enter email" value="{{ current_user.email or '' }}">
             </div>
-          
-            
             <div class="form-group">
               <label for="currencySelect">Preferred Currency</label>
               <div class="select-wrapper">
@@ -1190,14 +1300,10 @@
                 <span class="select-arrow">▼</span>
               </div>
             </div>
-          
-            
             <div class="form-group">
               <label for="photoInput">Profile Photo</label>
               <input type="file" id="photoInput" accept="image/*">
             </div>
-          
-            
             <div class="actions">
               <button id="saveProfile" class="btn-primary">Save</button>
               <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
