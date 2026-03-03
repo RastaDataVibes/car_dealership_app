@@ -1079,6 +1079,14 @@
       outline: 3px solid #4a90e2; /* Blue focus ring for keyboard users */
       outline-offset: 2px;
     }
+
+    content-body {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;              /* nice space between KPIs, charts, table */
+      margin-top: 20px;       /* clear gap from top bar — this is the key fix */
+      padding: 0 16px;        /* small side padding so nothing touches edges */
+    }
    
   </style>
 </head>
@@ -1322,7 +1330,8 @@
             </div>
         </div>
       </div>
-    
+
+    <div class="content-body">
       <div class="kpi-container">
         <div class="kpi-card green" id="totalassetsCard">
           <div class="kpi-money">
