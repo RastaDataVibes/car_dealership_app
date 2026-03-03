@@ -1541,6 +1541,15 @@
       }
       profileDropdown.classList.toggle('open');
     });
+    document.addEventListener('click', (e) => {
+        // If the click was anywhere inside profileContainer or profileDropdown → do nothing
+        if (profileContainer.contains(e.target) || profileDropdown.contains(e.target)) {
+            return;
+        }
+        
+        // Otherwise → close it
+        profileDropdown.classList.remove('open');
+    });
     saveBtn.addEventListener('click', async () => {
       const formData = new FormData();
       if (nameInput.value) formData.append('name', nameInput.value);
