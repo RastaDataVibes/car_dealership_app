@@ -1057,10 +1057,15 @@
     content-body {
       display: flex;
       flex-direction: column;
-      gap: 20px;              /* nice space between KPIs, charts, table */
-      margin-top: 20px;       /* clear gap from top bar — this is the key fix */
+      gap: 32px;              /* nice space between KPIs, charts, table */
+      margin-top: 28px; 
+      width: 100%;
       padding: 0 16px;        /* small side padding so nothing touches edges */
     }
+
+    .content-body > * {        /* ← NEW: make all kids inside it full width */
+      width: 100%;
+}
    
   </style>
 </head>
