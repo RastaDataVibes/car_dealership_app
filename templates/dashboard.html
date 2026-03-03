@@ -1536,7 +1536,9 @@
     const nameInput = document.getElementById('nameInput');
     const photoInput = document.getElementById('photoInput');
     profileContainer.addEventListener('click', (e) => {
-      if (["nameInput", "emailInput", "photoInput", "saveProfile"].includes(e.target.id)) return;
+      if (profileDropdown.contains(e.target)) {
+        return;
+      }
       profileDropdown.classList.toggle('open');
     });
     saveBtn.addEventListener('click', async () => {
