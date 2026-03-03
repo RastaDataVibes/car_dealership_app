@@ -87,9 +87,12 @@
       background-color: #B1B2B5FF;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       border-radius: 8px;
-      padding: 0 15px;
+      /*padding: 0 15px;
       height: 91px;
-      flex-wrap: wrap;
+      flex-wrap: wrap;*/
+      height: auto !important;      /* ← let it grow naturally */
+      min-height: 91px;             /* ← never too small */
+      padding: 12px 20px;
     }
     
     .top-left {
@@ -144,6 +147,14 @@
       align-items: center;
       gap: 5px;
       cursor: pointer;
+      
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .profile-container:hover {
+      background: rgba(0,0,0,0.05);
     }
     
     .profile-photo {
@@ -168,7 +179,8 @@
       top: 55px;
       /*top: 100%;*/
       right: 0;
-      width: 200px;
+      min-width: 260px;             /* ← not too wide on small screens */
+      max-width: 90vw;
       /*width: 280px;*/
       background: #fff;
       border-radius: 6px;
