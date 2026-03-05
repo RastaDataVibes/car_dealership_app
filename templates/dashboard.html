@@ -1062,7 +1062,59 @@
       width: 100%;
       padding: 0 16px;        /* small side padding so nothing touches edges */
     }
-   
+
+    /* ────────────────────────────────────────────────────────────────
+       ONLY PROPORTIONS, BALANCE & SPACES – NO TOUCHING INNER COMPONENTS
+       ──────────────────────────────────────────────────────────────── */
+    
+    .top-section,
+    .kpi-section,
+    .charts-section,
+    .table-section {
+      width: 100%;
+      min-height: 100px;           /* never collapse */
+    }
+    
+    /* Top: fixed small header */
+    .top-section {
+      flex-shrink: 0;
+      height: 110px;
+    }
+    
+    /* KPIs: compact row */
+    .kpi-section {
+      flex-shrink: 0;
+      min-height: 140px;
+    }
+    
+    /* Charts: controlled height range around fixed canvas */
+    .charts-section {
+      flex-shrink: 0;
+      min-height: 360px;           /* 300px canvas + breathing room */
+      max-height: 480px;           /* prevent pushing table down too much */
+    }
+    
+    /* Only spacing between the two chart cards – no inner changes */
+    .chart-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;                   /* space BETWEEN cards only */
+      justify-content: center;     /* center on wide screens */
+      align-items: center;
+      min-height: 340px;
+    }
+    
+    /* Table: fills rest but bounded */
+    .table-section {
+      flex: 1;
+      min-height: 500px;
+      max-height: 900px;
+    }
+    
+    /* Main vertical breathing room between sections */
+    .main {
+      gap: 40px !important;
+    }
   </style>
 </head>
 
@@ -1249,144 +1301,145 @@
         </div>
       </div>
     </div>
+    
     <div class="main">
-      <div class="topbar">
-        <div class="top-left">
-          <span class="arrow-btn" id="back-btn" onclick="goBack()">&#8592;</span>
-          <span class="arrow-btn active" id="forward-btn" onclick="goForward()">&#8594;</span>
-          <img src="/static/uploads/logo.png" alt="GreenChain Logo"
-            style="height: 100px; width: 100px; margin-left: 13px; border-radius: 50%; object-fit: contain;">
-        </div>
-        <div class="search-container">
-          <input type="text" class="search-input" id="searchInput" placeholder="Type to search...">
-          <button class="search-btn" id="searchBtn">&#128269;</button>
-        </div>
-       
-        <div class="profile-container" id="profileContainer">
-          <img 
-            src="{% if current_user.profile_photo_filename %}/static/uploads/{{ current_user.profile_photo_filename }}{% else %}https://via.placeholder.com/40{% endif %}"
-            class="profile-photo" id="profilePhoto">
-          <span class="profile-name" id="profileName">{{ (current_user.profile_name or current_user.dealership_name or
-            'User') | truncate(10, true, '...') }}</span>
-          <div class="profile-dropdown" id="profileDropdown">
-            <div class="dropdown-header">
-              <span class="dropdown-user-name">
-                {{ (current_user.profile_name or current_user.dealership_name or 'User') | truncate(10, true, '...') }}
-              </span>
-            </div>
-            <div class="form-group">
-              <label for="nameInput">Name</label>
-              <input type="text" id="nameInput" placeholder="Enter name" value="{{ current_user.profile_name or '' }}">
-            </div>
-            <div class="form-group">
-              <label for="emailInput">Email</label>
-              <input type="email" id="emailInput" placeholder="Enter email" value="{{ current_user.email or '' }}">
-            </div>
-            <div class="form-group">
-              <label for="currencySelect">Preferred Currency</label>
-              <div class="select-wrapper">
-                <select id="currencySelect" name="currency">
-                  <option value="UGX" {% if current_user.currency == 'UGX' %}selected{% endif %}>Ugandan Shilling – UGX</option>
-                  <option value="KES" {% if current_user.currency == 'KES' %}selected{% endif %}>Kenyan Shilling – KSh</option>
-                  <option value="TZS" {% if current_user.currency == 'TZS' %}selected{% endif %}>Tanzanian Shilling – TSh</option>
-                  <option value="RWF" {% if current_user.currency == 'RWF' %}selected{% endif %}>Rwandan Franc – FRw</option>
-                  <option value="ETB" {% if current_user.currency == 'ETB' %}selected{% endif %}>Ethiopian Birr – Br</option>
-                </select>
-                <span class="select-arrow">▼</span>
+      <div class="top-section">
+        <div class="topbar">
+          <div class="top-left">
+            <span class="arrow-btn" id="back-btn" onclick="goBack()">&#8592;</span>
+            <span class="arrow-btn active" id="forward-btn" onclick="goForward()">&#8594;</span>
+            <img src="/static/uploads/logo.png" alt="GreenChain Logo"
+              style="height: 100px; width: 100px; margin-left: 13px; border-radius: 50%; object-fit: contain;">
+          </div>
+          <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Type to search...">
+            <button class="search-btn" id="searchBtn">&#128269;</button>
+          </div>
+          <div class="profile-container" id="profileContainer">
+            <img 
+              src="{% if current_user.profile_photo_filename %}/static/uploads/{{ current_user.profile_photo_filename }}{% else %}https://via.placeholder.com/40{% endif %}"
+              class="profile-photo" id="profilePhoto">
+            <span class="profile-name" id="profileName">{{ (current_user.profile_name or current_user.dealership_name or
+              'User') | truncate(10, true, '...') }}</span>
+            <div class="profile-dropdown" id="profileDropdown">
+              <div class="dropdown-header">
+                <span class="dropdown-user-name">
+                  {{ (current_user.profile_name or current_user.dealership_name or 'User') | truncate(10, true, '...') }}
+                </span>
               </div>
-            </div>
-            <div class="form-group">
-              <label for="photoInput">Profile Photo</label>
-              <input type="file" id="photoInput" accept="image/*">
-            </div>
-            <div class="actions">
-              <button id="saveProfile" class="btn-primary">Save</button>
-              <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
-            </div>
+              <div class="form-group">
+                <label for="nameInput">Name</label>
+                <input type="text" id="nameInput" placeholder="Enter name" value="{{ current_user.profile_name or '' }}">
+              </div>
+              <div class="form-group">
+                <label for="emailInput">Email</label>
+                <input type="email" id="emailInput" placeholder="Enter email" value="{{ current_user.email or '' }}">
+              </div>
+              <div class="form-group">
+                <label for="currencySelect">Preferred Currency</label>
+                <div class="select-wrapper">
+                  <select id="currencySelect" name="currency">
+                    <option value="UGX" {% if current_user.currency == 'UGX' %}selected{% endif %}>Ugandan Shilling – UGX</option>
+                    <option value="KES" {% if current_user.currency == 'KES' %}selected{% endif %}>Kenyan Shilling – KSh</option>
+                    <option value="TZS" {% if current_user.currency == 'TZS' %}selected{% endif %}>Tanzanian Shilling – TSh</option>
+                    <option value="RWF" {% if current_user.currency == 'RWF' %}selected{% endif %}>Rwandan Franc – FRw</option>
+                    <option value="ETB" {% if current_user.currency == 'ETB' %}selected{% endif %}>Ethiopian Birr – Br</option>
+                  </select>
+                  <span class="select-arrow">▼</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="photoInput">Profile Photo</label>
+                <input type="file" id="photoInput" accept="image/*">
+              </div>
+              <div class="actions">
+                <button id="saveProfile" class="btn-primary">Save</button>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+              </div>
+          </div>
         </div>
       </div>
 
-    <div class="content-body">
-      <div class="kpi-container">
-        <div class="kpi-card green" id="totalassetsCard">
-          <div class="kpi-money">
-            <h3 class="kpi-title">Total Assets(<span id="assetsCurrency">UGX</span>)</h3> <!-- TITLE ONLY: At top, bold & small -->
-            <div class="kpi-value-normal" id="assetsValue">0</div> <!-- BIG NUMBER: Front & center, no sub below it -->
+      <div class="kpi-section">
+        <div class="kpi-container">
+          <div class="kpi-card green" id="totalassetsCard">
+            <div class="kpi-money">
+              <h3 class="kpi-title">Total Assets(<span id="assetsCurrency">UGX</span>)</h3> <!-- TITLE ONLY: At top, bold & small -->
+              <div class="kpi-value-normal" id="assetsValue">0</div> <!-- BIG NUMBER: Front & center, no sub below it -->
+            </div>
           </div>
-        </div>
-        <div class="kpi-card yellow" id="capitalCard">
-          <div class="kpi-money">
-            <h3 class="kpi-title">Capital(<span id="capitalCurrency">UGX</span>)</h3> <!-- TITLE: Bold top -->
-            <div class="kpi-value-normal" id="capitalValue">0</div> <!-- BIG NUMBER: Center, from SQL count -->
+          <div class="kpi-card yellow" id="capitalCard">
+            <div class="kpi-money">
+              <h3 class="kpi-title">Capital(<span id="capitalCurrency">UGX</span>)</h3> <!-- TITLE: Bold top -->
+              <div class="kpi-value-normal" id="capitalValue">0</div> <!-- BIG NUMBER: Center, from SQL count -->
+            </div>
           </div>
-        </div>
-        <div class="kpi-card blue" id="liabilitiesCard">
-          <div class="kpi-money">
-            <h3 class="kpi-title">Liabilities(<span id="liabilitiesCurrency">UGX</span>)</h3> <!-- TITLE: Bold top -->
-            <div class="kpi-value-normal" id="liabilitiesValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
+          <div class="kpi-card blue" id="liabilitiesCard">
+            <div class="kpi-money">
+              <h3 class="kpi-title">Liabilities(<span id="liabilitiesCurrency">UGX</span>)</h3> <!-- TITLE: Bold top -->
+              <div class="kpi-value-normal" id="liabilitiesValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
+            </div>
           </div>
-        </div>
-        <div class="kpi-card purple" id="cashCard">
-          <div class="kpi-money">
-            <h3 class="kpi-title">Estimated Cash(<span id="cashCurrency">UGX</span>)</h3> <!-- TITLE: Bold top -->
-            <div class="kpi-value-normal" id="cashValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
-          </div>
-        </div>
-      </div>
-      <div class="card" id="dashboardContainer"
-        style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background-color: white; padding: 0; margin: 0;">
-        <button id="closeDashboardBtn"
-          style="position: absolute; top: 10px; right: 10px; z-index: 10000; font-size: 20px; background: red; color: white; border: none; border-radius: 4px; cursor: pointer;">X</button>
-        <!-- SDK will render dashboard here -->
-      </div>
-      <div class="chart-row">
-        <div class="card sales-trend">
-          <canvas id="salesTrendChart" width="541" height="300"></canvas>
-        </div>
-        <div class="card profit-make">
-          <canvas id="profitChart" width="343" height="300"></canvas> <!-- The chart spot! -->
-        </div>
-      </div>
-      <!-- Inventory Table -->
-      <div class="card inventory-table" id="inventoryTableContainer">
-        <div class="table-container">
-          <div class="table-search">
-            <input type="text" id="tableSearch" placeholder="Search table data...">
-          </div>
-          <div class="table-wrapper">
-            <table id="inventoryTable">
-              <thead>
-                <tr>
-                  <th data-sort="id">ID <span class="sort-icon">▲</span></th>
-                  <th data-sort="date_added">Date Added <span class="sort-icon">▲</span></th>
-                  <th data-sort="make">Make <span class="sort-icon">▲</span></th>
-                  <th data-sort="model">Model <span class="sort-icon">▲</span></th>
-                  <th data-sort="year">Year <span class="sort-icon">▲</span></th>
-                  <th data-sort="registration_number">Registration Number <span class="sort-icon">▲</span></th>
-                  <th data-sort="sourced_from">Sourced From <span class="sort-icon">▲</span></th>
-                  <th data-sort="mileage">Mileage <span class="sort-icon">▲</span></th>
-                  <th data-sort="status">Status <span class="sort-icon">▲</span></th>
-                  <th data-sort="purchase_price">Purchase Price <span class="sort-icon">▲</span></th>
-                  <th data-sort="expenses_amount">Expenses Amount <span class="sort-icon">▲</span></th>
-                  <th data-sort="fixed_selling_price">Fixed Selling Price <span class="sort-icon">▲</span></th>
-                  <th data-sort="booked_profit">Booked Profit <span class="sort-icon">▲</span></th>
-                  <th data-sort="balance_due">Balance Due <span class="sort-icon">▲</span></th>
-                  <th data-sort="sale_date">Sale Date <span class="sort-icon">▲</span></th>
-                  <th data-sort="sold_to">Sold To <span class="sort-icon">▲</span></th>
-                  <th data-sort="notes">Notes <span class="sort-icon">▲</span></th>
-                  <th data-sort="photo_filename">Photo Filename <span class="sort-icon">▲</span></th>
-                  <th data-sort="days_in_inventory">Days in Inventory <span class="sort-icon">▲</span></th>
-                </tr>
-              </thead>
-              <tbody id="inventoryTableBody">
-                <!-- Data loaded dynamically -->
-              </tbody>
-            </table>
+          <div class="kpi-card purple" id="cashCard">
+            <div class="kpi-money">
+              <h3 class="kpi-title">Estimated Cash(<span id="cashCurrency">UGX</span>)</h3> <!-- TITLE: Bold top -->
+              <div class="kpi-value-normal" id="cashValue">0</div> <!-- BIG NUMBER: Center, from SQL sum -->
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+
+      <div class="charts-section">
+        <div class="chart-row">
+          <div class="card sales-trend">
+            <canvas id="salesTrendChart" width="541" height="300"></canvas>
+          </div>
+          <div class="card profit-make">
+            <canvas id="profitChart" width="343" height="300"></canvas> <!-- The chart spot! -->
+          </div>
+        </div>
+      </div>
+        
+      <div class="table-section">
+        <div class="card inventory-table" id="inventoryTableContainer">
+          <div class="table-container">
+            <div class="table-search">
+              <input type="text" id="tableSearch" placeholder="Search table data...">
+            </div>
+            <div class="table-wrapper">
+              <table id="inventoryTable">
+                <thead>
+                  <tr>
+                    <th data-sort="id">ID <span class="sort-icon">▲</span></th>
+                    <th data-sort="date_added">Date Added <span class="sort-icon">▲</span></th>
+                    <th data-sort="make">Make <span class="sort-icon">▲</span></th>
+                    <th data-sort="model">Model <span class="sort-icon">▲</span></th>
+                    <th data-sort="year">Year <span class="sort-icon">▲</span></th>
+                    <th data-sort="registration_number">Registration Number <span class="sort-icon">▲</span></th>
+                    <th data-sort="sourced_from">Sourced From <span class="sort-icon">▲</span></th>
+                    <th data-sort="mileage">Mileage <span class="sort-icon">▲</span></th>
+                    <th data-sort="status">Status <span class="sort-icon">▲</span></th>
+                    <th data-sort="purchase_price">Purchase Price <span class="sort-icon">▲</span></th>
+                    <th data-sort="expenses_amount">Expenses Amount <span class="sort-icon">▲</span></th>
+                    <th data-sort="fixed_selling_price">Fixed Selling Price <span class="sort-icon">▲</span></th>
+                    <th data-sort="booked_profit">Booked Profit <span class="sort-icon">▲</span></th>
+                    <th data-sort="balance_due">Balance Due <span class="sort-icon">▲</span></th>
+                    <th data-sort="sale_date">Sale Date <span class="sort-icon">▲</span></th>
+                    <th data-sort="sold_to">Sold To <span class="sort-icon">▲</span></th>
+                    <th data-sort="notes">Notes <span class="sort-icon">▲</span></th>
+                    <th data-sort="photo_filename">Photo Filename <span class="sort-icon">▲</span></th>
+                    <th data-sort="days_in_inventory">Days in Inventory <span class="sort-icon">▲</span></th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                  <!-- Data loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    
   <div id="dashboardOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:998;">
     <button id="closeDashboardBtn" aria-label="Close dashboard" title="Close dashboard">
         ×
