@@ -1074,8 +1074,6 @@
     .table-section {
       width: 100%;
       min-height: 100px;
-      margin-top: 0 !important;    /* prevent any top margin from adding extra space */
-      margin-bottom: 0 !important;
     }
     
     /* Top: fixed small header */
@@ -1083,6 +1081,7 @@
       flex-shrink: 0;
       height: 110px;
       margin-bottom: 0 !important;
+      padding-bottom: 0 !important;
     }
     
     /* KPIs: compact row */
@@ -1091,6 +1090,7 @@
       min-height: 140px;
       margin-top: 20px;
       margin-bottom: 0 !important;
+      padding-bottom: 0 !important;
     }
     
     /* Charts: controlled height range around fixed canvas */
@@ -1099,6 +1099,7 @@
       min-height: 360px;           /* 300px canvas + breathing room */
       max-height: 480px;
       margin-bottom: 0 !important;
+      padding-bottom: 0 !important;
     }
     
     /* Only spacing between the two chart cards – no inner changes */
@@ -1110,6 +1111,7 @@
       align-items: center;
       min-height: 340px;
       margin-bottom: 0 !important;
+      padding-bottom: 0 !important;
     }
     
     /* Table: fills rest but bounded */
