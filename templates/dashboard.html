@@ -1073,14 +1073,15 @@
     .charts-section,
     .table-section {
       width: 100%;
-      min-height: 100px;           /* never collapse */
+      min-height: 100px;
+      margin-top: 0 !important;    /* prevent any top margin from adding extra space */
+      margin-bottom: 0 !important;
     }
     
     /* Top: fixed small header */
     .top-section {
       flex-shrink: 0;
       height: 110px;
-      margin-bottom: 0 !important;
     }
     
     /* KPIs: compact row */
@@ -1101,7 +1102,7 @@
     .chart-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 32px;                   /* space BETWEEN cards only */
+      gap: 20px;                   /* space BETWEEN cards only */
       justify-content: center;     /* center on wide screens */
       align-items: center;
       min-height: 340px;
@@ -1116,7 +1117,7 @@
     
     /* Main vertical breathing room between sections */
     .main {
-      gap: 40px !important;
+      gap: 20px !important;
     }
   </style>
 </head>
