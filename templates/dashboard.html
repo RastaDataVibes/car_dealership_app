@@ -80,6 +80,13 @@
       gap: 20px;
       flex: 1;
     }
+
+    .top-section,
+    .kpi-section,
+    .charts-section,
+    .table-section {
+      margin: 0 !important;
+    }
     
     .topbar {
       display: flex;
@@ -855,7 +862,7 @@
       }
       
       .main {
-        padding: 5px;
+        padding: 0;
         /* SMALL PAD: Fits small screen */
       }
       
@@ -873,7 +880,7 @@
         flex-direction: column;
         /* STACK KPIS: One per row */
         align-items: center;
-        gap: 10px;
+        gap: 20px;
       }
       
       .kpi-card {
@@ -903,7 +910,7 @@
       
       .chart-row {
         flex-direction: column;
-        /* STACK CHARTS: Vertical */
+        gap: 20px !important;
       }
       
       .sales-trend,
@@ -1055,15 +1062,6 @@
     #closeDashboardBtn:focus {
       outline: 3px solid #4a90e2; /* Blue focus ring for keyboard users */
       outline-offset: 2px;
-    }
-
-    content-body {
-      display: flex;
-      flex-direction: column;
-      gap: 32px;              /* nice space between KPIs, charts, table */
-      margin-top: 28px; 
-      width: 100%;
-      padding: 0 16px;        /* small side padding so nothing touches edges */
     }
 
     /* ────────────────────────────────────────────────────────────────
