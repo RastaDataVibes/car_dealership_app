@@ -21,15 +21,23 @@
       background-color: #f0f0f0;
       display: flex;
       justify-content: center;
-      padding: 6px;
+      padding: 4px;
+
+      margin: 0;
+      min-height: 100vh;
     }
     
     .dashboard-container {
       display: flex;
       align-items: stretch;
       gap: 10px;
-      max-width: 100%; 
-      min-height: calc(100vh - 40px);
+      /*max-width: 100%; 
+      min-height: calc(100vh - 40px);*/
+      width: 100%;                      /* ← make it try to take full available width */
+      max-width: 98vw;                  /* ← allow almost full viewport width (or try 96vw / 94vw) */
+      min-height: calc(100vh - 8px);    /* adjusted for new body padding */
+      margin: 0 auto;                   /* ← auto margins keep it centered */
+      box-sizing: border-box;
     }
     
     .sidebar {
