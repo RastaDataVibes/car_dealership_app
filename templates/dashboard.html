@@ -614,13 +614,11 @@
 
         .table-wrapper {
             flex: 1;
-            /* Grow to fill remaining height, but don't shrink below content if needed */
             overflow: auto;
-            /* Enable horizontal and vertical scrolling as needed */
+            overflow-x: auto;   /* ← THIS is the magic */
+            overflow-y: auto;
             min-height: 0;
-            /* Allow flex child to shrink for scrolling */
             scrollbar-width: thin;
-            /* Firefox */
             scrollbar-color: #ccc #f8f9fa;
             background-color: #B1B2B5FF;
         }
