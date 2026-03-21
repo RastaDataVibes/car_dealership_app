@@ -614,10 +614,12 @@
 
         .table-wrapper {
             flex: 1;
+            width: 100%;
             overflow: auto;
             overflow-x: auto;   /* ← THIS is the magic */
             overflow-y: auto;
             min-height: 0;
+            max-height: 346px;
             scrollbar-width: thin;
             scrollbar-color: #ccc #f8f9fa;
             background-color: #B1B2B5FF;
@@ -644,7 +646,7 @@
 
         table {
             min-width: 100%;
-            width: 100%;
+            width: max-content;
             border-collapse: collapse;
             table-layout: auto;
             background-color: #B1B2B5FF;
