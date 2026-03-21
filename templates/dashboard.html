@@ -486,6 +486,8 @@
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .card {
@@ -501,16 +503,21 @@
         }
 
         .sales-trend {
-            width: 100%;
-            width: 541px;
+            width: 100%
             height: 300px;
         }
 
         .profit-make {
             width: 100%;
-            width: 343px;
             height: 300px;
         }
+
+        .sales-trend,
+        .profit-make {
+            flex: 1;        /* THIS is the magic */
+            height: 300px;
+        }
+
 
         .inventory-table {
             width: 904px;
