@@ -94,6 +94,12 @@
             flex: 1;
         }
 
+        .main > * {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
         .topbar {
             display: flex;
             align-items: center;
@@ -521,7 +527,7 @@
 
         .inventory-table {
             width: 100%;
-            max-width: 98vw;
+            max-width: 100%;
             max-height: 346px;
             overflow-x: auto;
             overflow-y: auto;
@@ -642,8 +648,8 @@
         }
 
         table {
-            min-width: 98vw;
             width: 100%;
+            min-width: 100%;
             border-collapse: collapse;
             table-layout: auto;
             background-color: #B1B2B5FF;
