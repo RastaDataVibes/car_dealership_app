@@ -529,7 +529,8 @@
         #salesTrendChart,
         #profitChart {
             height: 100% !important;
-            width: 200%;               /* Allows the chart to grow wider than the box */
+            width: 200%; 
+            display: block;
         }
 
 
@@ -1498,12 +1499,12 @@
             <div class="chart-row">
                 <div class="card sales-trend">
                     <div class="chart-scroll-wrapper">
-                        <canvas id="salesTrendChart" height="300"></canvas>
+                        <canvas id="salesTrendChart" width="1200" height="300"></canvas>
                     </div>
                 </div>
                 <div class="card profit-make">
                     <div class="chart-scroll-wrapper">
-                        <canvas id="profitChart" height="300"></canvas>
+                        <canvas id="profitChart" width="1000" height="300"></canvas>
                     </div>
                 </div>
             </div>
