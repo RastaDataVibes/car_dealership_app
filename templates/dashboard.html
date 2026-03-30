@@ -489,12 +489,12 @@
         }
 
         .sales-trend {
-            width: 541px;
+            min-width: 0;
             height: 300px;
         }
 
         .profit-make {
-            width: 343px;
+            min-width: 0;
             height: 300px;
         }
 
@@ -529,7 +529,7 @@
         #salesTrendChart,
         #profitChart {
             height: 100% !important;
-            min-width: 100%;               /* Allows the chart to grow wider than the box */
+            width: 100%;               /* Allows the chart to grow wider than the box */
         }
 
 
@@ -1498,12 +1498,12 @@
             <div class="chart-row">
                 <div class="card sales-trend">
                     <div class="chart-scroll-wrapper">
-                        <canvas id="salesTrendChart" width="541" height="300"></canvas>
+                        <canvas id="salesTrendChart" height="300"></canvas>
                     </div>
                 </div>
                 <div class="card profit-make">
                     <div class="chart-scroll-wrapper">
-                        <canvas id="profitChart" width="343" height="300"></canvas>
+                        <canvas id="profitChart" height="300"></canvas>
                     </div>
                 </div>
             </div>
