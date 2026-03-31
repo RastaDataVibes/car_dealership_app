@@ -1568,8 +1568,6 @@
                     let dashboardEmbedded = false;
 
                     async function openSupersetDashboard() {
-                        if (dashboardEmbedded) return;
-
                         const overlay = document.getElementById("dashboardOverlay");
                         const mountPoint = document.getElementById("dashboardContainer");
                         const loading = document.getElementById("loadingMessage");
@@ -1579,12 +1577,14 @@
                         loading.style.display = "block";
                         mountPoint.style.display = "none";
 
+                        mountPoint.replaceChildren();
+
                         try {
 
                             loading.style.display = "none";
                             mountPoint.style.display = "block";
 
-                            supersetEmbeddedSdk.embedDashboard({
+                            await supersetEmbeddedSdk.embedDashboard({
                                 id: DASHBOARD_ID,
                                 supersetDomain: "https://dash-aa6n.onrender.com",
                                 mountPoint: mountPoint,
