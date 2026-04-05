@@ -224,6 +224,8 @@ class RecordSaleForm(FlaskForm):
                           validators=[Optional()])
     fixed_selling_price = FloatField(
         'Fixed Selling Price', validators=[Optional()])
+    full_payment_amount = FloatField(  
+        'Full Payment Amount', validators=[Optional()])
     add_installment = FloatField(
         'Add Installment', validators=[Optional()])
     notes = StringField('Notes (optional)', validators=[Optional()])
@@ -442,6 +444,7 @@ def record_sale_ajax():
     # Rest of your logic (same as before)
     sold_to = request.form.get('sold_to', '').strip()
     fixed_selling_price = clean_float(request.form.get('fixed_selling_price'))
+    full_payment_amount = clean_float(request.form.get('full_payment_amount'))
     add_installment = clean_float(request.form.get('add_installment'))
     notes = request.form.get('notes', '').strip()
 
@@ -460,21 +463,47 @@ def record_sale_ajax():
         if fixed_selling_price is not None and fixed_selling_price > 0:
             vehicle.booked_profit = fixed_selling_price - total_cost
 
-    # Record installment
-    next_number = Payment.query.filter_by(vehicle_id=vehicle.id).count() + 1
-    payment = Payment(
-        vehicle_id=vehicle.id,
-        amount=add_installment,
-        category=f"Installment #{next_number}",
-        notes=notes or None,
-        currency=current_user.currency
-    )
+    # Decide full payment or installment
+    next_number = None
+    
+    if full_payment_amount and full_payment_amount > 0:
+        payment = Payment(
+            vehicle_id=vehicle.id,
+            amount=full_payment_amount,
+            category="Full Payment",
+            notes=notes or None,
+            currency=current_user.currency
+        )
+    else:
+        next_number = Payment.query.filter_by(vehicle_id=vehicle.id).count() + 1
+    
+        payment = Payment(
+            vehicle_id=vehicle.id,
+            amount=add_installment,
+            category=f"Installment #{next_number}",
+            notes=notes or None,
+            currency=current_user.currency
+        )
+    
     db.session.add(payment)
     db.session.commit()
+    total_paid = db.session.query(db.func.sum(Payment.amount)).filter_by(
+        vehicle_id=vehicle.id
+    ).scalar() or 0
+
+    if vehicle.fixed_selling_price and total_paid >= vehicle.fixed_selling_price:
+        vehicle.payment_status = "Fully Paid"
+        
+        db.session.commit()
+    
+    if next_number:
+        message = f'Installment #{next_number} recorded for {vehicle.registration_number or "vehicle"}!'
+    else:
+        message = f'Full payment recorded for {vehicle.registration_number or "vehicle"}!'
 
     return jsonify({
         'success': True,
-        'message': f'Installment #{next_number} recorded for {vehicle.registration_number or "vehicle"}!',
+        'message': message,
         'vehicle_id': vehicle.id,
         'registration_number': vehicle.registration_number,
         'installment_number': next_number
