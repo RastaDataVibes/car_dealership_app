@@ -1273,6 +1273,41 @@
             outline: none;
         }
 
+        /* ==================== HOVER EFFECTS FOR REPORT & SETTINGS INNER BUTTONS ==================== */
+
+        #reportForm button,
+        #settingsForm button {
+            transition: all 0.25s ease;
+            margin: 6px 0;
+            width: 100%;
+        }
+        
+        #reportForm button:hover,
+        #settingsForm button:hover {
+            background-color: #3f7db5 !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        #reportForm button:active,
+        #settingsForm button:active {
+            transform: scale(0.96);
+        }
+        
+        /* Specific color for Settings theme buttons */
+        #settingsForm #theme-default:hover {
+            background-color: #3f7db5 !important;
+        }
+        
+        #settingsForm #theme-dark:hover {
+            background-color: #9658b5 !important;
+        }
+        
+        #settingsForm #theme-auto:hover {
+            background-color: #70b583 !important;
+        }
+
     </style>
 </head>
 
