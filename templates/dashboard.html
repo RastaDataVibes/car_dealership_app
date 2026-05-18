@@ -876,7 +876,89 @@
             z-index: -1;
         }
 
+        /* ==================== IMPROVED DARK MODE ==================== */
         body.dark-mode {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+        
+        /* Sidebar */
+        body.dark-mode .sidebar {
+            background-color: #2a2a2a;
+        }
+        
+        /* Topbar */
+        body.dark-mode .topbar {
+            background-color: #2a2a2a;
+        }
+        
+        /* Main area */
+        body.dark-mode .main {
+            background-color: #1e1e1e;
+        }
+        
+        /* KPI Cards */
+        body.dark-mode .kpi-card {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        body.dark-mode .green { background-color: #1f7a4f !important; }
+        body.dark-mode .yellow { background-color: #b38b00 !important; }
+        body.dark-mode .blue { background-color: #2b6a9c !important; }
+        body.dark-mode .purple { background-color: #7a4a9c !important; }
+        
+        /* Cards (Charts and Table container) */
+        body.dark-mode .card {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
+        
+        /* Table */
+        body.dark-mode table,
+        body.dark-mode th,
+        body.dark-mode td {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+        
+        body.dark-mode th {
+            background-color: #363636;
+        }
+        
+        body.dark-mode th:hover {
+            background-color: #444;
+        }
+        
+        /* Sidebar Buttons */
+        body.dark-mode .sidebar-btn {
+            background: #3a3a3a;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .sidebar-btn:hover {
+            background: #505050;
+        }
+        
+        /* Settings Form */
+        body.dark-mode .sidebar-form {
+            background: #2a2a2a;
+        }
+        
+        /* Text */
+        body.dark-mode h4,
+        body.dark-mode .kpi-title,
+        body.dark-mode .profile-name {
+            color: #e0e0e0;
+        }
+        
+        /* Make charts look better in dark mode */
+        body.dark-mode .profit-make,
+        body.dark-mode .sales-trend {
+            background-color: #1a1a1a !important;
+        }
+
+        /*body.dark-mode {
             background-color: #333;
             color: white;
         }
@@ -1349,18 +1431,15 @@
             <button class="sidebar-btn" id="settingsBtn">⚙️ Settings</button>
             <div class="sidebar-form" id="settingsForm">
                 <div style="padding: 10px; background: #e8e8e8; border-radius: 5px; text-align: center;">
-                    <h4 style="margin-bottom: 10px;">App Settings</h4>
-                    <button onclick="updateProfile()"
-                        style="background: #3f7db5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">👤
-                        Update Profile</button>
+                    <h4 style="margin-bottom: 10px;">🎨 Appearance</h4>
+                    <button onclick="setTheme('default')" class="theme-btn" id="theme-default"
+                        style="background: #3f7db5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">☀️ Light Mode</button>
                     <br>
-                    <button onclick="toggleTheme()"
-                        style="background: #9658b5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">🌙
-                        Dark Mode</button>
+                    <button onclick="setTheme('dark')" class="theme-btn" id="theme-dark"
+                        style="background: #9658b5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">🌙 Dark Mode</button>
                     <br>
-                    <button onclick="downloadAllData()"
-                        style="background: #70b583; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">💾
-                        Download All</button>
+                    <button onclick="setTheme('auto')" class="theme-btn" id="theme-auto"
+                        style="background: #70b583; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">Auto</button>
                 </div>
             </div>
             <button class="sidebar-btn" id="aiAdviserBtn">🤖 AI Adviser</button>
@@ -3319,6 +3398,76 @@
                             .catch(() => alert('Could not download Cash Flow'));
                     }
 
+                </script>
+                <script>
+                // ==================== SETTINGS - THEME CONTROL ====================
+                
+                // 1. Get the Settings button and the panel
+                const settingsBtn = document.getElementById('settingsBtn');
+                const settingsForm = document.getElementById('settingsForm');
+                
+                // 2. When you click the Settings button, open or close the panel
+                settingsBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();                    // Stop the click from closing immediately
+                    settingsForm.classList.toggle('open');  // Opens or closes the settings box
+                    
+                    // Close all other open forms (Add Car, Report, etc.)
+                    document.querySelectorAll('.sidebar-form').forEach(form => {
+                        if (form !== settingsForm) form.classList.remove('open');
+                    });
+                });
+                
+                // 3. Close the settings panel when you click anywhere outside it
+                document.addEventListener('click', function(e) {
+                    if (!settingsBtn.contains(e.target) && !settingsForm.contains(e.target)) {
+                        settingsForm.classList.remove('open');
+                    }
+                });
+                
+                // ==================== THEME FUNCTIONS ====================
+                
+                // 4. Main function that actually changes the theme
+                function setTheme(theme) {
+                    
+                    if (theme === 'dark') {
+                        document.body.classList.add('dark-mode');     // ← Turns ON Dark Mode
+                    } 
+                    else if (theme === 'default') {
+                        document.body.classList.remove('dark-mode');  // ← Turns OFF Dark Mode (Light Mode)
+                    } 
+                    else if (theme === 'auto') {
+                        // Auto mode checks your computer's/phone's setting
+                        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                            document.body.classList.add('dark-mode');   // Use Dark if your system is dark
+                        } else {
+                            document.body.classList.remove('dark-mode'); // Use Light if your system is light
+                        }
+                    }
+                    
+                    // Save your choice so next time you open the app, it remembers
+                    localStorage.setItem('theme', theme);
+                    
+                    // Make the selected button look brighter (highlight it)
+                    highlightActiveButton(theme);
+                }
+                
+                // 5. This function makes the clicked button look active
+                function highlightActiveButton(theme) {
+                    document.querySelectorAll('.theme-btn').forEach(btn => {
+                        btn.style.opacity = "0.7";           // Make all buttons a bit faded
+                    });
+                    
+                    const activeBtn = document.getElementById('theme-' + theme);
+                    if (activeBtn) {
+                        activeBtn.style.opacity = "1";       // Make selected button fully bright
+                    }
+                }
+                
+                // 6. When the page loads, remember the last theme you chose
+                document.addEventListener('DOMContentLoaded', function() {
+                    const savedTheme = localStorage.getItem('theme') || 'default';
+                    setTheme(savedTheme);        // Apply the saved theme
+                });
                 </script>
 </body>
 
