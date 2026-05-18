@@ -3449,6 +3449,11 @@
                     
                     // Make the selected button look brighter (highlight it)
                     highlightActiveButton(theme);
+
+                    const settingsForm = document.getElementById('settingsForm');
+                    if (settingsForm) {
+                        settingsForm.classList.remove('open');
+                    }
                 }
                 
                 // 5. This function makes the clicked button look active
