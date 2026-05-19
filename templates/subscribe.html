@@ -22,37 +22,9 @@
             text-align: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
-        img {
-            height: 100px;
-            margin-bottom: 20px;
-        }
-        h2 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .currency-note {
-            color: #70b583;
-            font-weight: bold;
-            margin: 15px 0;
-            font-size: 18px;
-        }
-        .fallback-note {
-            color: #d9534f;
-            font-size: 14px;
-            margin: 10px 0;
-            font-style: italic;
-        }
-        .price {
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
-            margin: 10px 0;
-        }
-        .price-usd {
-            font-size: 20px;
-            color: #555;
-            margin-top: -5px;
-        }
+        img { height: 100px; margin-bottom: 20px; }
+        h2 { color: #333; margin-bottom: 10px; }
+        .message { color: #d9534f; font-weight: bold; margin: 15px 0; }
         .plan {
             background: #f9f9f9;
             padding: 25px;
@@ -63,11 +35,6 @@
         .trial-plan {
             border: 4px solid #70b583;
             background: #f0faf0;
-        }
-        .plan h3 {
-            color: #70b583;
-            margin: 0 0 10px 0;
-            font-size: 24px;
         }
         button {
             background: #70b583;
@@ -81,20 +48,8 @@
             width: 100%;
             transition: 0.3s;
         }
-        button:hover {
-            background: #5a8f6b;
-        }
-        .trial-button {
-            background: #70b583;
-            font-size: 22px;
-            padding: 18px;
-            font-weight: bold;
-        }
-        .message {
-            color: #666;
-            margin: 20px 0;
-            font-size: 14px;
-        }
+        button:hover { background: #5a8f6b; }
+        .trial-button { font-size: 22px; padding: 18px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -102,24 +57,10 @@
         <img src="/static/uploads/logo.png" alt="GreenChain">
         <h2>Welcome, {{ current_user.dealership_name or 'Dealer' }}!</h2>
 
-        <p class="currency-note">
-            {% if current_user.currency in ['UGX', 'KES', 'TZS'] %}
-                All prices are in <strong>{{ current_user.currency }}</strong>
-            {% else %}
-                Your currency ({{ current_user.currency }}) not supported — pay in UGX or USD
-            {% endif %}
-        </p>
-
-        {% if current_user.currency not in ['UGX', 'KES', 'TZS'] %}
-            <p class="fallback-note">
-                We'll convert to UGX automatically — or use USD for international card
-            </p>
-        {% endif %}
-
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <p class="message {{ category }}">{{ message }}</p>
+                <p class="message">{{ message }}</p>
             {% endfor %}
         {% endif %}
         {% endwith %}
@@ -128,70 +69,39 @@
         <div class="plan trial-plan">
             <h3>30-Day Free Trial</h3>
             <p>No payment required · Full access</p>
-            <p style="color: #70b583; font-weight: bold;">Cancel anytime · No card needed</p>
-            <button class="trial-button" onclick="startTrial()">Start Free Trial Now</button>
+            <p style="color: #70b583; font-weight: bold;">Cancel anytime</p>
+            
+            {% if not current_user.trial_used %}
+                <button class="trial-button" onclick="startTrial()">Start Free Trial Now</button>
+            {% else %}
+                <button disabled style="background:#999; cursor:not-allowed;">
+                    Free Trial Already Used
+                </button>
+            {% endif %}
         </div>
 
         <!-- MONTHLY PLAN -->
         <div class="plan">
             <h3>Monthly Plan</h3>
-            <div class="price">
-                {% if current_user.currency == 'UGX' %}UGX 10,000{% endif %}
-                {% if current_user.currency == 'KES' %}KSh 360{% endif %}
-                {% if current_user.currency == 'TZS' %}TSh 22,000{% endif %}
-                {% if current_user.currency not in ['UGX', 'KES', 'TZS'] %}UGX 10,000{% endif %}
-                <small style="font-size:16px; color:#666;">/ month</small>
-            </div>
-            {% if current_user.currency not in ['UGX', 'KES', 'TZS'] %}
-                <div class="price-usd">(≈ USD 2.70 / month)</div>
-            {% endif %}
-            <p>Perfect for small dealerships</p>
-            <button onclick="payWithPesapal(getMonthlyAmount(), 'monthly')">
-                Subscribe Monthly
-            </button>
+            <div class="price">UGX 10,000 <small>/ month</small></div>
+            <button onclick="payWithPesapal(10000, 'monthly')">Subscribe Monthly</button>
         </div>
 
         <!-- YEARLY PLAN -->
         <div class="plan">
             <h3>Yearly Plan (Save 20%)</h3>
-            <div class="price">
-                {% if current_user.currency == 'UGX' %}UGX 150,000{% endif %}
-                {% if current_user.currency == 'KES' %}KSh 5,400{% endif %}
-                {% if current_user.currency == 'TZS' %}TSh 330,000{% endif %}
-                {% if current_user.currency not in ['UGX', 'KES', 'TZS'] %}UGX 150,000{% endif %}
-                <small style="font-size:16px; color:#666;">/ year</small>
-            </div>
-            {% if current_user.currency not in ['UGX', 'KES', 'TZS'] %}
-                <div class="price-usd">(≈ USD 40 / year)</div>
-            {% endif %}
-            <p>Best value · Save 20%</p>
-            <button onclick="payWithPesapal(getYearlyAmount(), 'yearly')">
-                Subscribe Yearly (Best Deal)
-            </button>
+            <div class="price">UGX 150,000 <small>/ year</small></div>
+            <button onclick="payWithPesapal(150000, 'yearly')">Subscribe Yearly (Best Deal)</button>
         </div>
-
-        <p class="message">You can upgrade, downgrade or cancel anytime.</p>
     </div>
 
     <script>
-        // Return correct amount (always UGX number for unsupported currencies)
-        function getMonthlyAmount() {
-            const curr = "{{ current_user.currency }}";
-            if (curr === 'KES') return 360;
-            if (curr === 'TZS') return 22000;
-            return 10000; // UGX default + fallback for RWF/ETB
-        }
-
-        function getYearlyAmount() {
-            const curr = "{{ current_user.currency }}";
-            if (curr === 'KES') return 5400;
-            if (curr === 'TZS') return 330000;
-            return 150000; // UGX default + fallback
-        }
-
         function startTrial() {
             fetch('/start_trial', { method: 'POST' })
-                .then(r => r.ok ? location.href = '/' : alert('Error starting trial'))
+                .then(r => {
+                    if (r.ok) location.href = '/';
+                    else alert('Error starting trial');
+                })
                 .catch(() => alert('Network error'));
         }
 
@@ -206,9 +116,10 @@
                 if (data.redirect_url) {
                     window.location.href = data.redirect_url;
                 } else {
-                    alert('Payment failed — please try again');
+                    alert('Payment initiation failed — please try again');
                 }
-            });
+            })
+            .catch(() => alert('Network error'));
         }
     </script>
 </body>
