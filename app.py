@@ -33,19 +33,13 @@ def subscription_required(f):
         if not current_user.is_authenticated:
             return redirect(url_for('login'))
 
-        # Check trial
-        if current_user.is_trial:
-            trial_end = current_user.trial_start + timedelta(days=30)
-            if datetime.utcnow() > trial_end:
-                flash('Your 30-day free trial has ended. Please subscribe.', 'warning')
-                return redirect(url_for('subscribe'))
+        if current_user.has_active_access():
+            return f(*args, **kwargs)
 
-        # Check paid subscription
-        if current_user.subscription_end and datetime.utcnow() > current_user.subscription_end:
-            flash('Your subscription has expired. Please renew.', 'warning')
-            return redirect(url_for('subscribe'))
+        # No active access
+        flash('Your free trial has ended. Please subscribe to continue using GreenChain.', 'warning')
+        return redirect(url_for('subscribe'))
 
-        return f(*args, **kwargs)
     return decorated_function
 
 
@@ -1100,21 +1094,23 @@ def reset_password(token):
 @app.route('/subscribe')
 @login_required
 def subscribe():
+    if current_user.has_active_access():
+        return redirect(url_for('home'))
+    
     return render_template('subscribe.html')
-
-# NEW: Initiate Pesapal payment
-
-# NEW: Start free trial
 
 
 @app.route('/start_trial', methods=['POST'])
 @login_required
 def start_trial():
-    current_user.is_trial = True
-    current_user.trial_start = datetime.utcnow()
-    current_user.subscription_plan = 'trial'
-    db.session.commit()
-    return '', 204  # Success, no content
+    success, message = current_user.start_trial()
+    if success:
+        db.session.commit()
+        flash(message, 'success')
+        return redirect(url_for('home'))
+    else:
+        flash(message, 'warning')
+        return redirect(url_for('subscribe'))
 
 
 @app.route('/initiate_payment', methods=['POST'])
