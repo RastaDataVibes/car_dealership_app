@@ -123,16 +123,68 @@ class User(UserMixin, db.Model):
     dealership_name = db.Column(db.String(100), nullable=False, unique=True)
     email = db.Column(db.String(120), unique=True, nullable=True)
     phone = db.Column(db.String(20), unique=True, nullable=True)
-    password_hash = db.Column(db.Text)
-    is_trial = db.Column(db.Boolean, default=True)  # True = free trial
-    trial_start = db.Column(db.DateTime, default=datetime.utcnow)
-    subscription_plan = db.Column(
-        db.String(20), default='trial')  # starter, standard, pro
-    subscription_end = db.Column(db.DateTime)  # when subscription expires
-    date_created = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    password_hash = db.Column(db.Text, nullable=False)
+
+    # ==================== TRIAL SYSTEM ====================
+    trial_start = db.Column(db.DateTime(timezone=True), nullable=True)
+    trial_end = db.Column(db.DateTime(timezone=True), nullable=True)
+    trial_used = db.Column(db.Boolean, default=False, nullable=False)
+
+    # ==================== SUBSCRIPTION ====================
+    subscription_plan = db.Column(db.String(20), nullable=True)   # monthly, yearly, trial
+    subscription_end = db.Column(db.DateTime(timezone=True), nullable=True)
+
+    # ==================== META ====================
+    date_created = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     profile_name = db.Column(db.String(100))
     profile_photo_filename = db.Column(db.String(300))
     currency = db.Column(db.String(3), nullable=False, default='UGX')
+
+    # ====================== ACCESS CONTROL ======================
+    def has_active_access(self):
+        """Main method: Returns True if user can use the dashboard"""
+        now = datetime.now(timezone.utc)
+
+        # Active Paid Subscription
+        if self.subscription_end and now < self.subscription_end:
+            return True
+
+        # Active Trial
+        if self.trial_end and now < self.trial_end:
+            return True
+
+        return False
+
+    # ====================== TRIAL ======================
+    def start_trial(self):
+        """Start 30-day free trial - Only once per user"""
+        if self.trial_used:
+            return False, "You have already used your free trial."
+
+        now = datetime.now(timezone.utc)
+        self.trial_start = now
+        self.trial_end = now + timedelta(days=30)
+        self.trial_used = True
+        self.subscription_plan = 'trial'
+        self.subscription_end = None
+        return True, "30-day free trial activated!"
+
+    # ====================== SUBSCRIPTION ======================
+    def start_subscription(self, plan="monthly"):
+        """Activate paid subscription"""
+        now = datetime.now(timezone.utc)
+        
+        if plan == "monthly":
+            days = 30
+        elif plan == "yearly":
+            days = 365
+        else:
+            return False, "Invalid plan"
+
+        self.subscription_plan = plan
+        self.subscription_end = now + timedelta(days=days)
+        self.trial_end = None  # End trial if active
+        return True, f"{plan.capitalize()} subscription activated successfully!"
 
     @classmethod
     def clean_phone(cls, phone):
