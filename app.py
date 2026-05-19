@@ -1142,27 +1142,28 @@ def initiate_payment():
 def pesapal_callback():
     print("Pesapal callback received! All params:", request.args)
     
-    # Get the merchant reference Pesapal sent back
     received_ref = request.args.get('merchantReference')
     
     if received_ref and received_ref.startswith('user_'):
         try:
-            # Extract user ID from the reference
             parts = received_ref.split('_')
-            user_id = int(parts[1])  # the number after "user_"
+            user_id = int(parts[1])
             user = User.query.get(user_id)
+            
             if user:
-                print(f"Activating subscription for user ID {user_id}")
-                user.subscription_plan = 'monthly'
-                user.is_trial = False
-                user.subscription_end = datetime.utcnow() + timedelta(days=30)
-                db.session.commit()
-                flash('Payment successful! Subscription activated.', 'success')
+                # Activate subscription
+                success, message = user.start_subscription(plan="monthly")
+                if success:
+                    db.session.commit()
+                    flash('Payment successful! Subscription activated.', 'success')
+                else:
+                    flash(message, 'danger')
             else:
-                flash('User not found for this payment', 'warning')
+                flash('User not found for this payment.', 'warning')
+                
         except Exception as e:
             print("Error processing callback:", str(e))
-            flash('Payment received, but reference missing.', 'warning')
+            flash('Payment received, but processing failed.', 'warning')
     else:
         flash('Payment received, but reference missing.', 'warning')
     
