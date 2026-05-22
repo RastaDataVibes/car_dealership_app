@@ -87,7 +87,7 @@ PESAPAL_TOKEN_URL = 'https://pay.pesapal.com/v3/api/Auth/RequestToken'
 PESAPAL_ORDER_URL = 'https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest' 
 PESAPAL_CALLBACK_URL = 'https://car-dealership-app-wxs8.onrender.com/pesapal_callback'  
 
-REAL_NOTIFICATION_ID = "8e0dc841-be13-4158-a7a4-dad520d11491"
+REAL_NOTIFICATION_ID = "b141dc6f-8b90-4e35-bae3-da5ad94f109e"
 
 def get_pesapal_token():
     payload = {
@@ -108,6 +108,32 @@ def get_pesapal_token():
     else:
         print("Pesapal login failed")
         return None
+
+def get_pesapal_transaction_status(order_tracking_id):
+    """This function goes to Pesapal and asks: 'Did the customer really pay?'"""
+    
+    token = get_pesapal_token()                    # Get permission to talk to Pesapal
+    if not token:
+        print("❌ Could not get token for status check")
+        return None
+    
+    url = "https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus"
+    
+    headers = {                                    # Showing Pesapal our ID card
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token}'
+    }
+    
+    payload = {"orderTrackingId": order_tracking_id}   # Which payment are we asking about?
+    
+    response = requests.post(url, json=payload, headers=headers)
+    
+    print("Status Check Response Code:", response.status_code)
+    print("Status Check Response Body:", response.text)
+    
+    if response.status_code == 200:
+        return response.json()                     # Return the answer from Pesapal
+    return None
 
 @app.route('/register_ipn')
 def register_ipn():
@@ -207,6 +233,54 @@ def initiate_pesapal_payment(amount, plan, user):
             print("Could not parse error JSON")
     
     return None
+
+@app.route('/pesapal_ipn', methods=['POST'])
+def pesapal_ipn():
+    """Pesapal secretly calls this route when someone pays"""
+    print("=== PESAPAL IPN RECEIVED ===")
+    
+    try:
+        # Get the message Pesapal sent (they can send it in different formats)
+        data = request.get_json() if request.is_json else request.form.to_dict()
+        print("IPN Data received from Pesapal:", data)
+        
+        # Extract important information
+        order_tracking_id = data.get('OrderTrackingId') or data.get('orderTrackingId')
+        merchant_reference = data.get('OrderMerchantReference') or data.get('merchantReference')
+        
+        if not order_tracking_id:
+            return jsonify({"status": "OK"}), 200   # Always say OK to Pesapal
+        
+        # Double-check if payment really succeeded
+        status_info = get_pesapal_transaction_status(order_tracking_id)
+        
+        if status_info and status_info.get('payment_status_code') == "COMPLETED":
+            print("✅ Payment confirmed successful!")
+            
+            # Activate subscription using the reference (user_123_time)
+            if merchant_reference and merchant_reference.startswith('user_'):
+                try:
+                    user_id = int(merchant_reference.split('_')[1])
+                    user = User.query.get(user_id)
+                    if user:
+                        success, message = user.start_subscription(plan="monthly")
+                        if success:
+                            db.session.commit()
+                            print(f"✅ Subscription activated for user {user_id}")
+                        else:
+                            print(f"⚠️ Could not activate subscription: {message}")
+                except Exception as e:
+                    print("Error activating subscription from IPN:", str(e))
+        else:
+            print("Payment not completed yet or verification failed.")
+        
+        # IMPORTANT: Always return OK, otherwise Pesapal will keep retrying
+        return jsonify({"status": "OK"}), 200
+        
+    except Exception as e:
+        print("Error in IPN handler:", str(e))
+        return jsonify({"status": "OK"}), 200   # Never crash on Pesapal
+
 # NEW: Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -1178,34 +1252,37 @@ def initiate_payment():
 
 @app.route('/pesapal_callback')
 def pesapal_callback():
-    print("Pesapal callback received! All params:", request.args)
+    """This is where the user lands after paying on Pesapal website"""
+    print("Callback received with params:", dict(request.args))
     
-    received_ref = request.args.get('merchantReference')
+    order_tracking_id = request.args.get('OrderTrackingId')
+    merchant_reference = request.args.get('OrderMerchantReference')
     
-    if received_ref and received_ref.startswith('user_'):
-        try:
-            parts = received_ref.split('_')
-            user_id = int(parts[1])
-            user = User.query.get(user_id)
-            
-            if user:
-                # Activate subscription
-                success, message = user.start_subscription(plan="monthly")
-                if success:
-                    db.session.commit()
-                    flash('Payment successful! Subscription activated.', 'success')
-                else:
-                    flash(message, 'danger')
-            else:
-                flash('User not found for this payment.', 'warning')
-                
-        except Exception as e:
-            print("Error processing callback:", str(e))
-            flash('Payment received, but processing failed.', 'warning')
+    if order_tracking_id:
+        # Check real status
+        status_info = get_pesapal_transaction_status(order_tracking_id)
+        
+        if status_info and status_info.get('payment_status_code') == "COMPLETED":
+            if merchant_reference and merchant_reference.startswith('user_'):
+                try:
+                    user_id = int(merchant_reference.split('_')[1])
+                    user = User.query.get(user_id)
+                    if user:
+                        success, message = user.start_subscription(plan="monthly")
+                        if success:
+                            db.session.commit()
+                            flash('🎉 Payment successful! Your subscription is now active.', 'success')
+                        else:
+                            flash(message, 'danger')
+                except:
+                    flash('Payment successful, but we had a small issue activating subscription.', 'warning')
+            return redirect(url_for('home'))
+        else:
+            flash('Payment was not completed. Please try again.', 'danger')
     else:
-        flash('Payment received, but reference missing.', 'warning')
+        flash('No payment tracking information received.', 'warning')
     
-    return redirect(url_for('home'))
+    return redirect(url_for('subscribe'))
     
 # ==================== BEST AI — USES v.expenses AND v.payments DIRECTLY! ====================
 @app.route('/api/ai_chat', methods=['POST'])
