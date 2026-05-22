@@ -108,7 +108,45 @@ def get_pesapal_token():
     else:
         print("Pesapal login failed")
         return None
-        
+
+@app.route('/register_ipn')
+def register_ipn():
+    token = get_pesapal_token()
+    if not token:
+        return "<h2>❌ Failed to get token. Check PESAPAL_CONSUMER_KEY and SECRET in Render settings.</h2>", 400
+    
+    url = "https://pay.pesapal.com/v3/api/URLSetup/RegisterIPN"
+    
+    payload = {
+        "url": "https://car-dealership-app-wxs8.onrender.com/pesapal_ipn",
+        "ipn_notification_type": "POST"
+    }
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token}'
+    }
+    
+    response = requests.post(url, json=payload, headers=headers)
+    
+    print("IPN Register Status:", response.status_code)
+    print("IPN Register Response:", response.text)
+    
+    if response.status_code == 200:
+        try:
+            data = response.json()
+            ipn_id = data.get('ipn_id')
+            if ipn_id:
+                return f"""
+                <h1>✅ Success!</h1>
+                <h2>Your REAL IPN ID (Notification ID) is:</h2>
+                <p><strong>{ipn_id}</strong></p>
+                <p>Copy this entire ID and paste it back to me here.</p>
+                """, 200
+        except:
+            pass
+    
+    return f"<h2>Error from Pesapal:</h2><pre>{response.text}</pre>", 400
 
 def initiate_pesapal_payment(amount, plan, user):
     print("Inside initiate_pesapal_payment for user ID:", user.id)
