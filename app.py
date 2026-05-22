@@ -87,7 +87,7 @@ PESAPAL_TOKEN_URL = 'https://pay.pesapal.com/v3/api/Auth/RequestToken'
 PESAPAL_ORDER_URL = 'https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest' 
 PESAPAL_CALLBACK_URL = 'https://car-dealership-app-wxs8.onrender.com/pesapal_callback'  
 
-REAL_NOTIFICATION_ID = "b141dc6f-8b90-4e35-bae3-da5ad94f109e"
+REAL_NOTIFICATION_ID = "2985d9cd-0d14-47eb-8e94-da5ac7348ac3"
 
 def get_pesapal_token():
     payload = {
