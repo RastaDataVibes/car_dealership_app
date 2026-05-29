@@ -1308,6 +1308,99 @@
             background-color: #70b583 !important;
         }
 
+        /* ── MOBILE STACK FIX ── */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column !important;
+            }
+            .sidebar {
+                width: 100% !important;
+                height: auto !important;
+            }
+            .kpi-container {
+                flex-direction: column !important;
+            }
+            .kpi-card {
+                width: 100% !important;
+                flex: none !important;
+            }
+            .chart-row {
+                flex-direction: column !important;
+            }
+            .sales-trend,
+            .profit-make {
+                width: 100% !important;
+                flex: none !important;
+            }
+            #salesTrendChart,
+            #profitChart {
+                width: 100% !important;
+            }
+            .chart-scroll-wrapper {
+                overflow-x: hidden !important;
+            }
+        }
+
+        /* ── SMALL PHONE FIX ── */
+        @media (max-width: 480px) {
+            .dashboard-container {
+                flex-direction: column !important;
+                padding: 2px !important;
+            }
+            .sidebar {
+                width: 100% !important;
+                height: auto !important;
+            }
+            .kpi-container {
+                flex-direction: column !important;
+            }
+            .kpi-card {
+                width: 100% !important;
+                flex: none !important;
+                height: 75px !important;
+            }
+            .kpi-value-normal {
+                font-size: 1.4em !important;
+            }
+            .kpi-title {
+                font-size: 0.78em !important;
+            }
+            .chart-row {
+                flex-direction: column !important;
+            }
+            .sales-trend,
+            .profit-make {
+                width: 100% !important;
+                flex: none !important;
+                height: 200px !important;
+            }
+            #salesTrendChart,
+            #profitChart {
+                width: 100% !important;
+            }
+            .chart-scroll-wrapper {
+                overflow-x: hidden !important;
+            }
+            .topbar {
+                flex-direction: column !important;
+                height: auto !important;
+                align-items: flex-start !important;
+                gap: 6px !important;
+                padding: 8px !important;
+            }
+            .top-left img {
+                height: 60px !important;
+                width: 60px !important;
+            }
+            .search-input {
+                font-size: 14px !important;
+                width: 100% !important;
+            }
+            .search-container {
+                width: 100% !important;
+            }
+        }
+        
     </style>
 </head>
 
