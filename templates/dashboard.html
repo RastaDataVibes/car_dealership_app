@@ -970,117 +970,147 @@
 
         /* FULL RESPONSIVE: Mobile/Tablet Adaptations (Builds on Your Existing) */
         @media (max-width: 768px) {
-            body {
-                padding: 4px;
-            }
+
+            /* TABLET/PHONE */
             .dashboard-container {
-                flex-direction: column !important;
-                gap: 8px;
+                flex-direction: column;
+                /* STACK: Sidebar below main */
+                gap: 10px;
             }
+
             .sidebar {
-                width: 100% !important;
-                height: auto !important;
-                padding: 10px 0;
+                width: 100%;
+                /* FULL WIDTH: No side squeeze */
             }
+
             .main {
-                width: 100% !important;
                 padding: 0;
+                /* SMALL PAD: Fits small screen */
             }
+
             .topbar {
-                flex-direction: column !important;
-                height: auto !important;
+                flex-direction: column;
+                /* STACK ARROWS/SEARCH */
+                height: auto;
                 padding: 10px;
-                gap: 8px;
-                align-items: flex-start;
+                gap: 5px;
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
             }
-            .top-left img {
-                height: 60px !important;
-                width: 60px !important;
-            }
-            .search-container {
-                width: 100%;
-            }
-            .search-input {
-                width: 100%;
-                font-size: 15px;
-            }
+
             .kpi-container {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 8px;
+                flex-direction: column;
+                /* STACK KPIS: One per row */
+                align-items: center;
+                gap: 10px;
             }
+
             .kpi-card {
-                width: 100% !important;
-                height: 80px !important;
-                flex: none !important;
+                width: 90vw;
+                /* FULL PHONE WIDTH */
+                height: 80px;
+                /* SHORTER: Thumb-friendly */
             }
+
+            .kpi-money {
+                text-align: center;
+                padding: 12px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                height: 100%;
+            }
+
+            .kpi-title {
+                font-size: 0.9em !important;
+            }
+
+            .kpi-value {
+                font-size: 2.5em !important;
+                /* SHRINK NUMBER: Fits */
+            }
+
             .chart-row {
-                flex-direction: column !important;
-                gap: 8px;
+                flex-direction: column;
+                /*gap: 20px !important;*/
             }
+
             .sales-trend,
             .profit-make {
-                width: 100% !important;
-                height: 220px !important;
-                flex: none !important;
+                width: 100%;
+                /* FULL WIDTH */
+                height: 250px;
+                /* SHORTER */
             }
-            .chart-scroll-wrapper {
-                overflow-x: hidden !important;
-            }
-            #salesTrendChart,
-            #profitChart {
-                width: 100% !important;
-            }
+
             .inventory-table {
-                width: 100% !important;
-                max-height: 350px;
-                overflow-x: auto;
+                width: 100%;
+                /* FULL TABLE */
+                max-height: 300px;
+                /* ADJUST HEIGHT */
             }
+
             .table-search input {
-                width: 100% !important;
-                font-size: 14px;
+                width: 100%;
+                /* FULL SEARCH */
             }
+
             .sidebar-btn {
                 font-size: 14px;
-                padding: 10px 12px;
-            }
-            .kpi-title {
-                font-size: 0.85em !important;
-            }
-            .kpi-value,
-            .kpi-value-normal {
-                font-size: 1.6em !important;
+                /* SMALLER BUTTONS: Touch easy */
             }
         }
 
         @media (max-width: 480px) {
-            .dashboard-container {
-                padding: 0 2px;
+
+            .kpi-value {
+                font-size: 2em !important;
+                /* TINY NUMBERS: Quick glance */
             }
-            .topbar {
-                padding: 8px;
-            }
-            .top-left img {
-                height: 48px !important;
-                width: 48px !important;
-            }
-            .kpi-card {
-                height: 70px !important;
-            }
-            .kpi-value,
-            .kpi-value-normal {
-                font-size: 1.4em !important;
-            }
+
             .kpi-title {
-                font-size: 0.75em !important;
+                font-size: 0.8em !important;
             }
-            .sales-trend,
-            .profit-make {
-                height: 180px !important;
+
+            .topbar {
+                padding: 5px;
             }
-            .btn-nav-login {
-                display: none;
-            }
+        }
+
+        .kpi-money {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start !important;
+            /* Title at top */
+            align-items: center;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+            padding: 12px 10px 10px 10px;
+            color: white;
+            border-radius: inherit;
+            overflow: hidden;
+        }
+
+        .kpi-money .kpi-title {
+            order: 1 !important;
+            font-size: 1em !important;
+            margin: 0 0 8px 0 !important;
+            font-weight: bold;
+            opacity: 1;
+            width: 100%;
+        }
+
+        .kpi-money .kpi-value-normal {
+            order: 2 !important;
+            font-size: 1.5em !important;
+            font-weight: bold;
+            margin: 0;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         /* Mobile: Smaller numbers for Sales & Profits */
