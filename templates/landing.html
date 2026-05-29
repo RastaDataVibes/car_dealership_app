@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carcraaft — Smart Car Dealership Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --green-dark:  #1a3d2b;
+            --green-mid:   #2d6a4f;
+            --green-bright:#52b788;
+            --green-light: #95d5b2;
+            --cream:       #f5f0e8;
+            --warm-white:  #faf8f4;
+            --charcoal:    #1c1c1e;
+            --muted:       #6b7280;
+            --gold:        #d4a853;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--warm-white);
+            color: var(--charcoal);
+            overflow-x: hidden;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 48px;
+            background: rgba(250,248,244,0.92);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(82,183,136,0.15);
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .nav-logo img {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+        }
+        .nav-logo-text {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--green-dark);
+            letter-spacing: -0.02em;
+        }
+        .nav-logo-text span { color: var(--green-bright); }
+        .nav-links { display: flex; gap: 12px; }
+        .btn-nav-login {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--green-dark);
+            border: 1.5px solid var(--green-mid);
+            background: transparent;
+            padding: 9px 22px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-nav-login:hover { background: var(--green-mid); color: white; }
+        .btn-nav-signup {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+            background: var(--green-dark);
+            padding: 9px 22px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-nav-signup:hover { background: var(--green-mid); transform: translateY(-1px); }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            padding: 120px 48px 80px;
+            gap: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -200px; right: -200px;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(82,183,136,0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -100px; left: -100px;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212,168,83,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-left { position: relative; z-index: 2; }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(82,183,136,0.12);
+            border: 1px solid rgba(82,183,136,0.3);
+            color: var(--green-mid);
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 50px;
+            margin-bottom: 28px;
+            animation: fadeSlideUp 0.6s ease both;
+        }
+        .hero-badge::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--green-bright);
+            border-radius: 50%;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.8rem, 5vw, 4rem);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -0.03em;
+            color: var(--green-dark);
+            margin-bottom: 22px;
+            animation: fadeSlideUp 0.7s 0.1s ease both;
+        }
+        h1 em {
+            font-style: normal;
+            color: var(--green-bright);
+        }
+
+        .hero-desc {
+            font-size: 1.1rem;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--muted);
+            max-width: 460px;
+            margin-bottom: 40px;
+            animation: fadeSlideUp 0.7s 0.2s ease both;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            animation: fadeSlideUp 0.7s 0.3s ease both;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--green-dark);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 15px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.25s;
+            box-shadow: 0 8px 24px rgba(26,61,43,0.25);
+        }
+        .btn-primary:hover {
+            background: var(--green-mid);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(26,61,43,0.3);
+        }
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--green-dark);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 15px 28px;
+            border-radius: 50px;
+            text-decoration: none;
+            border: 1.5px solid rgba(26,61,43,0.2);
+            transition: all 0.25s;
+        }
+        .btn-secondary:hover {
+            border-color: var(--green-mid);
+            color: var(--green-mid);
+            background: rgba(82,183,136,0.06);
+        }
+
+        /* ── HERO VISUAL ── */
+        .hero-right {
+            position: relative;
+            z-index: 2;
+            animation: fadeSlideRight 0.9s 0.15s ease both;
+        }
+        .dashboard-preview {
+            background: var(--green-dark);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(26,61,43,0.35), 0 0 0 1px rgba(82,183,136,0.15);
+            transform: perspective(1000px) rotateY(-4deg) rotateX(2deg);
+            transition: transform 0.4s ease;
+        }
+        .dashboard-preview:hover {
+            transform: perspective(1000px) rotateY(-1deg) rotateX(0deg);
+        }
+        .preview-bar {
+            background: rgba(255,255,255,0.06);
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot-r { background: #ff5f57; }
+        .dot-y { background: #ffbd2e; }
+        .dot-g { background: #28c840; }
+        .preview-url {
+            flex: 1;
+            background: rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.4);
+            font-family: monospace;
+        }
+        .preview-body { padding: 20px; }
+        .mini-kpis {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .mini-kpi {
+            background: rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(82,183,136,0.15);
+        }
+        .mini-kpi-label {
+            font-size: 0.62rem;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 6px;
+            font-weight: 400;
+        }
+        .mini-kpi-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--green-light);
+        }
+        .mini-kpi-value.gold { color: var(--gold); }
+        .mini-chart-row {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 10px;
+        }
+        .mini-chart-box {
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid rgba(82,183,136,0.1);
+        }
+        .mini-chart-title {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 10px;
+        }
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 5px;
+            height: 55px;
+        }
+        .bar {
+            flex: 1;
+            border-radius: 3px 3px 0 0;
+            background: var(--green-bright);
+            opacity: 0.7;
+            animation: growUp 1s ease both;
+        }
+        .bar:nth-child(2) { animation-delay: 0.1s; }
+        .bar:nth-child(3) { animation-delay: 0.2s; }
+        .bar:nth-child(4) { animation-delay: 0.3s; }
+        .bar:nth-child(5) { animation-delay: 0.4s; }
+        .bar:nth-child(6) { animation-delay: 0.5s; }
+        .car-list { display: flex; flex-direction: column; gap: 5px; }
+        .car-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .car-name { font-size: 0.65rem; color: rgba(255,255,255,0.6); }
+        .car-status {
+            font-size: 0.58rem;
+            padding: 2px 7px;
+            border-radius: 50px;
+            font-weight: 500;
+        }
+        .status-sold { background: rgba(82,183,136,0.2); color: var(--green-light); }
+        .status-avail { background: rgba(212,168,83,0.2); color: var(--gold); }
+
+        /* ── TRUST STRIP ── */
+        .trust-strip {
+            background: var(--green-dark);
+            padding: 20px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 48px;
+            flex-wrap: wrap;
+        }
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.88rem;
+            font-weight: 300;
+        }
+        .trust-icon {
+            width: 32px; height: 32px;
+            background: rgba(82,183,136,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* ── FEATURES ── */
+        .features-section {
+            padding: 100px 48px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--green-bright);
+            margin-bottom: 14px;
+        }
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 3.5vw, 2.8rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--green-dark);
+            margin-bottom: 16px;
+            line-height: 1.15;
+        }
+        .section-sub {
+            font-size: 1rem;
+            color: var(--muted);
+            font-weight: 300;
+            max-width: 520px;
+            line-height: 1.7;
+            margin-bottom: 60px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .feature-card {
+            padding: 32px 28px;
+            border-radius: 20px;
+            background: white;
+            border: 1px solid rgba(26,61,43,0.08);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--green-bright), var(--green-light));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(26,61,43,0.1); }
+        .feature-card:hover::before { transform: scaleX(1); }
+        .feature-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--green-mid), var(--green-bright));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+        .feature-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--green-dark);
+            margin-bottom: 10px;
+        }
+        .feature-desc {
+            font-size: 0.9rem;
+            color: var(--muted);
+            font-weight: 300;
+            line-height: 1.65;
+        }
+
+        /* ── HOW IT WORKS ── */
+        .how-section { padding: 80px 48px; background: var(--cream); }
+        .how-inner { max-width: 1200px; margin: 0 auto; }
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 60px;
+            position: relative;
+        }
+        .steps-grid::before {
+            content: '';
+            position: absolute;
+            top: 28px; left: calc(16.6% + 14px); right: calc(16.6% + 14px);
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green-light), transparent);
+        }
+        .step { text-align: center; position: relative; }
+        .step-number {
+            width: 56px; height: 56px;
+            background: var(--green-dark);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.2rem;
+            margin: 0 auto 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .step-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; color: var(--green-dark); margin-bottom: 10px; }
+        .step-desc { font-size: 0.88rem; color: var(--muted); font-weight: 300; line-height: 1.65; }
+
+        /* ── CTA ── */
+        .cta-section {
+            padding: 100px 48px;
+            text-align: center;
+            background: var(--green-dark);
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -200px; left: 50%;
+            transform: translateX(-50%);
+            width: 800px; height: 800px;
+            background: radial-gradient(circle, rgba(82,183,136,0.12) 0%, transparent 60%);
+        }
+        .cta-section .section-title { color: white; }
+        .cta-section .section-label { color: var(--green-light); }
+        .cta-desc {
+            font-size: 1.05rem;
+            color: rgba(255,255,255,0.6);
+            font-weight: 300;
+            max-width: 520px;
+            margin: 0 auto 48px;
+            line-height: 1.7;
+        }
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        .btn-cta-primary {
+            background: var(--green-bright);
+            color: var(--green-dark);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 16px 36px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.25s;
+            box-shadow: 0 8px 32px rgba(82,183,136,0.3);
+        }
+        .btn-cta-primary:hover { background: var(--green-light); transform: translateY(-2px); }
+        .btn-cta-secondary {
+            background: transparent;
+            color: rgba(255,255,255,0.8);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            font-size: 1rem;
+            padding: 16px 36px;
+            border-radius: 50px;
+            text-decoration: none;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            transition: all 0.25s;
+        }
+        .btn-cta-secondary:hover { border-color: rgba(255,255,255,0.5); color: white; background: rgba(255,255,255,0.05); }
+
+        /* ── FOOTER ── */
+        footer {
+            background: #111815;
+            padding: 48px 48px 32px;
+        }
+        .footer-top {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 48px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            margin-bottom: 28px;
+        }
+        .footer-brand img {
+            height: 56px;
+            width: auto;
+            object-fit: contain;
+            margin-bottom: 14px;
+            display: block;
+        }
+        .footer-brand-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .footer-brand-name span { color: var(--green-bright); }
+        .footer-tagline {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.35);
+            font-weight: 300;
+            line-height: 1.6;
+            max-width: 260px;
+        }
+        .footer-col-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 18px;
+        }
+        .footer-col a, .footer-contact-item {
+            display: block;
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.45);
+            text-decoration: none;
+            margin-bottom: 10px;
+            transition: color 0.2s;
+            font-weight: 300;
+        }
+        .footer-col a:hover { color: var(--green-bright); }
+        .footer-contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .footer-contact-icon {
+            width: 28px; height: 28px;
+            background: rgba(82,183,136,0.12);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .footer-contact-text {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.45);
+            font-weight: 300;
+            line-height: 1.5;
+        }
+        .footer-contact-text a {
+            color: rgba(255,255,255,0.45);
+            text-decoration: none;
+            display: inline;
+            margin-bottom: 0;
+        }
+        .footer-contact-text a:hover { color: var(--green-bright); }
+        .footer-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .footer-copy { font-size: 0.8rem; color: rgba(255,255,255,0.25); }
+        .footer-bottom-links { display: flex; gap: 20px; }
+        .footer-bottom-links a {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.3);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-bottom-links a:hover { color: var(--green-bright); }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeSlideRight {
+            from { opacity: 0; transform: translateX(40px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes growUp {
+            from { transform: scaleY(0); transform-origin: bottom; }
+            to   { transform: scaleY(1); transform-origin: bottom; }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            nav { padding: 12px 24px; }
+            .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; gap: 40px; text-align: center; }
+            .hero-desc { margin: 0 auto 40px; }
+            .hero-actions { justify-content: center; }
+            .hero::before, .hero::after { display: none; }
+            .features-grid { grid-template-columns: 1fr; }
+            .steps-grid { grid-template-columns: 1fr; }
+            .steps-grid::before { display: none; }
+            .trust-strip { gap: 24px; padding: 20px 24px; }
+            .features-section, .how-section, .cta-section { padding: 60px 24px; }
+            .footer-top { grid-template-columns: 1fr; gap: 32px; }
+            footer { padding: 40px 24px 24px; }
+            .mini-kpis { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 2.2rem; }
+            .btn-nav-login { display: none; }
+            .nav-logo-text { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <a href="#" class="nav-logo">
+            <img src="/static/uploads/logo.png" alt="Carcraaft Logo">
+            <span class="nav-logo-text">Car<span>craaft</span></span>
+        </a>
+        <div class="nav-links">
+            <a href="{{ url_for('login') }}" class="btn-nav-login">Log In</a>
+            <a href="{{ url_for('signup') }}" class="btn-nav-signup">Get Started Free</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-left">
+            <div class="hero-badge">Built for East African dealerships</div>
+            <h1>Run your dealership<br><em>smarter</em>, not harder</h1>
+            <p class="hero-desc">
+                Carcraaft tracks every car, expense, and payment in one place.
+                Know your profits, manage your cash, and grow your business — all for free.
+            </p>
+            <div class="hero-actions">
+                <a href="{{ url_for('signup') }}" class="btn-primary">
+                    Start for free
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+                <a href="{{ url_for('login') }}" class="btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1a4 4 0 1 0 0 8A4 4 0 0 0 8 1zM2 14c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    Sign in
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-right">
+            <div class="dashboard-preview">
+                <div class="preview-bar">
+                    <div class="dot dot-r"></div>
+                    <div class="dot dot-y"></div>
+                    <div class="dot dot-g"></div>
+                    <div class="preview-url">carcraaft.app/dashboard</div>
+                </div>
+                <div class="preview-body">
+                    <div class="mini-kpis">
+                        <div class="mini-kpi">
+                            <div class="mini-kpi-label">Total Cars</div>
+                            <div class="mini-kpi-value">24</div>
+                        </div>
+                        <div class="mini-kpi">
+                            <div class="mini-kpi-label">Sold</div>
+                            <div class="mini-kpi-value">18</div>
+                        </div>
+                        <div class="mini-kpi">
+                            <div class="mini-kpi-label">Revenue</div>
+                            <div class="mini-kpi-value gold">UGX 74M</div>
+                        </div>
+                        <div class="mini-kpi">
+                            <div class="mini-kpi-label">Profit</div>
+                            <div class="mini-kpi-value">UGX 12M</div>
+                        </div>
+                    </div>
+                    <div class="mini-chart-row">
+                        <div class="mini-chart-box">
+                            <div class="mini-chart-title">Monthly Sales</div>
+                            <div class="bar-chart">
+                                <div class="bar" style="height:35%"></div>
+                                <div class="bar" style="height:55%"></div>
+                                <div class="bar" style="height:40%"></div>
+                                <div class="bar" style="height:75%"></div>
+                                <div class="bar" style="height:60%"></div>
+                                <div class="bar" style="height:90%"></div>
+                            </div>
+                        </div>
+                        <div class="mini-chart-box">
+                            <div class="mini-chart-title">Recent Stock</div>
+                            <div class="car-list">
+                                <div class="car-row">
+                                    <span class="car-name">Toyota Ipsum</span>
+                                    <span class="car-status status-sold">Sold</span>
+                                </div>
+                                <div class="car-row">
+                                    <span class="car-name">Honda CRV</span>
+                                    <span class="car-status status-avail">Available</span>
+                                </div>
+                                <div class="car-row">
+                                    <span class="car-name">Subaru Forester</span>
+                                    <span class="car-status status-sold">Sold</span>
+                                </div>
+                                <div class="car-row">
+                                    <span class="car-name">Land Cruiser</span>
+                                    <span class="car-status status-avail">Available</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRUST STRIP -->
+    <div class="trust-strip">
+        <div class="trust-item"><div class="trust-icon">🔒</div>Your data stays private</div>
+        <div class="trust-item"><div class="trust-icon">💳</div>UGX, KES, TZS & more</div>
+        <div class="trust-item"><div class="trust-icon">📱</div>Works on any device</div>
+        <div class="trust-item"><div class="trust-icon">🆓</div>30-day free trial</div>
+    </div>
+
+    <!-- FEATURES -->
+    <section class="features-section">
+        <div class="section-label">What you get</div>
+        <h2 class="section-title">Everything your<br>dealership needs</h2>
+        <p class="section-sub">From adding your first car to reading your balance sheet — Carcraaft keeps it simple.</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🚘</div>
+                <div class="feature-title">Inventory Management</div>
+                <p class="feature-desc">Add cars with photos, track purchase price, mileage, source, and see which ones are sitting too long.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💸</div>
+                <div class="feature-title">Expenses & Payments</div>
+                <p class="feature-desc">Log every repair, clearing fee, and installment payment. Know exactly what each car actually cost you.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">Live Dashboard</div>
+                <p class="feature-desc">KPIs, profit charts, and sales trends update in real time so you always know where your business stands.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏦</div>
+                <div class="feature-title">Balance Sheet</div>
+                <p class="feature-desc">Assets, liabilities, and capital calculated automatically. Understand your financial health at a glance.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <div class="feature-title">AI Business Adviser</div>
+                <p class="feature-desc">Ask questions about your data in plain language. Get smart advice on which cars to sell, collect, or restock.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <div class="feature-title">Loan Tracking</div>
+                <p class="feature-desc">Track money you've borrowed, record repayments, and monitor outstanding balances — never miss a due date.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-section">
+        <div class="how-inner">
+            <div class="section-label">Getting started</div>
+            <h2 class="section-title">Up and running in minutes</h2>
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Create your account</div>
+                    <p class="step-desc">Sign up with your phone or email. Choose your currency. Your 30-day free trial starts immediately.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Add your cars</div>
+                    <p class="step-desc">Enter your inventory with purchase prices, photos, and expenses. Everything is saved in real time.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Track, sell & grow</div>
+                    <p class="step-desc">Record sales, collect installments, and watch your dashboard show you exactly how your business is performing.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="section-label">Start today</div>
+        <h2 class="section-title">Your dealership deserves<br>better tools</h2>
+        <p class="cta-desc">Join other East African dealers using Carcraaft to know their numbers, track every shilling, and grow with confidence.</p>
+        <div class="cta-buttons">
+            <a href="{{ url_for('signup') }}" class="btn-cta-primary">Create free account →</a>
+            <a href="{{ url_for('login') }}" class="btn-cta-secondary">Already have an account</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-top">
+            <!-- Brand column -->
+            <div class="footer-brand">
+                <img src="/static/uploads/logo.png" alt="Carcraaft Logo">
+                <div class="footer-brand-name">Car<span>craaft</span></div>
+                <p class="footer-tagline">Smart car dealership management for East African businesses. Track every car, every shilling, every sale.</p>
+            </div>
+
+            <!-- Quick links -->
+            <div class="footer-col">
+                <div class="footer-col-title">Quick Links</div>
+                <a href="{{ url_for('signup') }}">Create Account</a>
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('forgot_password') }}">Forgot Password</a>
+            </div>
+
+            <!-- Contact -->
+            <div class="footer-col">
+                <div class="footer-col-title">Contact Us</div>
+                <div class="footer-contact-item">
+                    <div class="footer-contact-icon">✉️</div>
+                    <div class="footer-contact-text">
+                        <a href="mailto:bethle13.opio@gmail.com">bethle13.opio@gmail.com</a>
+                    </div>
+                </div>
+                <div class="footer-contact-item">
+                    <div class="footer-contact-icon">📞</div>
+                    <div class="footer-contact-text">
+                        <a href="tel:+256706375062">+256 706 375 062</a>
+                    </div>
+                </div>
+                <div class="footer-contact-item">
+                    <div class="footer-contact-icon">📍</div>
+                    <div class="footer-contact-text">Kampala, Uganda</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-copy">© 2025 Carcraaft. All rights reserved.</div>
+            <div class="footer-bottom-links">
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('signup') }}">Sign Up</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
