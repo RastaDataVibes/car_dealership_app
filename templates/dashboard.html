@@ -2089,10 +2089,24 @@
                     const addExpenseBtn = document.getElementById('addExpenseBtn'), addExpenseForm = document.getElementById('addExpenseForm');
                     const editCarBtn = document.getElementById('editCarBtn'), editCarForm = document.getElementById('editCarForm');
                     const recordSaleBtn = document.getElementById('recordSaleBtn'), recordSaleForm = document.getElementById('recordSaleForm');
-                    addCarBtn.addEventListener('click', () => { addCarForm.classList.toggle('open'); addExpenseForm.classList.remove('open'); editCarForm.classList.remove('open'); recordSaleForm.classList.remove('open'); });
-                    addExpenseBtn.addEventListener('click', () => { addExpenseForm.classList.toggle('open'); addCarForm.classList.remove('open'); editCarForm.classList.remove('open'); recordSaleForm.classList.remove('open'); });
-                    editCarBtn.addEventListener('click', () => { editCarForm.classList.toggle('open'); addCarForm.classList.remove('open'); addExpenseForm.classList.remove('open'); recordSaleForm.classList.remove('open'); });
-                    recordSaleBtn.addEventListener('click', () => { recordSaleForm.classList.toggle('open'); addCarForm.classList.remove('open'); addExpenseForm.classList.remove('open'); editCarForm.classList.remove('open'); });
+                    function openPanel(panelId) {
+                        const allPanels = ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm',
+                                           'addTransactionForm', 'addLoanForm', 'reportForm', 'settingsForm', 'aiAdviserForm'];
+                        allPanels.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.classList.remove('open');
+                        });
+                        const target = document.getElementById(panelId);
+                        if (target) {
+                            target.classList.add('open');
+                            history.pushState({ panel: panelId }, '', '');
+                        }
+                    }
+                
+                    addCarBtn.addEventListener('click', () => openPanel('addCarForm'));
+                    addExpenseBtn.addEventListener('click', () => { openPanel('addExpenseForm'); fetchVehicles(expenseVehicleSelect); });
+                    editCarBtn.addEventListener('click', () => { openPanel('editCarForm'); fetchVehicles(editVehicleSelect); });
+                    recordSaleBtn.addEventListener('click', () => { openPanel('recordSaleForm'); fetchVehicles(recordSaleVehicleSelect); });
                     document.addEventListener('click', e => {
                         const openForms = [addCarForm, addExpenseForm, editCarForm, recordSaleForm];
                         const buttons = [addCarBtn, addExpenseBtn, editCarBtn, recordSaleBtn];
@@ -3176,21 +3190,31 @@
                     function updateArrowStates() {
                         const backBtn = document.getElementById('back-btn');
                         const forwardBtn = document.getElementById('forward-btn');
-                        if (window.history.state === null || window.history.length <= 1) {
-                            backBtn.classList.remove('active'); // Back off if no history
-                        } else {
+                        if (window.history.length > 1) {
                             backBtn.classList.add('active');
+                        } else {
+                            backBtn.classList.remove('active');
                         }
-                        forwardBtn.classList.remove('active'); // Forward off by default (add logic if needed)
+                        forwardBtn.classList.add('active');
                     }
-
-                    // START: Update on load
-                    document.addEventListener('DOMContentLoaded', () => {
-                        updateArrowStates(); // Set initial colors
+                    
+                    window.addEventListener('popstate', function(e) {
+                        // Close all panels when user hits back
+                        const allPanels = ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm',
+                                           'addTransactionForm', 'addLoanForm', 'reportForm', 'settingsForm', 'aiAdviserForm'];
+                        allPanels.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.classList.remove('open');
+                        });
+                    
+                        // If the back state has a panel, reopen it
+                        if (e.state && e.state.panel) {
+                            const target = document.getElementById(e.state.panel);
+                            if (target) target.classList.add('open');
+                        }
+                    
+                        updateArrowStates();
                     });
-
-                    // LISTEN FOR BROWSER CHANGES
-                    window.addEventListener('popstate', updateArrowStates); // Refresh on back/forward
 
                     // NEW: Delete Car - Confirm & Call Backend
                     async function deleteCar(carId) {
