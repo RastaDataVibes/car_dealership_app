@@ -1155,6 +1155,8 @@ def update_profile():
     currency = request.form.get('currency')
     photo_file = request.files.get('photo')
 
+    user = User.query.get(current_user.id)
+
     if name:
         current_user.profile_name = name.strip()
 
