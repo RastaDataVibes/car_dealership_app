@@ -184,10 +184,11 @@
         }
 
         .profile-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 280px;
+            position: fixed;
+            top: 60px;
+            right: 8px;
+            left: 8px;
+            width: auto;
             background: #fff;
             border-radius: 12px;
             border: 1px solid #d0d5da;
@@ -203,7 +204,8 @@
         }
 
         .profile-dropdown.open {
-            max-height: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
             opacity: 1;
             transform: translateY(0);
             visibility: visible;
@@ -1398,6 +1400,13 @@
             }
             .search-container {
                 width: 100% !important;
+            }
+            .profile-dropdown {
+                position: fixed;
+                top: 60px;
+                right: 8px;
+                left: 8px;
+                width: auto;
             }
         }
         
