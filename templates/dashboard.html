@@ -1606,11 +1606,11 @@
                     </div>
 
                     <!-- Input + Send -->
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="aiUserInput" placeholder="Type your question..."
-                            style="flex:1; padding:10px; border:1px solid #ccc; border-radius:20px; outline:none; font-size:14px;">
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="text" id="aiUserInput" placeholder="Ask anything..."
+                            style="width:100%; padding:10px 44px 10px 14px; border:1px solid #ccc; border-radius:20px; outline:none; font-size:14px; background:#f9f9f9;">
                         <button onclick="sendAIMessage()"
-                            style="background:#70b583; color:white; border:none; padding:10px 14px; border-radius:20px; cursor:pointer; font-size:14px;">Send</button>
+                            style="position:absolute; right:6px; width:32px; height:32px; background:#70b583; color:white; border:none; border-radius:50%; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; line-height:1;">&#8593;</button>
                     </div>
                 </div>
             </div>
