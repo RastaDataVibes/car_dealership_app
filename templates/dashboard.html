@@ -2025,7 +2025,7 @@
                             row.style.display = Array.from(row.cells).some(cell => cell.textContent.toLowerCase().includes(val)) ? '' : 'none';
                         });
                     }, 300);  // 300ms delay
-                    searchInput.addEventListener('input', debouncedGlobalSearch);  // Use debounced version
+                    
                     
                     document.getElementById('searchBtn').addEventListener('click', () => {
                         const query = searchInput.value.trim();
@@ -3196,23 +3196,12 @@
 
                     // NEW: Back & Forward Navigation (like browser arrows)
                     function goBack() {
-                        if (window.history.length > 1) {
-                            window.history.back(); // Go to previous page/view
-                        } else {
-                            alert('No back—home!'); // If no history, stay
-                        }
-                        updateArrowStates(); // Refresh colors
+                        window.history.back();
                     }
-
+                    
                     function goForward() {
-                        if (window.history.state && window.history.state !== null) {
-                            window.history.forward(); // Go to next page/view
-                        } else {
-                            alert('No forward!'); // If no history, stay
-                        }
-                        updateArrowStates(); // Refresh colors
+                        window.history.forward();
                     }
-
                     // UPDATE COLORS (active/inactive)
                     function updateArrowStates() {
                         const backBtn = document.getElementById('back-btn');
