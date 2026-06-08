@@ -35,7 +35,6 @@ cloudinary.config(
 )
 
 
-
 def subscription_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
