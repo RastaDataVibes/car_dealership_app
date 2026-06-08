@@ -1182,13 +1182,13 @@ def update_profile():
         current_user.currency = currency
 
     if photo_file and photo_file.filename:
-    result = cloudinary.uploader.upload(
-        photo_file,
-        folder='greenchain/profiles',
-        public_id=f'user_{user.id}',
-        overwrite=True
-    )
-    user.profile_photo_filename = result['secure_url']
+        result = cloudinary.uploader.upload(
+            photo_file,
+            folder='greenchain/profiles',
+            public_id=f'user_{user.id}',
+            overwrite=True
+        )
+        user.profile_photo_filename = result['secure_url']
 
     db.session.commit()
     flash('Profile updated successfully!', 'success')
