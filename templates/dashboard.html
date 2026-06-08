@@ -2031,20 +2031,28 @@
                         const query = searchInput.value.trim();
                         if (!query) return;
                     
-                        // Open AI panel
-                        const aiForm = document.getElementById('aiAdviserForm');
+                        // Close all other panels
                         const allPanels = ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm',
                                            'addTransactionForm', 'addLoanForm', 'reportForm', 'settingsForm'];
                         allPanels.forEach(id => {
                             const el = document.getElementById(id);
                             if (el) el.classList.remove('open');
                         });
+                    
+                        // Open AI panel
+                        const aiForm = document.getElementById('aiAdviserForm');
                         aiForm.classList.add('open');
                     
-                        // Put the query into the AI input and send it
-                        document.getElementById('aiUserInput').value = query;
-                        searchInput.value = '';
-                        sendAIMessage();
+                        // Scroll the AI button into view so user sees it opened
+                        const aiBtn = document.getElementById('aiAdviserBtn');
+                        aiBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                        // Small delay to let the panel animate open before sending
+                        setTimeout(() => {
+                            document.getElementById('aiUserInput').value = query;
+                            searchInput.value = '';
+                            sendAIMessage();
+                        }, 350);
                     });
                     
                     // Also trigger on Enter key in the search box
