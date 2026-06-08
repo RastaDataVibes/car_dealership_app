@@ -2027,7 +2027,8 @@
                     }, 300);  // 300ms delay
                     
                     
-                    document.getElementById('searchBtn').addEventListener('click', () => {
+                    document.getElementById('searchBtn').addEventListener('click', (e) => {
+                        e.stopPropagation();  // ADD THIS LINE
                         const query = searchInput.value.trim();
                         if (!query) return;
                     
