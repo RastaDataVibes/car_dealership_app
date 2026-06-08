@@ -1415,6 +1415,23 @@
                 width: auto;
             }
         }
+
+        .wave-bar {
+            width: 3px;
+            border-radius: 3px;
+            background: #aaa;
+            animation: wavePulse 1s ease-in-out infinite;
+        }
+        .wave-bar:nth-child(1) { height: 8px;  animation-delay: 0s; }
+        .wave-bar:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+        .wave-bar:nth-child(3) { height: 20px; animation-delay: 0.3s; }
+        .wave-bar:nth-child(4) { height: 14px; animation-delay: 0.45s; }
+        .wave-bar:nth-child(5) { height: 8px;  animation-delay: 0.6s; }
+        
+        @keyframes wavePulse {
+            0%, 100% { transform: scaleY(1); opacity: 0.5; }
+            50%       { transform: scaleY(1.6); opacity: 1; }
+        }
         
     </style>
 </head>
@@ -1609,8 +1626,17 @@
                     <div style="position: relative; display: flex; align-items: center;">
                         <input type="text" id="aiUserInput" placeholder="Ask anything..."
                             style="width:100%; padding:10px 44px 10px 14px; border:1px solid #ccc; border-radius:20px; outline:none; font-size:14px; background:#f9f9f9;">
-                        <button onclick="sendAIMessage()"
-                            style="position:absolute; right:6px; width:32px; height:32px; background:#70b583; color:white; border:none; border-radius:50%; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; line-height:1;">&#8593;</button>
+                        
+                        <div id="aiWaveBars" style="position:absolute; right:6px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; gap:2px; pointer-events:none;">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                    
+                        <button onclick="sendAIMessage()" id="aiSendBtn"
+                            style="position:absolute; right:6px; width:32px; height:32px; background:#70b583; color:white; border:none; border-radius:50%; cursor:pointer; font-size:18px; display:none; align-items:center; justify-content:center; line-height:1;">&#8593;</button>
                     </div>
                 </div>
             </div>
@@ -3515,6 +3541,20 @@
                     document.getElementById('aiUserInput').addEventListener('keypress', function (e) {
                         if (e.key === 'Enter') {
                             sendAIMessage();
+                        }
+                    });
+
+                    const aiUserInput = document.getElementById('aiUserInput');
+                    const aiSendBtn = document.getElementById('aiSendBtn');
+                    const aiWaveBars = document.getElementById('aiWaveBars');
+                    
+                    aiUserInput.addEventListener('input', function() {
+                        if (this.value.trim().length > 0) {
+                            aiWaveBars.style.display = 'none';
+                            aiSendBtn.style.display = 'flex';
+                        } else {
+                            aiWaveBars.style.display = 'flex';
+                            aiSendBtn.style.display = 'none';
                         }
                     });
 
