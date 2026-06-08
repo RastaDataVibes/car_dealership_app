@@ -52,7 +52,6 @@ def subscription_required(f):
     return decorated_function
 
 
-
 def clean_float(value):
     """Convert string like '2,500,000' or '2500000.50' to float safely"""
     if value is None or value == '':
