@@ -3,6 +3,8 @@ import redis
 import jwt
 import time
 import requests
+import cloudinary
+import cloudinary.uploader
 from flask import render_template_string
 from werkzeug.utils import secure_filename
 from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, current_app
@@ -25,6 +27,13 @@ from itsdangerous import URLSafeTimedSerializer
 from wtforms import PasswordField
 from functools import wraps
 from groq import Groq
+
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET')
+)
+
 
 
 def subscription_required(f):
@@ -451,9 +460,14 @@ def add_vehicle_ajax():
 
     photo_file = request.files.get('photo')
     filename = None
-    if photo_file:
-        filename = secure_filename(photo_file.filename)
-        photo_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    if photo_file and photo_file.filename:
+        result = cloudinary.uploader.upload(
+            photo_file,
+            folder='greenchain/vehicles',
+            public_id=f'vehicle_{int(time.time())}',
+            overwrite=True
+        )
+        filename = result['secure_url']
 
     vehicle = Inventory(
         make=make,
@@ -522,10 +536,14 @@ def edit_vehicle_ajax():
     vehicle.notes = request.form.get('notes') or vehicle.notes
 
     photo_file = request.files.get('photo')
-    if photo_file:
-        filename = secure_filename(photo_file.filename)
-        photo_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        vehicle.photo_filename = filename
+    if photo_file and photo_file.filename:
+        result = cloudinary.uploader.upload(
+            photo_file,
+            folder='greenchain/vehicles',
+            public_id=f'vehicle_{vehicle.id}_{int(time.time())}',
+            overwrite=True
+        )
+        vehicle.photo_filename = result['secure_url']
 
     db.session.commit()
 
@@ -1164,9 +1182,13 @@ def update_profile():
         current_user.currency = currency
 
     if photo_file and photo_file.filename:
-        filename = secure_filename(photo_file.filename)
-        photo_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        current_user.profile_photo_filename = filename
+    result = cloudinary.uploader.upload(
+        photo_file,
+        folder='greenchain/profiles',
+        public_id=f'user_{user.id}',
+        overwrite=True
+    )
+    user.profile_photo_filename = result['secure_url']
 
     db.session.commit()
     flash('Profile updated successfully!', 'success')
