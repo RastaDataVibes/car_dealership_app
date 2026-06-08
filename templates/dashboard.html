@@ -2026,7 +2026,34 @@
                         });
                     }, 300);  // 300ms delay
                     searchInput.addEventListener('input', debouncedGlobalSearch);  // Use debounced version
-
+                    
+                    document.getElementById('searchBtn').addEventListener('click', () => {
+                        const query = searchInput.value.trim();
+                        if (!query) return;
+                    
+                        // Open AI panel
+                        const aiForm = document.getElementById('aiAdviserForm');
+                        const allPanels = ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm',
+                                           'addTransactionForm', 'addLoanForm', 'reportForm', 'settingsForm'];
+                        allPanels.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.classList.remove('open');
+                        });
+                        aiForm.classList.add('open');
+                    
+                        // Put the query into the AI input and send it
+                        document.getElementById('aiUserInput').value = query;
+                        searchInput.value = '';
+                        sendAIMessage();
+                    });
+                    
+                    // Also trigger on Enter key in the search box
+                    searchInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            document.getElementById('searchBtn').click();
+                        }
+                    });
+                    
                     const profileContainer = document.getElementById('profileContainer');
                     const profileDropdown = document.getElementById('profileDropdown');
                     const saveBtn = document.getElementById('saveProfile');
