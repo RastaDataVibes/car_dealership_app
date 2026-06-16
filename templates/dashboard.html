@@ -1955,37 +1955,26 @@
                     function formatNumberWithCommasLive(input) {
                         const cursorPos = input.selectionStart;
                         let value = input.value.replace(/,/g, '');
-
-                        // Allow only valid number format: digits, optional decimal, optional digits after
                         if (!/^-?\d*\.?\d*$/.test(value)) {
-                            // Optionally: remove last invalid char
                             input.value = input.value.slice(0, -1);
                             input.setSelectionRange(cursorPos - 1, cursorPos - 1);
                             return;
                         }
-
                         let [whole, decimal] = value.split('.');
                         whole = whole.replace(/\D/g, '');
                         if (decimal !== undefined) {
-                            decimal = decimal.replace(/\D/g, '').slice(0, 2); // max 2 decimals
+                            decimal = decimal.replace(/\D/g, '').slice(0, 2);
                         }
-
                         if (whole === '' && decimal === undefined) {
                             input.value = '';
                             return;
                         }
-
                         const formattedWhole = whole === '' ? '0' : Number(whole).toLocaleString('en-US');
                         const formatted = decimal !== undefined ? `${formattedWhole}.${decimal}` : formattedWhole;
-
                         input.value = formatted;
-
-                        // Smart cursor positioning
                         const commasBeforeCursor = (input.value.slice(0, cursorPos).match(/,/g) || []).length;
                         const newCommasBeforeCursor = (formatted.slice(0, cursorPos).match(/,/g) || []).length;
                         const newPos = cursorPos + (newCommasBeforeCursor - commasBeforeCursor);
-
-                        // If in decimal part, push to end
                         const decimalStart = formatted.indexOf('.') + 1;
                         if (decimalStart > 0 && cursorPos >= decimalStart) {
                             input.setSelectionRange(formatted.length, formatted.length);
@@ -1993,33 +1982,28 @@
                             input.setSelectionRange(newPos, newPos);
                         }
                     }
-
+                
                     const backBtn = document.getElementById('back-btn');
                     const forwardBtn = document.getElementById('forward-btn');
                     backBtn.addEventListener('click', () => { backBtn.classList.add('active'); forwardBtn.classList.remove('active'); });
                     forwardBtn.addEventListener('click', () => { forwardBtn.classList.add('active'); backBtn.classList.remove('active'); });
-
-                    // NEW: Global caching for inventory data - avoids repeated API calls (OPTIMIZATION: Step 1)
+                
                     let cachedInventory = null;
                     let lastFetchTime = 0;
-                    const CACHE_DURATION = 30000; // 30 seconds - adjust if needed (tune for freshness vs. speed)
-
-                    // NEW: Helper to get fresh/cached data (OPTIMIZATION: Step 1)
+                    const CACHE_DURATION = 30000;
+                
                     async function getInventoryData(forceRefresh = false) {
                         const now = Date.now();
                         if (cachedInventory && !forceRefresh && (now - lastFetchTime < CACHE_DURATION)) {
-                            console.log('Using cached inventory data'); // DEBUG: Log cache hits
                             return cachedInventory;
                         }
-                        console.log('Fetching fresh inventory data'); // DEBUG: Log fresh fetches
                         const res = await fetch('/api/inventory');
                         if (!res.ok) throw new Error(`API failed: ${res.status}`);
                         cachedInventory = await res.json();
                         lastFetchTime = now;
                         return cachedInventory;
                     }
-
-                    // NEW: Debounce utility - delays execution until user stops typing (OPTIMIZATION: Step 2)
+                
                     function debounce(func, delay) {
                         let timeoutId;
                         return (...args) => {
@@ -2027,40 +2011,38 @@
                             timeoutId = setTimeout(() => func.apply(null, args), delay);
                         };
                     }
-
-                    // NEW: Batch refreshes - queues multiple updates into one (OPTIMIZATION: Step 3)
+                
                     let refreshPending = false;
-                    function queueRefresh(forceRefresh = false) {  // Optional force for cache invalidation
-                        if (refreshPending) {
-                            console.log('Refresh already queued - skipping duplicate');  // DEBUG
-                            return;
-                        }
+                    function queueRefresh(forceRefresh = false) {
+                        if (refreshPending) return;
                         refreshPending = true;
-                        setTimeout(async () => {  // Async for awaits
+                        setTimeout(async () => {
                             try {
-                                await loadInventoryTable(forceRefresh);  // Pass force
-                                loadProfitData(forceRefresh);  // Pass force
-                                loadSalesData(forceRefresh);  // Pass force
-                                // NEW: Add future KPIs here, e.g., loadTotalCarsKPI(forceRefresh);
+                                await loadInventoryTable(forceRefresh);
+                                loadProfitData(forceRefresh);
+                                loadSalesData(forceRefresh);
                             } catch (err) {
                                 console.error('Batch refresh error:', err);
                             } finally {
                                 refreshPending = false;
                             }
-                        }, 100);  // 100ms delay - quick but batches
+                        }, 100);
                     }
-
+                
                     const searchInput = document.getElementById('searchInput');
                     const inventoryTable = document.getElementById('inventoryTable');
-
-                    // UPDATED: Global search with debounce (OPTIMIZATION: Step 2)
-                    const debouncedGlobalSearch = debounce(() => {  // Wrap in debounce
+                
+                    const debouncedGlobalSearch = debounce(() => {
                         const val = searchInput.value.trim().toLowerCase();
                         Array.from(inventoryTable.tBodies[0].rows).forEach(row => {
                             row.style.display = Array.from(row.cells).some(cell => cell.textContent.toLowerCase().includes(val)) ? '' : 'none';
                         });
-                    }, 300);  // 300ms delay
-
+                    }, 300);
+                
+                    // ============================================================
+                    // UNIFIED SIDEBAR TOGGLE — single source of truth
+                    // ============================================================
+                
                     const SIDEBAR_PANELS = [
                         { btnId: 'addCarBtn',         formId: 'addCarForm' },
                         { btnId: 'addExpenseBtn',     formId: 'addExpenseForm' },
@@ -2116,43 +2098,50 @@
                     document.addEventListener('keydown', function (e) {
                         if (e.key === 'Escape') closeAllPanels();
                     });
-                    
-                    document.getElementById('searchBtn').addEventListener('click', (e) => {
-                        e.stopPropagation();  // ADD THIS LINE
+                
+                    // Search button → send query to AI panel
+                    document.getElementById('searchBtn').addEventListener('click', function (e) {
+                        e.stopPropagation();
                         const query = searchInput.value.trim();
                         if (!query) return;
-                    
-                        // Close all other panels
-                        const allPanels = ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm',
-                                           'addTransactionForm', 'addLoanForm', 'reportForm', 'settingsForm'];
-                        allPanels.forEach(id => {
-                            const el = document.getElementById(id);
-                            if (el) el.classList.remove('open');
-                        });
-                    
-                        // Open AI panel
+                        closeAllPanels();
                         const aiForm = document.getElementById('aiAdviserForm');
-                        aiForm.classList.add('open');
-                    
-                        // Scroll the AI button into view so user sees it opened
-                        const aiBtn = document.getElementById('aiAdviserBtn');
-                        aiBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    
-                        // Small delay to let the panel animate open before sending
+                        if (aiForm) aiForm.classList.add('open');
+                        document.getElementById('aiAdviserBtn')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                         setTimeout(() => {
                             document.getElementById('aiUserInput').value = query;
                             searchInput.value = '';
                             sendAIMessage();
                         }, 350);
                     });
-                    
-                    // Also trigger on Enter key in the search box
-                    searchInput.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') {
-                            document.getElementById('searchBtn').click();
-                        }
+                
+                    searchInput.addEventListener('keypress', function (e) {
+                        if (e.key === 'Enter') document.getElementById('searchBtn').click();
                     });
-                    
+                
+                    // openPanel() kept for history/back-button support
+                    function openPanel(panelId) {
+                        closeAllPanels();
+                        const target = document.getElementById(panelId);
+                        if (target) {
+                            target.classList.add('open');
+                            history.pushState({ panel: panelId }, '', '');
+                        }
+                    }
+                
+                    window.addEventListener('popstate', function (e) {
+                        closeAllPanels();
+                        if (e.state && e.state.panel) {
+                            const target = document.getElementById(e.state.panel);
+                            if (target) target.classList.add('open');
+                        }
+                        updateArrowStates();
+                    });
+                
+                    // ============================================================
+                    // PROFILE DROPDOWN (separate — not a sidebar panel)
+                    // ============================================================
+                
                     const profileContainer = document.getElementById('profileContainer');
                     const profileDropdown = document.getElementById('profileDropdown');
                     const saveBtn = document.getElementById('saveProfile');
@@ -2160,48 +2149,35 @@
                     const profileName = document.getElementById('profileName');
                     const nameInput = document.getElementById('nameInput');
                     const photoInput = document.getElementById('photoInput');
+                
                     profileContainer.addEventListener('click', (e) => {
-                        if (profileDropdown.contains(e.target)) {
-                            return;
-                        }
+                        if (profileDropdown.contains(e.target)) return;
                         profileDropdown.classList.toggle('open');
                     });
+                
                     document.addEventListener('click', (e) => {
-                        // If the click was anywhere inside profileContainer or profileDropdown → do nothing
-                        if (profileContainer.contains(e.target) || profileDropdown.contains(e.target)) {
-                            return;
-                        }
-
-                        // Otherwise → close it
+                        if (profileContainer.contains(e.target) || profileDropdown.contains(e.target)) return;
                         profileDropdown.classList.remove('open');
                     });
+                
                     saveBtn.addEventListener('click', async () => {
                         const formData = new FormData();
                         if (nameInput.value) formData.append('name', nameInput.value);
                         if (document.getElementById('currencySelect').value) {
                             formData.append('currency', document.getElementById('currencySelect').value);
                         }
-                        if (photoInput.files[0]) {
-                            formData.append('photo', photoInput.files[0]);
-                        }
-
+                        if (photoInput.files[0]) formData.append('photo', photoInput.files[0]);
                         try {
-                            const res = await fetch('/update_profile', {
-                                method: 'POST',
-                                body: formData
-                            });
+                            const res = await fetch('/update_profile', { method: 'POST', body: formData });
                             if (res.ok) {
-                                // Update UI immediately
                                 if (nameInput.value) profileName.textContent = nameInput.value;
                                 if (photoInput.files[0]) {
                                     const reader = new FileReader();
                                     reader.onload = e => profilePhoto.src = e.target.result;
                                     reader.readAsDataURL(photoInput.files[0]);
                                 }
-                                // Optional: Show success message
                                 alert('Profile updated!');
                                 profileDropdown.classList.remove('open');
-                                // Reload page to refresh currency everywhere (simplest way)
                                 location.reload();
                             } else {
                                 alert('Failed to update profile.');
@@ -2211,41 +2187,45 @@
                             alert('Error saving changes.');
                         }
                     });
-                    const addCarBtn = document.getElementById('addCarBtn'), addCarForm = document.getElementById('addCarForm');
-                    const addExpenseBtn = document.getElementById('addExpenseBtn'), addExpenseForm = document.getElementById('addExpenseForm');
-                    const editCarBtn = document.getElementById('editCarBtn'), editCarForm = document.getElementById('editCarForm');
-                    const recordSaleBtn = document.getElementById('recordSaleBtn'), recordSaleForm = document.getElementById('recordSaleForm');
-                    function openPanel(panelId) {
-                        const allPanels = ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm',
-                                           'addTransactionForm', 'addLoanForm', 'reportForm', 'settingsForm', 'aiAdviserForm'];
-                        allPanels.forEach(id => {
-                            const el = document.getElementById(id);
-                            if (el) el.classList.remove('open');
+                
+                    // ============================================================
+                    // VEHICLE SELECT HELPER
+                    // ============================================================
+                
+                    async function fetchVehicles(selectEl) {
+                        const res = await fetch('/get_vehicles');
+                        const data = await res.json();
+                        selectEl.innerHTML = '<option value="">Select vehicle</option>';
+                        data.forEach(v => {
+                            const opt = document.createElement('option');
+                            opt.value = v.id;
+                            opt.textContent = v.name;
+                            selectEl.appendChild(opt);
                         });
-                        const target = document.getElementById(panelId);
-                        if (target) {
-                            target.classList.add('open');
-                            history.pushState({ panel: panelId }, '', '');
-                        }
                     }
                 
-                    addCarBtn.addEventListener('click', () => openPanel('addCarForm'));
-                    addExpenseBtn.addEventListener('click', () => { openPanel('addExpenseForm'); fetchVehicles(expenseVehicleSelect); });
-                    editCarBtn.addEventListener('click', () => { openPanel('editCarForm'); fetchVehicles(editVehicleSelect); });
-                    recordSaleBtn.addEventListener('click', () => { openPanel('recordSaleForm'); fetchVehicles(recordSaleVehicleSelect); });
-                    document.addEventListener('click', e => {
-                        const openForms = [addCarForm, addExpenseForm, editCarForm, recordSaleForm];
-                        const buttons = [addCarBtn, addExpenseBtn, editCarBtn, recordSaleBtn];
-                        const clickedInside = openForms.some(f => f.contains(e.target)) || buttons.some(b => b.contains(e.target));
-                        if (!clickedInside) openForms.forEach(f => f.classList.remove('open'));
-                    });
-                    async function fetchVehicles(selectEl) {
-                        const res = await fetch('/get_vehicles'); const data = await res.json(); selectEl.innerHTML = '<option value="">Select vehicle</option>';
-                        data.forEach(v => { const opt = document.createElement('option'); opt.value = v.id; opt.textContent = v.name; selectEl.appendChild(opt); });
-                    }
+                    // ============================================================
+                    // FORM SUBMISSIONS (unchanged logic, just cleaned up)
+                    // ============================================================
+                
+                    const addCarBtn         = document.getElementById('addCarBtn');
+                    const addCarForm        = document.getElementById('addCarForm');
+                    const addExpenseBtn     = document.getElementById('addExpenseBtn');
+                    const addExpenseForm    = document.getElementById('addExpenseForm');
+                    const editCarBtn        = document.getElementById('editCarBtn');
+                    const editCarForm       = document.getElementById('editCarForm');
+                    const recordSaleBtn     = document.getElementById('recordSaleBtn');
+                    const recordSaleForm    = document.getElementById('recordSaleForm');
+                    const addTransactionBtn = document.getElementById('addTransactionBtn');
+                    const addTransactionForm= document.getElementById('addTransactionForm');
+                    const addLoanBtn        = document.getElementById('addLoanBtn');
+                    const addLoanForm       = document.getElementById('addLoanForm');
+                    const expenseVehicleSelect  = document.getElementById('expenseVehicleSelect');
+                    const editVehicleSelect     = document.getElementById('editVehicleSelect');
+                    const recordSaleVehicleSelect = document.getElementById('recordSaleVehicleSelect');
+                
+                    // Add Car
                     const addCarFormElement = document.getElementById('addCarFormElement');
-
-                    // UPDATED: Form submit with cache invalidation and queued refresh (OPTIMIZATION: Steps 1 & 3)
                     addCarFormElement.addEventListener('submit', async e => {
                         e.preventDefault();
                         const formData = new FormData(addCarFormElement);
@@ -2254,17 +2234,14 @@
                             alert('Vehicle added!');
                             addCarFormElement.reset();
                             addCarForm.classList.remove('open');
-                            cachedInventory = null;  // Invalidate cache after mutation
-                            queueRefresh(true);  // Batch + force refresh
+                            cachedInventory = null;
+                            queueRefresh(true);
                             fetch('/flush_superset_cache', { method: 'POST' });
                         }
                     });
-
+                
+                    // Add Expense
                     const addExpenseFormElement = document.getElementById('addExpenseFormElement');
-                    const expenseVehicleSelect = document.getElementById('expenseVehicleSelect');
-                    addExpenseBtn.addEventListener('click', () => { fetchVehicles(expenseVehicleSelect); });
-
-                    // UPDATED: Form submit with cache invalidation and queued refresh (OPTIMIZATION: Steps 1 & 3)
                     addExpenseFormElement.addEventListener('submit', async e => {
                         e.preventDefault();
                         const formData = new FormData(addExpenseFormElement);
@@ -2273,18 +2250,25 @@
                             alert('Expense added!');
                             addExpenseFormElement.reset();
                             addExpenseForm.classList.remove('open');
-                            cachedInventory = null;  // Invalidate cache after mutation
-                            queueRefresh(true);  // Batch + force refresh
+                            cachedInventory = null;
+                            queueRefresh(true);
                             fetch('/flush_superset_cache', { method: 'POST' });
                         }
                     });
-
+                
+                    // Edit Car — auto-fill on vehicle select
                     const editCarFormElement = document.getElementById('editCarFormElement');
-                    const editVehicleSelect = document.getElementById('editVehicleSelect');
-                    editCarBtn.addEventListener('click', () => { fetchVehicles(editVehicleSelect); });
-                    editVehicleSelect.addEventListener('change', async () => { const vid = editVehicleSelect.value; if (!vid) return; const res = await fetch(`/get_vehicle/${vid}`); const data = await res.json(); editCarFormElement.make.value = data.make || ''; editCarFormElement.model.value = data.model || ''; editCarFormElement.year.value = data.year || ''; editCarFormElement.purchase_price.value = data.purchase_price || ''; editCarFormElement.selling_price.value = data.fixed_selling_price || ''; editCarFormElement.mileage.value = data.mileage || ''; });
-
-                    // UPDATED: Form submit with cache invalidation and queued refresh (OPTIMIZATION: Steps 1 & 3)
+                    editVehicleSelect.addEventListener('change', async () => {
+                        const vid = editVehicleSelect.value;
+                        if (!vid) return;
+                        const res = await fetch(`/get_vehicle/${vid}`);
+                        const data = await res.json();
+                        editCarFormElement.make.value = data.make || '';
+                        editCarFormElement.model.value = data.model || '';
+                        editCarFormElement.year.value = data.year || '';
+                        editCarFormElement.purchase_price.value = data.purchase_price || '';
+                        editCarFormElement.mileage.value = data.mileage || '';
+                    });
                     editCarFormElement.addEventListener('submit', async e => {
                         e.preventDefault();
                         const formData = new FormData(editCarFormElement);
@@ -2293,43 +2277,37 @@
                             alert('Vehicle updated!');
                             editCarFormElement.reset();
                             editCarForm.classList.remove('open');
-                            cachedInventory = null;  // Invalidate cache after mutation
-                            queueRefresh(true);  // Batch + force refresh
+                            cachedInventory = null;
+                            queueRefresh(true);
                             fetch('/flush_superset_cache', { method: 'POST' });
                         }
                     });
-
+                
+                    // Record Sale — auto-fill on vehicle select
                     const recordSaleFormElement = document.getElementById('recordSaleFormElement');
-                    const recordSaleVehicleSelect = document.getElementById('recordSaleVehicleSelect');
-                    recordSaleBtn.addEventListener('click', () => { fetchVehicles(recordSaleVehicleSelect); });
-                    recordSaleVehicleSelect.addEventListener('change', async () => { const vid = recordSaleVehicleSelect.value; if (!vid) return; const res = await fetch(`/get_vehicle/${vid}`); const data = await res.json(); recordSaleFormElement.sold_to = data.sold_to || ''; recordSaleFormElement.fixed_selling_price.value = data.fixed_selling_price || ''; recordSaleFormElement.add_installment.value = data.add_installment || ''; recordSaleFormElement.notes.value = data.notes || '' })
+                    recordSaleVehicleSelect.addEventListener('change', async () => {
+                        const vid = recordSaleVehicleSelect.value;
+                        if (!vid) return;
+                        const res = await fetch(`/get_vehicle/${vid}`);
+                        const data = await res.json();
+                        recordSaleFormElement.fixed_selling_price.value = data.fixed_selling_price || '';
+                        recordSaleFormElement.notes.value = data.notes || '';
+                    });
                     recordSaleFormElement.addEventListener('submit', async e => {
                         e.preventDefault();
                         const formData = new FormData(recordSaleFormElement);
                         const res = await fetch('/record_sale_ajax', { method: 'POST', body: formData });
                         if (res.ok) {
                             alert('Sale recorded!');
-                            recordSaleElement.reset();
-                            reccordSaleForm.classList.remove('open');
-                            cachedInventory = null;  // Invalidate cache after mutation
-                            queueRefresh(true);  // Batch + force refresh
+                            recordSaleFormElement.reset();
+                            recordSaleForm.classList.remove('open');
+                            cachedInventory = null;
+                            queueRefresh(true);
                             fetch('/flush_superset_cache', { method: 'POST' });
                         }
                     });
-
-                    // NEW: Add Loan form toggle and submit – same pattern as your other forms
-                    const addLoanBtn = document.getElementById('addLoanBtn');
-                    const addLoanForm = document.getElementById('addLoanForm');
-
-                    addLoanBtn.addEventListener('click', () => {
-                        addLoanForm.classList.toggle('open');
-                        // Close all other forms
-                        ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm', 'addTransactionForm', 'reportForm', 'settingsForm', 'aiAdviserForm'].forEach(id => {
-                            const f = document.getElementById(id);
-                            if (f && f !== addLoanForm) f.classList.remove('open');
-                        });
-                    });
-
+                
+                    // Add Loan
                     document.getElementById('addLoanFormElement').addEventListener('submit', async e => {
                         e.preventDefault();
                         const formData = new FormData(e.target);
@@ -2343,17 +2321,13 @@
                             alert('Error saving loan');
                         }
                     });
-
-                    // NEW + UPDATED: Transaction type change handler – now controls expense subcategory AND loan dropdown
+                
+                    // Add Transaction — expense subcategory + loan dropdown
                     document.getElementById('transactionTypeSelect').addEventListener('change', function () {
                         const type = this.value;
-                        const isExpense = type === 'expense';
-                        const isRepayment = type === 'loan_out';
-
-                        document.getElementById('expenseSubcategoryContainer').style.display = isExpense ? 'block' : 'none';
-                        document.getElementById('loanContainer').style.display = isRepayment ? 'block' : 'none';
-
-                        if (isRepayment) {
+                        document.getElementById('expenseSubcategoryContainer').style.display = type === 'expense' ? 'block' : 'none';
+                        document.getElementById('loanContainer').style.display = type === 'loan_out' ? 'block' : 'none';
+                        if (type === 'loan_out') {
                             fetch('/get_active_loans')
                                 .then(res => res.json())
                                 .then(data => {
@@ -2363,61 +2337,36 @@
                                         const opt = document.createElement('option');
                                         opt.value = loan.id;
                                         let due = loan.due_date ? ` (due ${loan.due_date})` : '';
-                                        opt.textContent = `${loan.lender} - Owe ${loan.balance.toLocaleString()} ${due}`;
+                                        opt.textContent = `${loan.lender} - Owe ${loan.balance.toLocaleString()}${due}`;
                                         select.appendChild(opt);
                                     });
                                 })
                                 .catch(err => console.log('Loans load error:', err));
                         }
                     });
-
-                    // NEW: Pick subcategory from scroll list (your existing code, kept here for completeness)
+                
                     document.querySelectorAll('#expenseSubcategoryScroll .scroll-item').forEach(item => {
                         item.addEventListener('click', function () {
                             document.getElementById('expenseSubcategoryInput').value = this.textContent.trim();
                         });
                     });
-
-                    // NEW + UPDATED: Add Transaction form submit – exact same pattern as your others
+                
                     const addTransactionFormElement = document.getElementById('addTransactionFormElement');
                     addTransactionFormElement.addEventListener('submit', async e => {
                         e.preventDefault();
                         const formData = new FormData(addTransactionFormElement);
-                        const res = await fetch('/add_transaction_ajax', {
-                            method: 'POST',
-                            body: formData
-                        });
+                        const res = await fetch('/add_transaction_ajax', { method: 'POST', body: formData });
                         if (res.ok) {
                             const data = await res.json();
                             alert(data.message);
                             addTransactionFormElement.reset();
-                            document.getElementById('addTransactionForm').classList.remove('open');
+                            addTransactionForm.classList.remove('open');
                             document.getElementById('expenseSubcategoryContainer').style.display = 'none';
                             document.getElementById('loanContainer').style.display = 'none';
                         } else {
                             alert('Error saving transaction');
                         }
                     });
-
-                    // Your existing Add Transaction toggle (updated to close addLoanForm too)
-                    const addTransactionBtn = document.getElementById('addTransactionBtn');
-                    const addTransactionForm = document.getElementById('addTransactionForm');
-                    addTransactionBtn.addEventListener('click', () => {
-                        addTransactionForm.classList.toggle('open');
-                        ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm', 'reportForm', 'settingsForm', 'aiAdviserForm', 'addLoanForm'].forEach(id => {
-                            const f = document.getElementById(id);
-                            if (f && f !== addTransactionForm) f.classList.remove('open');
-                        });
-                    });
-
-                    // Your existing outside-click close (updated to include addLoanForm)
-                    document.addEventListener('click', e => {
-                        const openForms = [addCarForm, addExpenseForm, editCarForm, recordSaleForm, addTransactionForm, addLoanForm, document.getElementById('aiAdviserForm')].filter(f => f);
-                        const buttons = [addCarBtn, addExpenseBtn, editCarBtn, recordSaleBtn, addTransactionBtn, addLoanBtn, document.getElementById('aiAdviserBtn')].filter(b => b);
-                        const clickedInside = openForms.some(f => f.contains(e.target)) || buttons.some(b => b.contains(e.target));
-                        if (!clickedInside) openForms.forEach(f => f.classList.remove('open'));
-                    });
-
                 </script>
         
                 <script>
