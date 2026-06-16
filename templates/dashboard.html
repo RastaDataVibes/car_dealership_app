@@ -3102,22 +3102,6 @@
                         queueRefresh(true); // Force fresh start
                     });
 
-
-                    // TOGGLE REPORT DRAWER (like Add Car)
-                    const reportBtn = document.getElementById('reportBtn');
-                    const reportForm = document.getElementById('reportForm');
-
-                    reportBtn.addEventListener('click', () => {
-                        reportForm.classList.toggle('open'); // Flip open/close
-                    });
-
-                    // CLOSE ON OUTSIDE CLICK
-                    document.addEventListener('click', (e) => {
-                        if (!reportBtn.contains(e.target) && !reportForm.contains(e.target)) {
-                            reportForm.classList.remove('open'); // Hide if click elsewhere
-                        }
-                    });
-
                     // REPORT DOWNLOADS (real files from car data)
                     function downloadAllCars() {
                         fetch('/api/inventory')
@@ -3497,20 +3481,6 @@
 
                 </script>
                 <script>
-                    // Open/close AI panel — same as other buttons
-                    document.getElementById('aiAdviserBtn').addEventListener('click', function (e) {
-                        e.stopPropagation(); // Stop click from closing it immediately
-                        const aiForm = document.getElementById('aiAdviserForm');
-                        aiForm.classList.toggle('open');
-
-                        // Close all other sidebar forms
-                        ['addCarForm', 'addExpenseForm', 'editCarForm', 'recordSaleForm', 'reportForm', 'settingsForm'].forEach(id => {
-                            const form = document.getElementById(id);
-                            if (form && form !== aiForm) {
-                                form.classList.remove('open');
-                            }
-                        });
-                    });
 
                     // Send message to AI
                     async function sendAIMessage() {
@@ -3657,29 +3627,6 @@
                 </script>
                 <script>
                 // ==================== SETTINGS - THEME CONTROL ====================
-                
-                // 1. Get the Settings button and the panel
-                const settingsBtn = document.getElementById('settingsBtn');
-                const settingsForm = document.getElementById('settingsForm');
-                
-                // 2. When you click the Settings button, open or close the panel
-                settingsBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();                    // Stop the click from closing immediately
-                    settingsForm.classList.toggle('open');  // Opens or closes the settings box
-                    
-                    // Close all other open forms (Add Car, Report, etc.)
-                    document.querySelectorAll('.sidebar-form').forEach(form => {
-                        if (form !== settingsForm) form.classList.remove('open');
-                    });
-                });
-                
-                // 3. Close the settings panel when you click anywhere outside it
-                document.addEventListener('click', function(e) {
-                    if (!settingsBtn.contains(e.target) && !settingsForm.contains(e.target)) {
-                        settingsForm.classList.remove('open');
-                    }
-                });
-                
                 // ==================== THEME FUNCTIONS ====================
                 
                 // 4. Main function that actually changes the theme
