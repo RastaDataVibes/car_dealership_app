@@ -1179,7 +1179,7 @@ def update_profile():
     if name:
         current_user.profile_name = name.strip()
 
-    if currency in ['UGX', 'KES', 'TZS', 'RWF', 'ETB']:  # Validate allowed values
+    if currency in ['UGX', 'KES', 'TZS', 'RWF', 'ETB', 'USD']:  # Validate allowed values
         current_user.currency = currency
 
     if photo_file and photo_file.filename:
