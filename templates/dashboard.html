@@ -1700,6 +1700,8 @@
                                         Franc – FRw</option>
                                     <option value="ETB" {% if current_user.currency=='ETB' %}selected{% endif %}>
                                         Ethiopian Birr – Br</option>
+                                    <option value="USD" {% if current_user.currency=='USD' %}selected{% endif %}>US 
+                                        Dollar – $</option>
                                 </select>
                                 <span class="select-arrow">▼</span>
                             </div>
@@ -1917,7 +1919,8 @@
                             'KES': 'KSh',
                             'TZS': 'TSh',
                             'RWF': 'FRw',
-                            'ETB': 'Br'
+                            'ETB': 'Br',
+                            'USD': '$'
                         }[window.USER_CURRENCY] || window.USER_CURRENCY;
 
                         let formatted;
