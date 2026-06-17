@@ -2163,35 +2163,40 @@
                         profileDropdown.classList.remove('open');
                     });
                 
-                    saveBtn.addEventListener('click', async () => {
+                   saveBtn.addEventListener('click', async () => {
                         const formData = new FormData();
                         if (nameInput.value) formData.append('name', nameInput.value);
-                        if (document.getElementById('currencySelect').value) {
-                            formData.append('currency', document.getElementById('currencySelect').value);
+                        const newCurrency = document.getElementById('currencySelect').value;
+                        if (newCurrency) {
+                            formData.append('currency', newCurrency);
                         }
+                        
                         if (photoInput.files[0]) formData.append('photo', photoInput.files[0]);
+                    
                         try {
                             const res = await fetch('/update_profile', { method: 'POST', body: formData });
                             if (res.ok) {
-                                window.USER_CURRENCY = document.getElementById('currencySelect').value;
+                                if (newCurrency) window.USER_CURRENCY = newCurrency;
                                 if (nameInput.value) profileName.textContent = nameInput.value;
                                 if (photoInput.files[0]) {
                                     const reader = new FileReader();
                                     reader.onload = e => profilePhoto.src = e.target.result;
                                     reader.readAsDataURL(photoInput.files[0]);
                                 }
+                    
                                 showToast('Profile updated!');
                                 profileDropdown.classList.remove('open');
-                                location.reload();
+                                
+                                setTimeout(() => location.reload(), 800);
                             } else {
                                 showToast('Failed to update profile.');
                             }
                         } catch (err) {
                             console.error('Profile update error:', err);
-                            alert('Error saving changes.');
+                            showToast('Error saving changes.');
                         }
                     });
-                
+                        
                     // ============================================================
                     // VEHICLE SELECT HELPER
                     // ============================================================
@@ -2235,12 +2240,15 @@
                         const formData = new FormData(addCarFormElement);
                         const res = await fetch('/add_vehicle_ajax', { method: 'POST', body: formData });
                         if (res.ok) {
-                            alert('Vehicle added!');
+                            showToast('Vehicle added!');
                             addCarFormElement.reset();
                             addCarForm.classList.remove('open');
                             cachedInventory = null;
                             queueRefresh(true);
-                            fetch('/flush_superset_cache', { method: 'POST' });
+                            fetch('/flush_superset_cache', { method: 'POST' })
+                                .catch(err => console.log('Superset cache flush failed (non-critical):', err));
+                        } else {
+                            showToast('Failed to add vehicle.');
                         }
                     });
                 
@@ -2251,12 +2259,15 @@
                         const formData = new FormData(addExpenseFormElement);
                         const res = await fetch('/add_expense_ajax', { method: 'POST', body: formData });
                         if (res.ok) {
-                            alert('Expense added!');
+                            showToast('Expense added!');
                             addExpenseFormElement.reset();
                             addExpenseForm.classList.remove('open');
                             cachedInventory = null;
                             queueRefresh(true);
-                            fetch('/flush_superset_cache', { method: 'POST' });
+                            fetch('/flush_superset_cache', { method: 'POST' })
+                                .catch(err => console.log('Superset cache flush failed (non-critical):', err));
+                        } else {
+                            showToast('Failed to add expense.');
                         }
                     });
                 
@@ -2278,12 +2289,15 @@
                         const formData = new FormData(editCarFormElement);
                         const res = await fetch('/edit_vehicle_ajax', { method: 'POST', body: formData });
                         if (res.ok) {
-                            alert('Vehicle updated!');
+                            showToast('Vehicle updated!');
                             editCarFormElement.reset();
                             editCarForm.classList.remove('open');
                             cachedInventory = null;
                             queueRefresh(true);
-                            fetch('/flush_superset_cache', { method: 'POST' });
+                            fetch('/flush_superset_cache', { method: 'POST' })
+                                .catch(err => console.log('Superset cache flush failed (non-critical):', err));
+                        } else {
+                            showToast('Failed to update vehicle.');
                         }
                     });
                 
@@ -2302,12 +2316,15 @@
                         const formData = new FormData(recordSaleFormElement);
                         const res = await fetch('/record_sale_ajax', { method: 'POST', body: formData });
                         if (res.ok) {
-                            alert('Sale recorded!');
+                            showToast('Sale recorded!');
                             recordSaleFormElement.reset();
                             recordSaleForm.classList.remove('open');
                             cachedInventory = null;
                             queueRefresh(true);
-                            fetch('/flush_superset_cache', { method: 'POST' });
+                            fetch('/flush_superset_cache', { method: 'POST' })
+                                .catch(err => console.log('Superset cache flush failed (non-critical):', err));
+                        } else {
+                            showToast('Failed to record sale.');
                         }
                     });
                 
@@ -2318,11 +2335,15 @@
                         const res = await fetch('/add_loan_ajax', { method: 'POST', body: formData });
                         if (res.ok) {
                             const data = await res.json();
-                            alert(data.message);
+                            showToast(data.message || 'Loan added!');
                             e.target.reset();
                             addLoanForm.classList.remove('open');
+                            cachedInventory = null;
+                            queueRefresh(true);
+                        fetch('/flush_superset_cache', { method: 'POST' })
+                            .catch(err => console.log('Superset cache flush failed (non-critical):', err));
                         } else {
-                            alert('Error saving loan');
+                            showToast('Failed to add loan.');
                         }
                     });
                 
@@ -2362,13 +2383,17 @@
                         const res = await fetch('/add_transaction_ajax', { method: 'POST', body: formData });
                         if (res.ok) {
                             const data = await res.json();
-                            alert(data.message);
+                            showToast(data.message || 'Transaction saved!');
                             addTransactionFormElement.reset();
                             addTransactionForm.classList.remove('open');
                             document.getElementById('expenseSubcategoryContainer').style.display = 'none';
                             document.getElementById('loanContainer').style.display = 'none';
+                            cachedInventory = null;
+                            queueRefresh(true);
+                            fetch('/flush_superset_cache', { method: 'POST' })
+                                .catch(err => console.log('Superset cache flush failed (non-critical):', err));
                         } else {
-                            alert('Error saving transaction');
+                            showToast('Failed to save transaction.');
                         }
                     });
                 </script>
@@ -3070,13 +3095,7 @@
                         refreshPending = true;
 
                         try {
-                            // INSTANT: Await KPIs/table/charts (fresh data)
-                            /*
-                            await loadTotalCarsKPI(forceRefresh);
-                            await loadSoldCarsKPI(forceRefresh);
-                            await loadTotalSalesKPI(forceRefresh);
-                            await loadTotalProfitsKPI(forceRefresh);
-                            */
+                           
                             // ← Add ONLY this one line here
                             await loadAssetsKPI(forceRefresh);
                             await loadCapitalKPI(forceRefresh);
@@ -3086,14 +3105,7 @@
                             await loadProfitData(forceRefresh);
                             await loadSalesData(forceRefresh);
 
-
-                            // NUCLEAR FIX: FORCE CANVAS REDRAW — OLD PIXELS GONE
-                            const profitCtx = document.getElementById('profitChart')?.getContext('2d');
-                            const salesCtx = document.getElementById('salesTrendChart')?.getContext('2d');
-                            if (profitCtx) profitCtx.clearRect(0, 0, profitCtx.canvas.width, profitCtx.canvas.height);
-                            if (salesCtx) salesCtx.clearRect(0, 0, salesCtx.canvas.width, salesCtx.canvas.height);
-
-                            console.log('FULL REFRESH + CANVAS NUKED — CHARTS 100% INSTANT!');
+                            console.log('✅ Smooth refresh completed');
                         } catch (err) {
                             console.error('Refresh error:', err);
                         } finally {
