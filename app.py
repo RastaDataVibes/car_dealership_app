@@ -380,7 +380,8 @@ class SignupForm(FlaskForm):
         ('KES', 'Kenyan Shilling – KSh'),
         ('TZS', 'Tanzanian Shilling – TSh'),
         ('RWF', 'Rwandan Franc – FRw'),
-        ('ETB', 'Ethiopian Birr – Br')
+        ('ETB', 'Ethiopian Birr – Br'),
+        ('USD', 'US Dollar – $')  
     ], validators=[DataRequired()], default='UGX')
     submit = SubmitField('Sign Up')
 
@@ -814,7 +815,8 @@ def get_inventory():
             'KES': 'KSh',
             'TZS': 'TSh',
             'RWF': 'FRw',
-            'ETB': 'Br'
+            'ETB': 'Br',
+            'USD': '$'
         }.get(currency, 'UGX')
         return f"{symbol} {abs(val):,.0f}" if val >= 0 else f"-{symbol} {abs(val):,.0f}"
         
@@ -1021,7 +1023,8 @@ def inventory():
                 'KES': 'KSh',
                 'TZS': 'TSh',
                 'RWF': 'FRw',
-                'ETB': 'Br'
+                'ETB': 'Br',
+                'USD': '$'
             }.get(currency, 'UGX')  # fallback to code if unknown
             return f"{symbol} {abs(val):,.0f}" if val >= 0 else f"-{symbol} {abs(val):,.0f}"
         
@@ -1328,7 +1331,7 @@ def ai_chat():
     # User's preferred currency for all summaries
     user_symbol = {
         'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
-        'RWF': 'FRw', 'ETB': 'Br'
+        'RWF': 'FRw', 'ETB': 'Br', 'USD': '$'
     }.get(current_user.currency, 'UGX')
    
     # 1. Fetch all cars/inventory with full details (expenses, payments per car)
@@ -1344,7 +1347,7 @@ def ai_chat():
         status = "Sold" if v.status == 'Sold' else "Available"
         symbol = {
             'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
-            'RWF': 'FRw', 'ETB': 'Br'
+            'RWF': 'FRw', 'ETB': 'Br', 'USD': '$'
         }.get(v.currency or current_user.currency, 'UGX')
        
         # Expenses per car
