@@ -2173,17 +2173,18 @@
                         try {
                             const res = await fetch('/update_profile', { method: 'POST', body: formData });
                             if (res.ok) {
+                                window.USER_CURRENCY = document.getElementById('currencySelect').value;
                                 if (nameInput.value) profileName.textContent = nameInput.value;
                                 if (photoInput.files[0]) {
                                     const reader = new FileReader();
                                     reader.onload = e => profilePhoto.src = e.target.result;
                                     reader.readAsDataURL(photoInput.files[0]);
                                 }
-                                alert('Profile updated!');
+                                showToast('Profile updated!');
                                 profileDropdown.classList.remove('open');
                                 location.reload();
                             } else {
-                                alert('Failed to update profile.');
+                                showToast('Failed to update profile.');
                             }
                         } catch (err) {
                             console.error('Profile update error:', err);
