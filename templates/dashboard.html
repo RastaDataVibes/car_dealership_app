@@ -1442,6 +1442,20 @@
         .photo-cell img {
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
+        #addCarFormElement input:-webkit-autofill,
+        #addCarFormElement input:-webkit-autofill:hover,
+        #addCarFormElement input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0px 1000px white inset;
+            -webkit-text-fill-color: black;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+        
+        #addCarFormElement input:focus {
+            background-color: white;
+            color: black;
+            outline: none;
+            border: 1px solid #aaa;
+        }
     </style>
 </head>
 
