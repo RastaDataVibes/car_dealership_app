@@ -417,7 +417,7 @@ def home():
 @app.route('/get_vehicles')
 @subscription_required
 def get_vehicles():
-    vehicles = Inventory.query.filter_by(dealership_id=current_user.id).all()
+    vehicles = Inventory.query.filter_by(dealership_id=current_user.id, status='Available').all()
     data = [
         {'id': v.id, 'name': f"{v.make or 'N/A'} {v.model or 'N/A'} ({v.year or 'Unknown'}-{v.registration_number or 'No Reg'}({v.status})"} for v in vehicles]
     return jsonify(data)
