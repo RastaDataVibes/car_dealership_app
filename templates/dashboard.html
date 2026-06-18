@@ -1531,12 +1531,42 @@
             </div>
             <button class="sidebar-btn" id="addExpenseBtn">🫰🏾 Add Expense</button>
             <div class="sidebar-form" id="addExpenseForm">
-                <form id="addExpenseFormElement">
-                    <select name="vehicle_id" id="expenseVehicleSelect"></select>
-                    <input type="text" name="expense_category" placeholder="Expense Category">
-                    <input type="text" name="expense_amount" placeholder="Expense Amount" inputmode="numeric"
-                        oninput="formatNumberWithCommasLive(this)">
-                    <button type="submit">Add Expense</button>
+                <form id="addExpenseFormElement" style="display:flex; flex-direction:column; gap:8px; padding:10px;">
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Vehicle</label>
+                        <select name="vehicle_id" id="expenseVehicleSelect" style="width:100%; padding:5px; border-radius:4px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; margin-bottom:0;"></select>
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:4px;">Category</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;" id="expenseCategoryChips">
+                            <div onclick="selectExpenseCat(this,'Mechanical repair')" style="padding:5px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">🔧 Mechanical</div>
+                            <div onclick="selectExpenseCat(this,'Body & paint')" style="padding:5px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">🎨 Body & paint</div>
+                            <div onclick="selectExpenseCat(this,'Tyres')" style="padding:5px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">🛞 Tyres</div>
+                            <div onclick="selectExpenseCat(this,'Inspection')" style="padding:5px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">📋 Inspection</div>
+                            <div onclick="selectExpenseCat(this,'Transport')" style="padding:5px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">🚛 Transport</div>
+                            <div onclick="selectExpenseCat(this,'Detailing')" style="padding:5px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">✨ Detailing</div>
+                            <div onclick="selectExpenseCat(this,'Other')" style="padding:5px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer; grid-column:span 2;">📝 Other</div>
+                        </div>
+                        <input type="text" name="expense_category" id="expenseCategoryInput" placeholder="Tap above or type custom..."
+                            style="width:100%; margin-top:5px; padding:5px; border-radius:4px; border:1px solid #ccc; font-size:11px; box-sizing:border-box; margin-bottom:0;">
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Amount</label>
+                        <div style="position:relative;">
+                            <span id="expenseCurrencyPrefix" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:#666; pointer-events:none; z-index:1;">UGX</span>
+                            <input type="text" name="expense_amount" placeholder="500,000" inputmode="numeric"
+                                oninput="formatNumberWithCommasLive(this)"
+                                style="padding-left:36px; margin-bottom:0;">
+                        </div>
+                    </div>
+            
+                    <button type="submit" style="width:100%; padding:8px; background:#70b583; color:white; border:none; border-radius:4px; font-size:13px; font-weight:500; cursor:pointer;">
+                        + Add expense
+                    </button>
+            
                 </form>
             </div>
             <button class="sidebar-btn" id="editCarBtn">📝 Edit Car</button>
@@ -3701,6 +3731,34 @@
                     document.addEventListener('DOMContentLoaded', syncAddCarCurrency);
                     document.getElementById('saveProfile')?.addEventListener('click', () => {
                         setTimeout(syncAddCarCurrency, 900);
+                    });
+                </script>
+                <script>
+                    function selectExpenseCat(el, name) {
+                        document.querySelectorAll('#expenseCategoryChips div').forEach(b => {
+                            b.style.background = 'white';
+                            b.style.borderColor = '#ccc';
+                            b.style.color = '#333';
+                        });
+                        el.style.background = '#70b583';
+                        el.style.borderColor = '#70b583';
+                        el.style.color = 'white';
+                        document.getElementById('expenseCategoryInput').value = name;
+                    }
+                
+                    function syncExpenseCurrency() {
+                        const prefix = document.getElementById('expenseCurrencyPrefix');
+                        if (!prefix) return;
+                        const symbol = {
+                            'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
+                            'RWF': 'FRw', 'ETB': 'Br', 'USD': '$'
+                        }[window.USER_CURRENCY] || window.USER_CURRENCY;
+                        prefix.textContent = symbol;
+                    }
+                
+                    document.addEventListener('DOMContentLoaded', syncExpenseCurrency);
+                    document.getElementById('saveProfile')?.addEventListener('click', () => {
+                        setTimeout(syncExpenseCurrency, 900);
                     });
                 </script>
 </body>
