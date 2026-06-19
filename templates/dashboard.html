@@ -2382,6 +2382,18 @@
                             selectEl.appendChild(opt);
                         });
                     }
+
+                    async function fetchAllVehicles(selectEl) {
+                        const res = await fetch('/get_all_vehicles');
+                        const data = await res.json();
+                        selectEl.innerHTML = '<option value="">Select vehicle</option>';
+                        data.forEach(v => {
+                            const opt = document.createElement('option');
+                            opt.value = v.id;
+                            opt.textContent = v.name;
+                            selectEl.appendChild(opt);
+                        });
+                    }
                 
                     // ============================================================
                     // FORM SUBMISSIONS (unchanged logic, just cleaned up)
