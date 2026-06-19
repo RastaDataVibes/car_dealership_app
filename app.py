@@ -447,7 +447,8 @@ def get_vehicle(vehicle_id):
         'status': vehicle.status or 'Available',
         'sold_to': vehicle.sold_to or '',
         'fixed_selling_price': vehicle.fixed_selling_price or '',
-        'mileage': vehicle.mileage
+        'mileage': vehicle.mileage,
+        'notes': vehicle.notes or ''
     })
 
 
