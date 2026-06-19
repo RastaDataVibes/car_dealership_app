@@ -521,18 +521,21 @@ def edit_vehicle_ajax():
     if not vehicle:
         return jsonify({'message': 'Vehicle not found!'}), 404
 
-    vehicle.make = request.form.get('make') or vehicle.make
-    vehicle.model = request.form.get('model') or vehicle.model
-    vehicle.year = request.form.get('year', type=int) or vehicle.year
-    vehicle.purchase_price = clean_float(request.form.get(
-        'purchase_price')) or vehicle.purchase_price
-    vehicle.registration_number = request.form.get(
-        'registration_number') or vehicle.registration_number
-    vehicle.sourced_from = request.form.get(
-        'sourced_from') or vehicle.sourced_from
-    vehicle.mileage = clean_float(
-        request.form.get('mileage')) or vehicle.mileage
-    vehicle.notes = request.form.get('notes') or vehicle.notes
+    if request.form.get('make'):
+        vehicle.make = request.form.get('make')
+    if request.form.get('model'):
+        vehicle.model = request.form.get('model')
+    if request.form.get('year'):
+        vehicle.year = request.form.get('year', type=int)
+    if request.form.get('purchase_price'):
+        vehicle.purchase_price = clean_float(request.form.get('purchase_price'))
+    vehicle.registration_number = request.form.get('registration_number') or None
+    if request.form.get('sourced_from'):
+        vehicle.sourced_from = request.form.get('sourced_from')
+    if request.form.get('mileage'):
+        vehicle.mileage = clean_float(request.form.get('mileage'))
+    
+    vehicle.notes = request.form.get('notes') or None
 
     photo_file = request.files.get('photo')
     if photo_file and photo_file.filename:
