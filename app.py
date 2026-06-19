@@ -547,10 +547,14 @@ def edit_vehicle_ajax():
         )
         vehicle.photo_filename = result['secure_url']
 
+    # Recalculate booked profit if vehicle is sold and has a selling price
+    if vehicle.status == 'Sold' and vehicle.fixed_selling_price:
+        total_cost = (vehicle.purchase_price or 0) + (vehicle.expenses_amount or 0)
+        vehicle.booked_profit = vehicle.fixed_selling_price - total_cost
+
     db.session.commit()
-
     return jsonify({'message': f'Vehicle updated successfully!'})
-
+    
 @app.route('/record_sale_ajax', methods=['POST'])
 @subscription_required
 def record_sale_ajax():
