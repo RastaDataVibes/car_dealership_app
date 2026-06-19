@@ -541,6 +541,12 @@ def edit_vehicle_ajax():
         vehicle.sourced_from = request.form.get('sourced_from')
     if request.form.get('mileage'):
         vehicle.mileage = clean_float(request.form.get('mileage'))
+    if request.form.get('fixed_selling_price'):
+    vehicle.fixed_selling_price = clean_float(request.form.get('fixed_selling_price'))
+    # Recalculate profit immediately if selling price changes
+    if vehicle.status == 'Sold':
+        total_cost = (vehicle.purchase_price or 0) + (vehicle.expenses_amount or 0)
+        vehicle.booked_profit = vehicle.fixed_selling_price - total_cost
     
     vehicle.notes = request.form.get('notes') or None
 
