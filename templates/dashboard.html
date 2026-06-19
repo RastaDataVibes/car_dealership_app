@@ -2185,22 +2185,6 @@
                         };
                     }
                 
-                    let refreshPending = false;
-                    function queueRefresh(forceRefresh = false) {
-                        if (refreshPending) return;
-                        refreshPending = true;
-                        setTimeout(async () => {
-                            try {
-                                await loadInventoryTable(forceRefresh);
-                                loadProfitData(forceRefresh);
-                                loadSalesData(forceRefresh);
-                            } catch (err) {
-                                console.error('Batch refresh error:', err);
-                            } finally {
-                                refreshPending = false;
-                            }
-                        }, 100);
-                    }
                 
                     const searchInput = document.getElementById('searchInput');
                     const inventoryTable = document.getElementById('inventoryTable');
