@@ -2150,6 +2150,16 @@
                             return cachedInventory;
                         }
                         const res = await fetch('/api/inventory');
+                        if (res.status === 403) {
+                            // Trial ended or subscription required — redirect cleanly
+                            window.location.href = '/subscribe';
+                            return;
+                        }
+                        if (res.status === 401) {
+                            // Not logged in — redirect to login
+                            window.location.href = '/login';
+                            return;
+                        }
                         if (!res.ok) throw new Error(`API failed: ${res.status}`);
                         cachedInventory = await res.json();
                         lastFetchTime = now;
