@@ -39,17 +39,16 @@ def subscription_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
+            if request.is_json or request.path.startswith('/api/'):
+                return jsonify({'error': 'login_required'}), 401
             return redirect(url_for('login'))
-
         if current_user.has_active_access():
             return f(*args, **kwargs)
-
-        # No active access
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify({'error': 'subscription_required'}), 403
         flash('Your free trial has ended. Please subscribe to continue using GreenChain.', 'warning')
         return redirect(url_for('subscribe'))
-
     return decorated_function
-
 
 def clean_float(value):
     """Convert string like '2,500,000' or '2500000.50' to float safely"""
