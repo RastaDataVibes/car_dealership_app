@@ -1625,6 +1625,16 @@
                                 style="padding-left:36px; margin-bottom:0;">
                         </div>
                     </div>
+                    
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Fixed selling price</label>
+                        <div style="position:relative;">
+                            <span id="editCarSellingPrefix" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:#666; pointer-events:none; z-index:1;">UGX</span>
+                            <input type="text" name="fixed_selling_price" placeholder="15,000,000" inputmode="numeric"
+                                oninput="formatNumberWithCommasLive(this)"
+                                style="padding-left:36px; margin-bottom:0;">
+                        </div>
+                    </div>
             
                     <div>
                         <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Notes</label>
@@ -2446,6 +2456,7 @@
                         editCarFormElement.registration_number.value = data.registration_number || '';
                         editCarFormElement.sourced_from.value = data.sourced_from || '';
                         editCarFormElement.notes.value = data.notes || '';
+                        editCarFormElement.fixed_selling_price.value = data.fixed_selling_price || '';
                     });
                     editCarFormElement.addEventListener('submit', async e => {
                         e.preventDefault();
@@ -3835,13 +3846,14 @@
                 </script>
                 <script>
                     function syncEditCarCurrency() {
-                        const prefix = document.getElementById('editCarCurrencyPrefix');
-                        if (!prefix) return;
                         const symbol = {
                             'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
                             'RWF': 'FRw', 'ETB': 'Br', 'USD': '$'
                         }[window.USER_CURRENCY] || window.USER_CURRENCY;
-                        prefix.textContent = symbol;
+                        const prefix = document.getElementById('editCarCurrencyPrefix');
+                        if (prefix) prefix.textContent = symbol;
+                        const sellingPrefix = document.getElementById('editCarSellingPrefix');
+                        if (sellingPrefix) sellingPrefix.textContent = symbol;
                     }
                     document.addEventListener('DOMContentLoaded', syncEditCarCurrency);
                     document.getElementById('saveProfile')?.addEventListener('click', () => {
