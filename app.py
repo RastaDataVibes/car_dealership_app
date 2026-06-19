@@ -527,7 +527,7 @@ def edit_vehicle_ajax():
     vehicle = Inventory.query.filter_by(id=vehicle_id, dealership_id=current_user.id).first()
     if not vehicle:
         return jsonify({'message': 'Vehicle not found!'}), 404
-
+    
     if request.form.get('make'):
         vehicle.make = request.form.get('make')
     if request.form.get('model'):
@@ -536,19 +536,20 @@ def edit_vehicle_ajax():
         vehicle.year = request.form.get('year', type=int)
     if request.form.get('purchase_price'):
         vehicle.purchase_price = clean_float(request.form.get('purchase_price'))
-    vehicle.registration_number = request.form.get('registration_number') or None
-    if request.form.get('sourced_from'):
-        vehicle.sourced_from = request.form.get('sourced_from')
     if request.form.get('mileage'):
         vehicle.mileage = clean_float(request.form.get('mileage'))
     if request.form.get('fixed_selling_price'):
-    vehicle.fixed_selling_price = clean_float(request.form.get('fixed_selling_price'))
-    # Recalculate profit immediately if selling price changes
-    if vehicle.status == 'Sold':
+        vehicle.fixed_selling_price = clean_float(request.form.get('fixed_selling_price'))
+
+    # Optional fields — can be blanked
+    vehicle.registration_number = request.form.get('registration_number') or None
+    vehicle.sourced_from = request.form.get('sourced_from') or None
+    vehicle.notes = request.form.get('notes') or None
+
+    # Recalculate profit if sold
+    if vehicle.status == 'Sold' and vehicle.fixed_selling_price:
         total_cost = (vehicle.purchase_price or 0) + (vehicle.expenses_amount or 0)
         vehicle.booked_profit = vehicle.fixed_selling_price - total_cost
-    
-    vehicle.notes = request.form.get('notes') or None
 
     photo_file = request.files.get('photo')
     if photo_file and photo_file.filename:
@@ -559,11 +560,6 @@ def edit_vehicle_ajax():
             overwrite=True
         )
         vehicle.photo_filename = result['secure_url']
-
-    # Recalculate booked profit if vehicle is sold and has a selling price
-    if vehicle.status == 'Sold' and vehicle.fixed_selling_price:
-        total_cost = (vehicle.purchase_price or 0) + (vehicle.expenses_amount or 0)
-        vehicle.booked_profit = vehicle.fixed_selling_price - total_cost
 
     db.session.commit()
     return jsonify({'message': f'Vehicle updated successfully!'})
