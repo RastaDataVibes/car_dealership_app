@@ -1571,19 +1571,77 @@
             </div>
             <button class="sidebar-btn" id="editCarBtn">📝 Edit Car</button>
             <div class="sidebar-form" id="editCarForm">
-                <form id="editCarFormElement">
-                    <select name="vehicle_id" id="editVehicleSelect"></select>
-                    <input type="text" name="make" placeholder="Make">
-                    <input type="text" name="model" placeholder="Model">
-                    <input type="number" name="year" placeholder="Year">
-                    <input type="text" name="purchase_price" placeholder="Purchase Price" inputmode="numeric"
-                        oninput="formatNumberWithCommasLive(this)">
-                    <input type="text" name="fixed_selling_price" placeholder="fixed_Selling Price" inputmode="numeric"
-                        oninput="formatNumberWithCommasLive(this)">
-                    <input type="text" name="mileage" placeholder="Mileage" inputmode="numeric"
-                        oninput="formatNumberWithCommasLive(this)">
-                    <input type="file" name="photo" accept="image/*">
-                    <button type="submit">Update Vehicle</button>
+                <form id="editCarFormElement" style="display:flex; flex-direction:column; gap:8px; padding:10px;">
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Vehicle</label>
+                        <select name="vehicle_id" id="editVehicleSelect" style="width:100%; padding:5px; border-radius:4px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; margin-bottom:0;"></select>
+                    </div>
+            
+                    <div style="background:#f0f7f2; border:1px solid #b2d8be; border-radius:4px; padding:6px 8px; font-size:10px; color:#3a7a52;">
+                        ✏️ Fields auto-fill when you select a vehicle. Change only what needs updating.
+                    </div>
+            
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                        <div>
+                            <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Make</label>
+                            <input type="text" name="make" placeholder="Toyota" style="margin-bottom:0;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Model</label>
+                            <input type="text" name="model" placeholder="Prado" style="margin-bottom:0;">
+                        </div>
+                    </div>
+            
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                        <div>
+                            <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Year</label>
+                            <input type="number" name="year" placeholder="2021" style="margin-bottom:0;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Mileage (km)</label>
+                            <input type="text" name="mileage" placeholder="45,000" inputmode="numeric"
+                                oninput="formatNumberWithCommasLive(this)" style="margin-bottom:0;">
+                        </div>
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Registration number</label>
+                        <input type="text" name="registration_number" placeholder="UAB 123X" style="margin-bottom:0;">
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Sourced from</label>
+                        <input type="text" name="sourced_from" placeholder="John, Copart, Japan..." style="margin-bottom:0;">
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Purchase price</label>
+                        <div style="position:relative;">
+                            <span id="editCarCurrencyPrefix" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:#666; pointer-events:none; z-index:1;">UGX</span>
+                            <input type="text" name="purchase_price" placeholder="12,000,000" inputmode="numeric"
+                                oninput="formatNumberWithCommasLive(this)"
+                                style="padding-left:36px; margin-bottom:0;">
+                        </div>
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:2px;">Notes</label>
+                        <input type="text" name="notes" placeholder="Dent on door, spare key missing..." style="margin-bottom:0;">
+                    </div>
+            
+                    <label style="display:block; cursor:pointer;">
+                        <input type="file" name="photo" accept="image/*" style="display:none;">
+                        <div style="border:1.5px dashed #aaa; border-radius:6px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px; background:white;">
+                            <span style="font-size:20px;">📷</span>
+                            <span style="font-size:11px; color:#666;">Tap to update photo</span>
+                        </div>
+                    </label>
+            
+                    <button type="submit" style="width:100%; padding:8px; background:#70b583; color:white; border:none; border-radius:4px; font-size:13px; font-weight:500; cursor:pointer;">
+                        ✓ Update vehicle
+                    </button>
+            
                 </form>
             </div>
             <button class="sidebar-btn" id="recordSaleBtn">💰 Record Sale</button>
@@ -2374,6 +2432,9 @@
                         editCarFormElement.year.value = data.year || '';
                         editCarFormElement.purchase_price.value = data.purchase_price || '';
                         editCarFormElement.mileage.value = data.mileage || '';
+                        editCarFormElement.registration_number.value = data.registration_number || '';
+                        editCarFormElement.sourced_from.value = data.sourced_from || '';
+                        editCarFormElement.notes.value = data.notes || '';
                     });
                     editCarFormElement.addEventListener('submit', async e => {
                         e.preventDefault();
@@ -3759,6 +3820,21 @@
                     document.addEventListener('DOMContentLoaded', syncExpenseCurrency);
                     document.getElementById('saveProfile')?.addEventListener('click', () => {
                         setTimeout(syncExpenseCurrency, 900);
+                    });
+                </script>
+                <script>
+                    function syncEditCarCurrency() {
+                        const prefix = document.getElementById('editCarCurrencyPrefix');
+                        if (!prefix) return;
+                        const symbol = {
+                            'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
+                            'RWF': 'FRw', 'ETB': 'Br', 'USD': '$'
+                        }[window.USER_CURRENCY] || window.USER_CURRENCY;
+                        prefix.textContent = symbol;
+                    }
+                    document.addEventListener('DOMContentLoaded', syncEditCarCurrency);
+                    document.getElementById('saveProfile')?.addEventListener('click', () => {
+                        setTimeout(syncEditCarCurrency, 900);
                     });
                 </script>
 </body>
