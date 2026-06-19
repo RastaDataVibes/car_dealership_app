@@ -2252,7 +2252,7 @@
                             togglePanel(formId);
                             // Side-effects: populate vehicle dropdowns when needed
                             if (formId === 'addExpenseForm')  fetchVehicles(document.getElementById('expenseVehicleSelect'));
-                            if (formId === 'editCarForm')     fetchVehicles(document.getElementById('editVehicleSelect'));
+                            if (formId === 'editCarForm')     fetchAllVehicles(document.getElementById('editVehicleSelect'));
                             if (formId === 'recordSaleForm')  fetchVehicles(document.getElementById('recordSaleVehicleSelect'));
                         });
                     });
