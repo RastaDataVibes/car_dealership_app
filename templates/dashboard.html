@@ -3257,6 +3257,8 @@
                         }
                     }
                     // OPTIMIZED: queueRefresh - Instant KPI/table, batch charts (fewer fetches = speed)
+                    let refreshPending = false;
+                    
                     async function queueRefresh(forceRefresh = false) {
                         if (refreshPending) {
                             console.log('Refresh queued - skipping duplicate');
