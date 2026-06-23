@@ -907,9 +907,7 @@ def get_inventory():
     unsold_value = 0.0
     for v in vehicles:
         if v.status != 'Sold':  # only unsold cars
-            # Use selling price if set, else purchase price
-            car_value = clean_float(v.fixed_selling_price) if clean_float(v.fixed_selling_price) > 0 else clean_float(v.purchase_price)
-            unsold_value += car_value
+             unsold_value += clean_float(v.purchase_price)
 
     # NEW: Cash estimate (money in - money out)
     installments_received = db.session.query(db.func.sum(Payment.amount)).join(Inventory).filter(
@@ -929,9 +927,20 @@ def get_inventory():
     ).scalar() or 0.0
     
     estimated_cash -= car_expenses_total
+
+    receivables = 0.0
+    for v in vehicles:
+        if v.status == 'Sold' and v.fixed_selling_price:
+            total_paid_for_vehicle = db.session.query(
+                db.func.sum(Payment.amount)
+            ).filter_by(vehicle_id=v.id).scalar() or 0.0
+ 
+            balance_owed = clean_float(v.fixed_selling_price) - total_paid_for_vehicle
+ 
+            if balance_owed > 0:
+                receivables += balance_owed
     
-    # Full Assets = unsold cars + cash
-    total_assets = unsold_value + estimated_cash
+    total_assets = unsold_value + estimated_cash + receivables
 
     # NEW: Total Liabilities = sum of all remaining loan balances
     total_liabilities = db.session.query(db.func.sum(Loan.balance)).filter(
@@ -958,6 +967,7 @@ def get_inventory():
         "max_price": max_price,
         "unsold_value": unsold_value,
         "estimated_cash": estimated_cash,
+        "receivables": receivables,
         "total_assets": total_assets,
         "total_liabilities": total_liabilities,
         "capital": capital,
@@ -1457,9 +1467,19 @@ def ai_chat():
     unsold_value = 0.0
     for v in vehicles:
         if v.status != 'Sold':
-            car_value = clean_float(v.fixed_selling_price) if clean_float(v.fixed_selling_price) > 0 else clean_float(v.purchase_price)
-            unsold_value += car_value
-    total_assets = unsold_value + estimated_cash
+             unsold_value += clean_float(v.purchase_price)
+
+    receivables = 0.0
+    for v in vehicles:
+        if v.status == 'Sold' and v.fixed_selling_price:
+            total_paid_for_vehicle = db.session.query(
+                db.func.sum(Payment.amount)
+            ).filter_by(vehicle_id=v.id).scalar() or 0.0
+            balance_owed = clean_float(v.fixed_selling_price) - total_paid_for_vehicle
+            if balance_owed > 0:
+                receivables += balance_owed
+                
+    total_assets = unsold_value + estimated_cash + receivables
     capital = total_assets - total_liabilities
    
     # 6. Summarize Profit Chart (profit by make)
