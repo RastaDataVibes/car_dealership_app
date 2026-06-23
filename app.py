@@ -546,7 +546,8 @@ def edit_vehicle_ajax():
     vehicle.registration_number = request.form.get('registration_number') or None
     vehicle.sourced_from = request.form.get('sourced_from') or None
     vehicle.notes = request.form.get('notes') or None
-
+    vehicle.currency = current_user.currency
+    
     # Recalculate profit if sold
     if vehicle.status == 'Sold' and vehicle.fixed_selling_price:
         total_cost = (vehicle.purchase_price or 0) + (vehicle.expenses_amount or 0)
@@ -1202,13 +1203,38 @@ def update_profile():
     photo_file = request.files.get('photo')
 
     user = User.query.get(current_user.id)
+    old_currency = user.currency
 
     if name:
-        current_user.profile_name = name.strip()
+        user.profile_name = name.strip()
 
-    if currency in ['UGX', 'KES', 'TZS', 'RWF', 'ETB', 'USD']:  # Validate allowed values
-        current_user.currency = currency
+    if currency and currency in ['UGX', 'KES', 'TZS', 'RWF', 'ETB', 'USD']:
+        if currency != old_currency:
+            user.currency = currency
+            
+            print(f"Changing currency from {old_currency} to {currency} - fixing old data...")
 
+            # Fix all Cars
+            cars = Inventory.query.filter_by(dealership_id=user.id).all()
+            for car in cars:
+                car.currency = currency
+
+            # Fix all Expenses
+            expenses = Expense.query.join(Inventory).filter(
+                Inventory.dealership_id == user.id
+            ).all()
+            for exp in expenses:
+                exp.currency = currency
+
+            # Fix all Payments
+            payments = Payment.query.join(Inventory).filter(
+                Inventory.dealership_id == user.id
+            ).all()
+            for pay in payments:
+                pay.currency = currency
+
+            print(f"✅ Fixed {len(cars)} cars, {len(expenses)} expenses, and {len(payments)} payments")
+    
     if photo_file and photo_file.filename:
         result = cloudinary.uploader.upload(
             photo_file,
