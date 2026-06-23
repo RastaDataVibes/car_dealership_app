@@ -1657,19 +1657,85 @@
             </div>
             <button class="sidebar-btn" id="recordSaleBtn">💰 Record Sale</button>
             <div class="sidebar-form" id="recordSaleForm">
-                <form id="recordSaleFormElement">
-                    <select name="vehicle_id" id="recordSaleVehicleSelect" required>
-                        <option value="">Select Vehicle</option>
-                    </select>
-                    <input type="text" name="sold_to" placeholder="Customer Name + Phone" required>
-                    <input type="text" name="fixed_selling_price" placeholder="Final Selling Price (once)"
-                        inputmode="numeric" oninput="formatNumberWithCommasLive(this)">
-                    <input type="text" name="full_payment_amount" id="fullPaymentAmount" placeholder="Full Payment Amount (if paid completely today)" 
-                        inputmode="numeric" oninput="formatNumberWithCommasLive(this)">
-                    <input type="text" name="add_installment" placeholder="Installment Amount (today)"
-                        inputmode="numeric" oninput="formatNumberWithCommasLive(this)">
-                    <input type="text" name="notes" placeholder="Notes (optional)">
-                    <button type="submit">Record Sale/Installment</button>
+                <form id="recordSaleFormElement" style="display:flex; flex-direction:column; gap:10px; padding:10px;">
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:3px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Vehicle</label>
+                        <div style="position:relative;">
+                            <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; z-index:1;">🚘</span>
+                            <select name="vehicle_id" id="recordSaleVehicleSelect"
+                                style="width:100%; padding:8px 8px 8px 28px; border-radius:6px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; margin-bottom:0; background:white; appearance:none;">
+                                <option value="">Select vehicle</option>
+                            </select>
+                        </div>
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:3px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Sold to</label>
+                        <div style="position:relative;">
+                            <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; z-index:1;">👤</span>
+                            <input type="text" name="sold_to"
+                                placeholder="Customer name + phone"
+                                style="width:100%; padding:8px 8px 8px 28px; border-radius:6px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; margin-bottom:0;">
+                        </div>
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:3px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Fixed selling price</label>
+                        <div style="position:relative;">
+                            <span id="recordSaleCurrencyPrefix" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:#666; pointer-events:none; z-index:1;">UGX</span>
+                            <input type="text" name="fixed_selling_price"
+                                placeholder="15,000,000"
+                                inputmode="numeric"
+                                oninput="formatNumberWithCommasLive(this)"
+                                style="padding-left:36px; width:100%; padding-top:8px; padding-bottom:8px; padding-right:8px; border-radius:6px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; margin-bottom:0;">
+                        </div>
+                    </div>
+            
+                    <div style="background:#f4f4f4; border:1px solid #ddd; border-radius:6px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                        <p style="font-size:10px; font-weight:600; color:#555; margin:0; text-transform:uppercase; letter-spacing:0.04em;">Payment type</p>
+            
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                            <div id="chipFullPayment"
+                                onclick="selectPaymentType('full')"
+                                style="padding:8px 6px; background:#70b583; border:1px solid #70b583; border-radius:6px; font-size:11px; text-align:center; color:white; cursor:pointer; font-weight:600; transition:all 0.15s ease;">
+                                ✅ Full payment
+                            </div>
+                            <div id="chipInstallment"
+                                onclick="selectPaymentType('installment')"
+                                style="padding:8px 6px; background:white; border:1px solid #ccc; border-radius:6px; font-size:11px; text-align:center; color:#555; cursor:pointer; font-weight:500; transition:all 0.15s ease;">
+                                📋 Installment
+                            </div>
+                        </div>
+            
+                        <div>
+                            <label id="paymentAmountLabel" style="display:block; font-size:10px; color:#555; margin-bottom:3px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Full payment amount</label>
+                            <div style="position:relative;">
+                                <span id="recordSalePaymentPrefix" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:#666; pointer-events:none; z-index:1;">UGX</span>
+                                <input type="text" id="recordSalePaymentInput"
+                                    name="full_payment_amount"
+                                    placeholder="15,000,000"
+                                    inputmode="numeric"
+                                    oninput="formatNumberWithCommasLive(this)"
+                                    style="padding-left:36px; width:100%; padding-top:8px; padding-bottom:8px; padding-right:8px; border-radius:6px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; margin-bottom:0; background:white;">
+                            </div>
+                        </div>
+                    </div>
+            
+                    <input type="hidden" name="add_installment" id="recordSaleInstallmentHidden" value="">
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:3px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Notes</label>
+                        <input type="text" name="notes"
+                            placeholder="e.g. Paid via mobile money..."
+                            style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; margin-bottom:0;">
+                    </div>
+            
+                    <button type="submit"
+                        style="width:100%; padding:9px; background:#70b583; color:white; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        💰 Record sale
+                    </button>
+            
                 </form>
             </div>
             <button class="sidebar-btn" id="addTransactionBtn">💼 Add Transaction</button>
@@ -3857,7 +3923,60 @@
                     document.getElementById('saveProfile')?.addEventListener('click', () => {
                         setTimeout(syncEditCarCurrency, 900);
                     });
+
+                    let currentPaymentType = 'full';
+
+                    function selectPaymentType(type) {
+                        currentPaymentType = type;
+                        const chipFull = document.getElementById('chipFullPayment');
+                        const chipInst = document.getElementById('chipInstallment');
+                        const label    = document.getElementById('paymentAmountLabel');
+                        const input    = document.getElementById('recordSalePaymentInput');
+                    
+                        if (type === 'full') {
+                            chipFull.style.background  = '#70b583';
+                            chipFull.style.borderColor = '#70b583';
+                            chipFull.style.color       = 'white';
+                            chipFull.style.fontWeight  = '600';
+                            chipInst.style.background  = 'white';
+                            chipInst.style.borderColor = '#ccc';
+                            chipInst.style.color       = '#555';
+                            chipInst.style.fontWeight  = '500';
+                            label.textContent          = 'Full payment amount';
+                            input.name                 = 'full_payment_amount';
+                        } else {
+                            chipInst.style.background  = '#70b583';
+                            chipInst.style.borderColor = '#70b583';
+                            chipInst.style.color       = 'white';
+                            chipInst.style.fontWeight  = '600';
+                            chipFull.style.background  = 'white';
+                            chipFull.style.borderColor = '#ccc';
+                            chipFull.style.color       = '#555';
+                            chipFull.style.fontWeight  = '500';
+                            label.textContent          = 'Installment amount (today)';
+                            input.name                 = 'add_installment';
+                        }
+                        input.value       = '';
+                        input.placeholder = type === 'full' ? '15,000,000' : '2,000,000';
+                        document.getElementById('recordSaleInstallmentHidden').value = '';
+                    }
+                    
+                    function syncRecordSaleCurrency() {
+                        const symbol = {
+                            'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
+                            'RWF': 'FRw', 'ETB': 'Br', 'USD': '$'
+                        }[window.USER_CURRENCY] || window.USER_CURRENCY;
+                        const p1 = document.getElementById('recordSaleCurrencyPrefix');
+                        const p2 = document.getElementById('recordSalePaymentPrefix');
+                        if (p1) p1.textContent = symbol;
+                        if (p2) p2.textContent = symbol;
+                    }
+                    document.addEventListener('DOMContentLoaded', syncRecordSaleCurrency);
+                    document.getElementById('saveProfile')?.addEventListener('click', () => {
+                        setTimeout(syncRecordSaleCurrency, 900);
+                    });
                 </script>
+        
 </body>
 
 </html>
