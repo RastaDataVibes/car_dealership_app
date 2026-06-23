@@ -1740,45 +1740,89 @@
             </div>
             <button class="sidebar-btn" id="addTransactionBtn">💼 Add Transaction</button>
             <div class="sidebar-form" id="addTransactionForm">
-                <form id="addTransactionFormElement">
-                    <select name="transaction_type" id="transactionTypeSelect" required>
-                        <option value="">Select Type</option>
-                        <option value="cash_in">Cash In</option>
-                        <option value="loan_in">Loan In</option>
-                        <option value="cash_withdraw">Cash Withdraw</option>
-                        <option value="loan_out">Loan Out</option>
-                        <option value="expense">Expense</option>
-                    </select>
-
-                    <div id="expenseSubcategoryContainer" style="display:none; margin:10px 0;">
-                        <input type="text" name="expense_subcategory" id="expenseSubcategoryInput"
-                            placeholder="Pick subcategory" readonly>
-                        <div id="expenseSubcategoryScroll"
-                            style="max-height:120px; overflow-y:auto; border:1px solid #ccc; border-radius:4px; margin-top:5px; background:#f9f9f9;">
-                            <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">
-                                Rent</div>
-                            <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">
-                                Electricity</div>
-                            <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">
-                                Water</div>
-                            <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">
-                                Salary</div>
-                            <div class="scroll-item" style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;">
-                                Mechanic (general)</div>
-                            <div class="scroll-item" style="padding:8px; cursor:pointer;">Other</div>
+                <form id="addTransactionFormElement" style="display:flex; flex-direction:column; gap:10px; padding:10px;">
+            
+                    <input type="hidden" name="transaction_type" id="transactionTypeSelect">
+            
+                    <div>
+                        <p style="font-size:10px; font-weight:600; color:#555; margin:0 0 6px 0; text-transform:uppercase; letter-spacing:0.04em;">Transaction type</p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+            
+                            <div class="txn-chip" id="chip-cash_in" onclick="selectTxnChip('cash_in')"
+                                style="padding:8px 4px; background:#70b583; border:1px solid #70b583; border-radius:6px; font-size:11px; text-align:center; color:white; cursor:pointer; font-weight:600; transition:all 0.15s ease;">
+                                ↙ Cash in
+                            </div>
+            
+                            <div class="txn-chip" id="chip-loan_in" onclick="selectTxnChip('loan_in')"
+                                style="padding:8px 4px; background:white; border:1px solid #ccc; border-radius:6px; font-size:11px; text-align:center; color:#555; cursor:pointer; font-weight:500; transition:all 0.15s ease;">
+                                🏦 Loan in
+                            </div>
+            
+                            <div class="txn-chip" id="chip-cash_withdraw" onclick="selectTxnChip('cash_withdraw')"
+                                style="padding:8px 4px; background:white; border:1px solid #ccc; border-radius:6px; font-size:11px; text-align:center; color:#555; cursor:pointer; font-weight:500; transition:all 0.15s ease;">
+                                ↗ Cash withdraw
+                            </div>
+            
+                            <div class="txn-chip" id="chip-loan_out" onclick="selectTxnChip('loan_out')"
+                                style="padding:8px 4px; background:white; border:1px solid #ccc; border-radius:6px; font-size:11px; text-align:center; color:#555; cursor:pointer; font-weight:500; transition:all 0.15s ease;">
+                                💸 Loan out
+                            </div>
+            
+                            <div class="txn-chip" id="chip-expense" onclick="selectTxnChip('expense')"
+                                style="padding:8px 4px; background:white; border:1px solid #ccc; border-radius:6px; font-size:11px; text-align:center; color:#555; cursor:pointer; font-weight:500; transition:all 0.15s ease; grid-column:span 2;">
+                                🧾 Expense
+                            </div>
+            
                         </div>
                     </div>
-
-                    <div id="loanContainer" style="display:none; margin:10px 0;">
-                        <select name="loan_id" id="loanSelect">
-                            <option value="">No specific loan</option>
-                            <!-- populated by JS -->
-                        </select>
+            
+                    <div id="expenseSubcategoryContainer" style="display:none; background:#f4f4f4; border:1px solid #ddd; border-radius:6px; padding:10px; flex-direction:column; gap:6px;">
+                        <p style="font-size:10px; font-weight:600; color:#555; margin:0; text-transform:uppercase; letter-spacing:0.04em;">Subcategory</p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;" id="expenseCategoryChipsTxn">
+                            <div onclick="selectExpenseCatTxn(this,'Rent')"         style="padding:6px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">🏠 Rent</div>
+                            <div onclick="selectExpenseCatTxn(this,'Electricity')"  style="padding:6px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">⚡ Electricity</div>
+                            <div onclick="selectExpenseCatTxn(this,'Water')"        style="padding:6px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">💧 Water</div>
+                            <div onclick="selectExpenseCatTxn(this,'Salary')"       style="padding:6px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">👷 Salary</div>
+                            <div onclick="selectExpenseCatTxn(this,'Mechanic (general)')" style="padding:6px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">🔧 Mechanic</div>
+                            <div onclick="selectExpenseCatTxn(this,'Other')"        style="padding:6px 4px; background:white; border:1px solid #ccc; border-radius:4px; font-size:10px; text-align:center; cursor:pointer;">📝 Other</div>
+                        </div>
+                        <input type="text" name="expense_subcategory" id="expenseSubcategoryInput"
+                            placeholder="Or type a custom subcategory..."
+                            style="width:100%; padding:7px 10px; border-radius:4px; border:1px solid #ccc; font-size:11px; box-sizing:border-box; margin-bottom:0;">
                     </div>
-                    <input type="text" name="amount" placeholder="Amount" inputmode="numeric"
-                        oninput="formatNumberWithCommasLive(this)" required>
-                    <input type="text" name="notes" placeholder="Notes (optional)">
-                    <button type="submit">Save Transaction</button>
+            
+                    <div id="loanContainer" style="display:none;">
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:3px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Which loan?</label>
+                        <div style="position:relative;">
+                            <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; z-index:1;">🏦</span>
+                            <select name="loan_id" id="loanSelect"
+                                style="width:100%; padding:8px 8px 8px 28px; border-radius:6px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; background:white;">
+                                <option value="">No specific loan</option>
+                            </select>
+                        </div>
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:3px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Amount</label>
+                        <div style="position:relative;">
+                            <span id="txnCurrencyPrefix" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; color:#666; pointer-events:none; z-index:1;">UGX</span>
+                            <input type="text" name="amount" placeholder="500,000" inputmode="numeric"
+                                oninput="formatNumberWithCommasLive(this)"
+                                style="padding-left:36px; width:100%; padding-top:8px; padding-bottom:8px; padding-right:8px; border-radius:6px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; margin-bottom:0;">
+                        </div>
+                    </div>
+            
+                    <div>
+                        <label style="display:block; font-size:10px; color:#555; margin-bottom:3px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Notes</label>
+                        <input type="text" name="notes" placeholder="e.g. Rent for November..."
+                            style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #ccc; font-size:12px; box-sizing:border-box; margin-bottom:0;">
+                    </div>
+            
+                    <button type="submit"
+                        style="width:100%; padding:9px; background:#70b583; color:white; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        💾 Save transaction
+                    </button>
+            
                 </form>
             </div>
             <button class="sidebar-btn" id="addLoanBtn">🏦 Add Loan</button>
@@ -2584,34 +2628,6 @@
                     });
                 
                     // Add Transaction — expense subcategory + loan dropdown
-                    document.getElementById('transactionTypeSelect').addEventListener('change', function () {
-                        const type = this.value;
-                        document.getElementById('expenseSubcategoryContainer').style.display = type === 'expense' ? 'block' : 'none';
-                        document.getElementById('loanContainer').style.display = type === 'loan_out' ? 'block' : 'none';
-                        if (type === 'loan_out') {
-                            fetch('/get_active_loans')
-                                .then(res => res.json())
-                                .then(data => {
-                                    const select = document.getElementById('loanSelect');
-                                    select.innerHTML = '<option value="">No specific loan</option>';
-                                    data.forEach(loan => {
-                                        const opt = document.createElement('option');
-                                        opt.value = loan.id;
-                                        let due = loan.due_date ? ` (due ${loan.due_date})` : '';
-                                        opt.textContent = `${loan.lender} - Owe ${loan.balance.toLocaleString()}${due}`;
-                                        select.appendChild(opt);
-                                    });
-                                })
-                                .catch(err => console.log('Loans load error:', err));
-                        }
-                    });
-                
-                    document.querySelectorAll('#expenseSubcategoryScroll .scroll-item').forEach(item => {
-                        item.addEventListener('click', function () {
-                            document.getElementById('expenseSubcategoryInput').value = this.textContent.trim();
-                        });
-                    });
-                
                     const addTransactionFormElement = document.getElementById('addTransactionFormElement');
                     addTransactionFormElement.addEventListener('submit', async e => {
                         e.preventDefault();
@@ -2624,6 +2640,18 @@
                             addTransactionForm.classList.remove('open');
                             document.getElementById('expenseSubcategoryContainer').style.display = 'none';
                             document.getElementById('loanContainer').style.display = 'none';
+                    
+                            // Reset chips on successful submit (exactly as per your instructions)
+                            document.querySelectorAll('.txn-chip').forEach(c => {
+                                c.style.background = 'white'; c.style.borderColor = '#ccc';
+                                c.style.color = '#555'; c.style.fontWeight = '500';
+                            });
+                            document.getElementById('chip-cash_in').style.background  = '#70b583';
+                            document.getElementById('chip-cash_in').style.borderColor = '#70b583';
+                            document.getElementById('chip-cash_in').style.color       = 'white';
+                            document.getElementById('chip-cash_in').style.fontWeight  = '600';
+                            document.getElementById('transactionTypeSelect').value    = '';
+                    
                             cachedInventory = null;
                             queueRefresh(true);
                             fetch('/flush_superset_cache', { method: 'POST' })
@@ -2631,6 +2659,73 @@
                         } else {
                             showToast('Failed to save transaction.');
                         }
+                    });
+                    
+                    // Add Transaction — chip toggle
+                    function selectTxnChip(type) {
+                        document.getElementById('transactionTypeSelect').value = type;
+                    
+                        document.querySelectorAll('.txn-chip').forEach(c => {
+                            c.style.background  = 'white';
+                            c.style.borderColor = '#ccc';
+                            c.style.color       = '#555';
+                            c.style.fontWeight  = '500';
+                        });
+                        const active = document.getElementById('chip-' + type);
+                        if (active) {
+                            active.style.background  = '#70b583';
+                            active.style.borderColor = '#70b583';
+                            active.style.color       = 'white';
+                            active.style.fontWeight  = '600';
+                        }
+                    
+                        const subcat = document.getElementById('expenseSubcategoryContainer');
+                        const loan   = document.getElementById('loanContainer');
+                    
+                        subcat.style.display = type === 'expense'  ? 'flex' : 'none';
+                        loan.style.display   = type === 'loan_out' ? 'block' : 'none';
+                    
+                        if (type === 'loan_out') {
+                            fetch('/get_active_loans')
+                                .then(res => res.json())
+                                .then(data => {
+                                    const select = document.getElementById('loanSelect');
+                                    select.innerHTML = '<option value="">No specific loan</option>';
+                                    data.forEach(loan => {
+                                        const opt = document.createElement('option');
+                                        opt.value = loan.id;
+                                        const due = loan.due_date ? ` (due ${loan.due_date})` : '';
+                                        opt.textContent = `${loan.lender} — owes ${loan.balance.toLocaleString()}${due}`;
+                                        select.appendChild(opt);
+                                    });
+                                })
+                                .catch(err => console.log('Loans load error:', err));
+                        }
+                    }
+                    
+                    function selectExpenseCatTxn(el, name) {
+                        document.querySelectorAll('#expenseCategoryChipsTxn div').forEach(b => {
+                            b.style.background   = 'white';
+                            b.style.borderColor  = '#ccc';
+                            b.style.color        = '#333';
+                        });
+                        el.style.background  = '#70b583';
+                        el.style.borderColor = '#70b583';
+                        el.style.color       = 'white';
+                        document.getElementById('expenseSubcategoryInput').value = name;
+                    }
+                    
+                    function syncTxnCurrency() {
+                        const symbol = {
+                            'UGX': 'UGX', 'KES': 'KSh', 'TZS': 'TSh',
+                            'RWF': 'FRw', 'ETB': 'Br', 'USD': '$'
+                        }[window.USER_CURRENCY] || window.USER_CURRENCY;
+                        const p = document.getElementById('txnCurrencyPrefix');
+                        if (p) p.textContent = symbol;
+                    }
+                    document.addEventListener('DOMContentLoaded', syncTxnCurrency);
+                    document.getElementById('saveProfile')?.addEventListener('click', () => {
+                        setTimeout(syncTxnCurrency, 900);
                     });
                 </script>
         
