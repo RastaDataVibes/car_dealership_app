@@ -1980,16 +1980,43 @@
             </div>
             <button class="sidebar-btn" id="settingsBtn">⚙️ Settings</button>
             <div class="sidebar-form" id="settingsForm">
-                <div style="padding: 10px; background: #e8e8e8; border-radius: 5px; text-align: center;">
-                    <h4 style="margin-bottom: 10px;">🎨 Appearance</h4>
-                    <button onclick="setTheme('default')" class="theme-btn" id="theme-default"
-                        style="background: #3f7db5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">☀️ Light Mode</button>
-                    <br>
-                    <button onclick="setTheme('dark')" class="theme-btn" id="theme-dark"
-                        style="background: #9658b5; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">🌙 Dark Mode</button>
-                    <br>
-                    <button onclick="setTheme('auto')" class="theme-btn" id="theme-auto"
-                        style="background: #70b583; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 5px; cursor: pointer;">Auto</button>
+                <div style="padding:12px; display:flex; flex-direction:column; gap:7px;">
+            
+                    <p style="font-size:10px; color:#555; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 3px 0;">Appearance</p>
+            
+                    <div onclick="setTheme('default')" id="themeCard-default"
+                        style="display:flex; align-items:center; gap:10px; background:white; border:1px solid #ddd; border-radius:8px; padding:9px 10px; cursor:pointer; transition:all 0.15s ease;"
+                        onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+                        <div style="width:32px; height:32px; border-radius:6px; background:#f5f0e0; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px;">☀️</div>
+                        <div>
+                            <p style="margin:0; font-size:12px; font-weight:600; color:#222;">Light mode</p>
+                            <p style="margin:0; font-size:10px; color:#777;">Bright & clean</p>
+                        </div>
+                        <span id="themeCheck-default" style="margin-left:auto; width:16px; height:16px; border-radius:50%; border:1px solid #ccc; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px;"></span>
+                    </div>
+            
+                    <div onclick="setTheme('dark')" id="themeCard-dark"
+                        style="display:flex; align-items:center; gap:10px; background:white; border:1px solid #ddd; border-radius:8px; padding:9px 10px; cursor:pointer; transition:all 0.15s ease;"
+                        onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+                        <div style="width:32px; height:32px; border-radius:6px; background:#2a2a2a; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px;">🌙</div>
+                        <div>
+                            <p style="margin:0; font-size:12px; font-weight:600; color:#222;">Dark mode</p>
+                            <p style="margin:0; font-size:10px; color:#777;">Easy on the eyes</p>
+                        </div>
+                        <span id="themeCheck-dark" style="margin-left:auto; width:16px; height:16px; border-radius:50%; border:1px solid #ccc; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px;"></span>
+                    </div>
+            
+                    <div onclick="setTheme('auto')" id="themeCard-auto"
+                        style="display:flex; align-items:center; gap:10px; background:white; border:1px solid #ddd; border-radius:8px; padding:9px 10px; cursor:pointer; transition:all 0.15s ease;"
+                        onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+                        <div style="width:32px; height:32px; border-radius:6px; background:linear-gradient(135deg,#f5f0e0 50%,#2a2a2a 50%); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px;">🔄</div>
+                        <div>
+                            <p style="margin:0; font-size:12px; font-weight:600; color:#222;">Auto</p>
+                            <p style="margin:0; font-size:10px; color:#777;">Follows your device</p>
+                        </div>
+                        <span id="themeCheck-auto" style="margin-left:auto; width:16px; height:16px; border-radius:50%; border:1px solid #ccc; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px;"></span>
+                    </div>
+            
                 </div>
             </div>
             <button class="sidebar-btn" id="aiAdviserBtn">🤖 AI Adviser</button>
@@ -4019,57 +4046,52 @@
 
                 </script>
                 <script>
-                // ==================== SETTINGS - THEME CONTROL ====================
-                
-                // ==================== THEME FUNCTIONS ====================
-                
-                // 4. Main function that actually changes the theme
-                function setTheme(theme) {
-                    
-                    if (theme === 'dark') {
-                        document.body.classList.add('dark-mode');     // ← Turns ON Dark Mode
-                    } 
-                    else if (theme === 'default') {
-                        document.body.classList.remove('dark-mode');  // ← Turns OFF Dark Mode (Light Mode)
-                    } 
-                    else if (theme === 'auto') {
-                        // Auto mode checks your computer's/phone's setting
-                        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                            document.body.classList.add('dark-mode');   // Use Dark if your system is dark
-                        } else {
-                            document.body.classList.remove('dark-mode'); // Use Light if your system is light
+                    function setTheme(theme) {
+                        if (theme === 'dark') {
+                            document.body.classList.add('dark-mode');
+                        } else if (theme === 'default') {
+                            document.body.classList.remove('dark-mode');
+                        } else if (theme === 'auto') {
+                            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                                document.body.classList.add('dark-mode');
+                            } else {
+                                document.body.classList.remove('dark-mode');
+                            }
                         }
+                    
+                        localStorage.setItem('theme', theme);
+                        updateThemeCards(theme);
+                    
+                        const settingsForm = document.getElementById('settingsForm');
+                        if (settingsForm) settingsForm.classList.remove('open');
                     }
                     
-                    // Save your choice so next time you open the app, it remembers
-                    localStorage.setItem('theme', theme);
+                    function updateThemeCards(theme) {
+                        ['default', 'dark', 'auto'].forEach(t => {
+                            const card  = document.getElementById('themeCard-' + t);
+                            const check = document.getElementById('themeCheck-' + t);
+                            if (!card || !check) return;
                     
-                    // Make the selected button look brighter (highlight it)
-                    highlightActiveButton(theme);
-
-                    const settingsForm = document.getElementById('settingsForm');
-                    if (settingsForm) {
-                        settingsForm.classList.remove('open');
+                            if (t === theme) {
+                                card.style.border       = '2px solid #70b583';
+                                check.style.background  = '#70b583';
+                                check.style.border      = '1px solid #70b583';
+                                check.style.color       = 'white';
+                                check.textContent       = '✓';
+                            } else {
+                                card.style.border       = '1px solid #ddd';
+                                check.style.background  = 'transparent';
+                                check.style.border      = '1px solid #ccc';
+                                check.style.color       = 'transparent';
+                                check.textContent       = '';
+                            }
+                        });
                     }
-                }
-                
-                // 5. This function makes the clicked button look active
-                function highlightActiveButton(theme) {
-                    document.querySelectorAll('.theme-btn').forEach(btn => {
-                        btn.style.opacity = "0.7";           // Make all buttons a bit faded
+                    
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const savedTheme = localStorage.getItem('theme') || 'default';
+                        setTheme(savedTheme);
                     });
-                    
-                    const activeBtn = document.getElementById('theme-' + theme);
-                    if (activeBtn) {
-                        activeBtn.style.opacity = "1";       // Make selected button fully bright
-                    }
-                }
-                
-                // 6. When the page loads, remember the last theme you chose
-                document.addEventListener('DOMContentLoaded', function() {
-                    const savedTheme = localStorage.getItem('theme') || 'default';
-                    setTheme(savedTheme);        // Apply the saved theme
-                });
                 </script>
                 <script>
                     function syncAddCarCurrency() {
