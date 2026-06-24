@@ -1827,14 +1827,88 @@
             </div>
             <button class="sidebar-btn" id="addLoanBtn">🏦 Add Loan</button>
             <div class="sidebar-form" id="addLoanForm">
-                <form id="addLoanFormElement">
-                    <input type="text" name="lender" placeholder="Lender (e.g. Stanbic, Equity)" required>
-                    <input type="text" name="principal" placeholder="Amount Borrowed" inputmode="numeric"
-                        oninput="formatNumberWithCommasLive(this)" required>
-                    <input type="date" name="due_date" placeholder="Due Date">
-                    <input type="text" name="notes" placeholder="Notes (optional)">
-                    <button type="submit">Save Loan</button>
-                </form>
+              <form id="addLoanFormElement"
+                style="display:flex; flex-direction:column; gap:8px; padding:10px;">
+            
+                <div>
+                  <label style="display:block; font-size:10px; color:#555;
+                    margin-bottom:2px; font-weight:600;
+                    text-transform:uppercase; letter-spacing:0.04em;">
+                    Lender
+                  </label>
+                  <div style="position:relative;">
+                    <span style="position:absolute; left:8px; top:50%;
+                      transform:translateY(-50%); font-size:13px;
+                      pointer-events:none; z-index:1;">🏦</span>
+                    <input type="text" name="lender"
+                      placeholder="Stanbic, Equity, John..."
+                      style="width:100%; padding:8px 8px 8px 28px;
+                        border-radius:6px; border:1px solid #ccc;
+                        font-size:12px; box-sizing:border-box;" required>
+                  </div>
+                </div>
+            
+                <div>
+                  <label style="display:block; font-size:10px; color:#555;
+                    margin-bottom:2px; font-weight:600;
+                    text-transform:uppercase; letter-spacing:0.04em;">
+                    Amount borrowed
+                  </label>
+                  <div style="position:relative;">
+                    <span id="loanCurrencyPrefix"
+                      style="position:absolute; left:8px; top:50%;
+                      transform:translateY(-50%); font-size:11px; color:#666;
+                      pointer-events:none; z-index:1;">UGX</span>
+                    <input type="text" name="principal"
+                      placeholder="10,000,000" inputmode="numeric"
+                      oninput="formatNumberWithCommasLive(this)"
+                      style="padding-left:36px; width:100%;
+                        padding-top:8px; padding-bottom:8px; padding-right:8px;
+                        border-radius:6px; border:1px solid #ccc;
+                        font-size:12px; box-sizing:border-box;" required>
+                  </div>
+                </div>
+            
+                <div>
+                  <label style="display:block; font-size:10px; color:#555;
+                    margin-bottom:2px; font-weight:600;
+                    text-transform:uppercase; letter-spacing:0.04em;">
+                    Due date
+                  </label>
+                  <div style="position:relative;">
+                    <span style="position:absolute; left:8px; top:50%;
+                      transform:translateY(-50%); font-size:13px;
+                      pointer-events:none; z-index:1;">📅</span>
+                    <input type="date" name="due_date"
+                      style="width:100%; padding:8px 8px 8px 28px;
+                        border-radius:6px; border:1px solid #ccc;
+                        font-size:12px; box-sizing:border-box; background:white;">
+                  </div>
+                </div>
+            
+                <div>
+                  <label style="display:block; font-size:10px; color:#555;
+                    margin-bottom:2px; font-weight:600;
+                    text-transform:uppercase; letter-spacing:0.04em;">
+                    Notes
+                  </label>
+                  <input type="text" name="notes"
+                    placeholder="e.g. 3% monthly interest..."
+                    style="width:100%; padding:8px 10px;
+                      border-radius:6px; border:1px solid #ccc;
+                      font-size:12px; box-sizing:border-box;">
+                </div>
+            
+                <button type="submit"
+                  style="width:100%; padding:9px; background:#70b583;
+                    color:white; border:none; border-radius:6px;
+                    font-size:13px; font-weight:600; cursor:pointer;
+                    display:flex; align-items:center;
+                    justify-content:center; gap:6px;">
+                  🏦 Save loan
+                </button>
+            
+              </form>
             </div>
             <button class="sidebar-btn" id="reportBtn">📈 Report</button>
             <div class="sidebar-form" id="reportForm">
@@ -4070,6 +4144,19 @@
                     document.getElementById('saveProfile')?.addEventListener('click', () => {
                         setTimeout(syncRecordSaleCurrency, 900);
                     });
+                </script>
+                <script>
+                  function syncLoanCurrency() {
+                    const symbol = {
+                      'UGX':'UGX','KES':'KSh','TZS':'TSh',
+                      'RWF':'FRw','ETB':'Br','USD':'$'
+                    }[window.USER_CURRENCY] || window.USER_CURRENCY;
+                    const p = document.getElementById('loanCurrencyPrefix');
+                    if (p) p.textContent = symbol;
+                  }
+                  document.addEventListener('DOMContentLoaded', syncLoanCurrency);
+                  document.getElementById('saveProfile')
+                    ?.addEventListener('click', () => setTimeout(syncLoanCurrency, 900));
                 </script>
         
 </body>
