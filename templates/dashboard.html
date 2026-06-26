@@ -532,7 +532,6 @@
         #salesTrendChart,
         #profitChart {
             height: 100% !important;
-            width: 200%; 
             display: block;
         }
 
@@ -3106,6 +3105,10 @@
 
                                     var grandTotal = profits.reduce((a, b) => a + b, 0);
 
+                                    const MIN_BAR_WIDTH = 90;
+                                    const profitCardWidth = canvas.parentElement.clientWidth;
+                                    canvas.width = Math.max(profitCardWidth, makes.length * MIN_BAR_WIDTH);
+                                    canvas.height = canvas.parentElement.clientHeight;
                                     var ctx = canvas.getContext('2d');
                                     if (profitChartInstance) {
                                         profitChartInstance.destroy();
@@ -3124,7 +3127,7 @@
                                             }]
                                         },
                                         options: {
-                                            responsive: true,
+                                            responsive: false,
                                             maintainAspectRatio: false,
                                             barPercentage: 0.8,
                                             interaction: { mode: 'index', intersect: false },
@@ -3164,6 +3167,8 @@
                                     });
 
                                     console.log('Profit chart updated on submit!');
+                                    const profitWrapper = canvas.parentElement;
+                                    profitWrapper.scrollLeft = profitWrapper.scrollWidth;
                                 })
                                 .catch(err => {
                                     console.error('Chart error: ', err);
@@ -3237,6 +3242,10 @@
                                         salesCounts.push(monthlySales[key] || 0);
                                     }
 
+                                    const MIN_COL_WIDTH = 80;
+                                    const salesCardWidth = salesCanvas.parentElement.clientWidth;
+                                    salesCanvas.width = Math.max(salesCardWidth, months.length * MIN_COL_WIDTH);
+                                    salesCanvas.height = salesCanvas.parentElement.clientHeight;
                                     const salesCtx = salesCanvas.getContext('2d');
                                     if (salesChartInstance) salesChartInstance.destroy();
 
@@ -3257,7 +3266,7 @@
                                             }]
                                         },
                                         options: {
-                                            responsive: true,
+                                            responsive: false,
                                             maintainAspectRatio: false,
                                             interaction: { mode: 'index', intersect: false },
                                             plugins: {
@@ -3272,6 +3281,8 @@
                                     });
 
                                     console.log('Sales trend updated on submit!');
+                                    const salesWrapper = salesCanvas.parentElement;
+                                    salesWrapper.scrollLeft = salesWrapper.scrollWidth;
                                 })
                                 .catch(err => console.error('Sales chart error: ', err));
                         };
