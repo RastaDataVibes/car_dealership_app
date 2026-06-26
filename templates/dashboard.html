@@ -3107,7 +3107,7 @@
 
                                     const MIN_BAR_WIDTH = 90;
                                     const profitCardWidth = canvas.parentElement.clientWidth;
-                                    canvas.width = Math.max(profitCardWidth, makes.length * MIN_BAR_WIDTH);
+                                    canvas.width = 2000;  // TEMP TEST — remove after confirming scroll works
                                     canvas.height = canvas.parentElement.clientHeight;
                                     var ctx = canvas.getContext('2d');
                                     if (profitChartInstance) {
@@ -3244,7 +3244,7 @@
 
                                     const MIN_COL_WIDTH = 80;
                                     const salesCardWidth = salesCanvas.parentElement.clientWidth;
-                                    salesCanvas.width = Math.max(salesCardWidth, months.length * MIN_COL_WIDTH);
+                                    salesCanvas.width = 2000;  // TEMP TEST — remove after confirming scroll works
                                     salesCanvas.height = salesCanvas.parentElement.clientHeight;
                                     const salesCtx = salesCanvas.getContext('2d');
                                     if (salesChartInstance) salesChartInstance.destroy();
