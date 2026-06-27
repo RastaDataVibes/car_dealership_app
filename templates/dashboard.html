@@ -535,6 +535,11 @@
             display: block;
         }
 
+        #salesAxisCanvas,
+        #profitAxisCanvas {
+            display: block;
+            background-color: black;
+        }
 
         .inventory-table {
             min-width: 0;
@@ -2166,14 +2171,47 @@
             </div>
 
             <div class="chart-row">
-                <div class="card sales-trend">
-                    <div class="chart-scroll-wrapper">
-                        <canvas id="salesTrendChart" width="1200" height="300"></canvas>
+                <div class="card sales-trend" style="flex-direction:column; padding:0; overflow:hidden;">
+                    <!-- Fixed top: title + legend -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px 6px 12px; flex-shrink:0;">
+                        <span style="color:white; font-size:15px; font-weight:bold;">Sales Trend</span>
+                        <span style="color:white; font-size:11px; display:flex; align-items:center; gap:5px;">
+                            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#1f77b4;"></span>
+                            Cars Sold
+                        </span>
+                    </div>
+                    <!-- Chart body: fixed Y-axis + scrollable data -->
+                    <div style="display:flex; flex:1; min-height:0;">
+                        <canvas id="salesAxisCanvas" style="flex-shrink:0; display:block; background:black;"></canvas>
+                        <div class="chart-scroll-wrapper" style="flex:1; min-width:0;">
+                            <canvas id="salesTrendChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Fixed bottom: X-axis title -->
+                    <div style="text-align:center; color:white; font-size:11px; padding:4px 0 6px 0; flex-shrink:0;">
+                        Month
                     </div>
                 </div>
-                <div class="card profit-make">
-                    <div class="chart-scroll-wrapper">
-                        <canvas id="profitChart" width="1000" height="300"></canvas>
+                
+                <div class="card profit-make" style="flex-direction:column; padding:0; overflow:hidden;">
+                    <!-- Fixed top: title + legend -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px 6px 12px; flex-shrink:0;">
+                        <span style="color:white; font-size:15px; font-weight:bold;">Profit by Make</span>
+                        <span style="color:white; font-size:11px; display:flex; align-items:center; gap:5px;">
+                            <span style="display:inline-block; width:10px; height:10px; background:#1f77b4;"></span>
+                            SUM(Profit)
+                        </span>
+                    </div>
+                    <!-- Chart body: fixed Y-axis + scrollable data -->
+                    <div style="display:flex; flex:1; min-height:0;">
+                        <canvas id="profitAxisCanvas" style="flex-shrink:0; display:block; background:black;"></canvas>
+                        <div class="chart-scroll-wrapper" style="flex:1; min-width:0;">
+                            <canvas id="profitChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Fixed bottom: X-axis title -->
+                    <div style="text-align:center; color:white; font-size:11px; padding:4px 0 6px 0; flex-shrink:0;">
+                        Make
                     </div>
                 </div>
             </div>
@@ -3105,16 +3143,63 @@
 
                                     var grandTotal = profits.reduce((a, b) => a + b, 0);
 
+                                   // ── size the scrollable data canvas ──
                                     const MIN_BAR_WIDTH = 90;
-                                    const profitCardWidth = canvas.parentElement.clientWidth;
-                                    canvas.width = Math.max(profitCardWidth, makes.length * MIN_BAR_WIDTH);
-                                    canvas.height = canvas.parentElement.clientHeight;
+                                    const profitScrollWrapper = canvas.parentElement;
+                                    canvas.width = Math.max(profitScrollWrapper.clientWidth, makes.length * MIN_BAR_WIDTH);
+                                    canvas.height = profitScrollWrapper.clientHeight;
                                     var ctx = canvas.getContext('2d');
-                                    if (profitChartInstance) {
-                                        profitChartInstance.destroy();
-                                        profitChartInstance = null;
-                                    }
-
+                                    
+                                    // ── get the fixed Y-axis canvas ──
+                                    const profitAxisCanvas = document.getElementById('profitAxisCanvas');
+                                    const profitAxisCtx = profitAxisCanvas.getContext('2d');
+                                    
+                                    // ── destroy old instances ──
+                                    if (profitChartInstance) { profitChartInstance.destroy(); profitChartInstance = null; }
+                                    if (window.profitAxisChartInstance) { window.profitAxisChartInstance.destroy(); window.profitAxisChartInstance = null; }
+                                    
+                                    // ── shared Y scale so both canvases use identical tick values ──
+                                    const sharedProfitY = {
+                                        beginAtZero: true,
+                                        ticks: { callback: abbreviateNumber, color: 'white' },
+                                        grid: { color: 'rgba(128,128,128,0.3)' }
+                                    };
+                                    
+                                    // ── AXIS CHART: left fixed panel, draws Y-axis only ──
+                                    window.profitAxisChartInstance = new Chart(profitAxisCtx, {
+                                        type: 'bar',
+                                        data: {
+                                            labels: makes,
+                                            datasets: [{ data: profits, backgroundColor: 'transparent', borderWidth: 0 }]
+                                        },
+                                        options: {
+                                            responsive: false,
+                                            maintainAspectRatio: false,
+                                            animation: false,
+                                            plugins: {
+                                                legend: { display: false },
+                                                tooltip: { enabled: false },
+                                                datalabels: { display: false }
+                                            },
+                                            scales: {
+                                                x: { display: false },
+                                                y: {
+                                                    ...sharedProfitY,
+                                                    afterFit(scale) {
+                                                        // lock axis canvas to exactly the width Chart.js used for the Y-axis
+                                                        profitAxisCanvas.width  = Math.ceil(scale.width);
+                                                        profitAxisCanvas.height = canvas.height;
+                                                        window.profitAxisChartInstance.resize(
+                                                            profitAxisCanvas.width,
+                                                            profitAxisCanvas.height
+                                                        );
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                                    
+                                    // ── DATA CHART: scrollable canvas, Y-axis ticks hidden ──
                                     profitChartInstance = new Chart(ctx, {
                                         type: 'bar',
                                         data: {
@@ -3132,8 +3217,8 @@
                                             barPercentage: 0.8,
                                             interaction: { mode: 'index', intersect: false },
                                             plugins: {
-                                                title: { display: true, text: 'Profit by Make', font: { size: 16, weight: 'bold' }, color: 'white', padding: { top: 10, bottom: 20 } },
-                                                legend: { display: true, position: 'top', align: 'end', labels: { usePointStyle: true, padding: 10 } },
+                                                title:  { display: false },   // title is now HTML
+                                                legend: { display: false },   // legend is now HTML
                                                 tooltip: {
                                                     callbacks: {
                                                         label: context => {
@@ -3144,31 +3229,28 @@
                                                     }
                                                 },
                                                 datalabels: {
-                                                    anchor: 'end',
-                                                    align: 'top',
-                                                    display: true,
-                                                    clamp: false,
-                                                    offset: 8,
+                                                    anchor: 'end', align: 'top', display: true,
+                                                    clamp: false, offset: 8,
                                                     font: { size: 10, weight: 'bold' },
-                                                    formatter: abbreviateNumber,
-                                                    color: 'white'
+                                                    formatter: abbreviateNumber, color: 'white'
                                                 }
                                             },
                                             scales: {
-                                                x: { title: { display: true, text: 'Make', padding: { bottom: 30 }, color: 'white' }, ticks: { autoSkip: false, maxRotation: 45, color: 'white' } },
+                                                x: {
+                                                    title: { display: false },   // X-axis title is now HTML
+                                                    ticks: { autoSkip: false, maxRotation: 45, color: 'white' }
+                                                },
                                                 y: {
-                                                    beginAtZero: true,
-                                                    title: { display: true, text: 'Total Profit', position: 'left', padding: { right: 50 }, color: 'white' },
-                                                    ticks: { callback: abbreviateNumber, color: 'white' },
-                                                    grid: { color: 'rgba(128, 128, 128, 0.3)' }
+                                                    ...sharedProfitY,
+                                                    ticks: { display: false },   // ticks hidden — shown on axis canvas instead
+                                                    grid: { color: 'rgba(128,128,128,0.3)' }
                                                 }
                                             }
                                         }
                                     });
-
+                                    
                                     console.log('Profit chart updated on submit!');
-                                    const profitWrapper = canvas.parentElement;
-                                    profitWrapper.scrollLeft = profitWrapper.scrollWidth;
+                                    profitScrollWrapper.scrollLeft = profitScrollWrapper.scrollWidth;
                                 })
                                 .catch(err => {
                                     console.error('Chart error: ', err);
@@ -3242,17 +3324,68 @@
                                         salesCounts.push(monthlySales[key] || 0);
                                     }
 
-                                    const MIN_COL_WIDTH = 80;
-                                    const salesCardWidth = salesCanvas.parentElement.clientWidth;
-                                    salesCanvas.width = Math.max(salesCardWidth, months.length * MIN_COL_WIDTH);
-                                    salesCanvas.height = salesCanvas.parentElement.clientHeight;
-                                    const salesCtx = salesCanvas.getContext('2d');
-                                    if (salesChartInstance) salesChartInstance.destroy();
+                                    const salesLabels = months.map(m => new Date(m + '-01').toLocaleString('default', { month: 'short', year: 'numeric' }));
 
+                                    // ── size the scrollable data canvas ──
+                                    const MIN_COL_WIDTH = 80;
+                                    const salesScrollWrapper = salesCanvas.parentElement;
+                                    salesCanvas.width = Math.max(salesScrollWrapper.clientWidth, months.length * MIN_COL_WIDTH);
+                                    salesCanvas.height = salesScrollWrapper.clientHeight;
+                                    const salesCtx = salesCanvas.getContext('2d');
+                                    
+                                    // ── get the fixed Y-axis canvas ──
+                                    const salesAxisCanvas = document.getElementById('salesAxisCanvas');
+                                    const salesAxisCtx = salesAxisCanvas.getContext('2d');
+                                    
+                                    // ── destroy old instances ──
+                                    if (salesChartInstance) { salesChartInstance.destroy(); salesChartInstance = null; }
+                                    if (window.salesAxisChartInstance) { window.salesAxisChartInstance.destroy(); window.salesAxisChartInstance = null; }
+                                    
+                                    // ── shared Y scale ──
+                                    const sharedSalesY = {
+                                        beginAtZero: true,
+                                        ticks: { color: 'white', stepSize: 1 },
+                                        grid: { color: 'rgba(128,128,128,0.3)' }
+                                    };
+                                    
+                                    // ── AXIS CHART: left fixed panel, draws Y-axis only ──
+                                    window.salesAxisChartInstance = new Chart(salesAxisCtx, {
+                                        type: 'line',
+                                        data: {
+                                            labels: salesLabels,
+                                            datasets: [{ data: salesCounts, borderColor: 'transparent', backgroundColor: 'transparent' }]
+                                        },
+                                        options: {
+                                            responsive: false,
+                                            maintainAspectRatio: false,
+                                            animation: false,
+                                            plugins: {
+                                                legend: { display: false },
+                                                tooltip: { enabled: false },
+                                                datalabels: { display: false }
+                                            },
+                                            scales: {
+                                                x: { display: false },
+                                                y: {
+                                                    ...sharedSalesY,
+                                                    afterFit(scale) {
+                                                        salesAxisCanvas.width  = Math.ceil(scale.width);
+                                                        salesAxisCanvas.height = salesCanvas.height;
+                                                        window.salesAxisChartInstance.resize(
+                                                            salesAxisCanvas.width,
+                                                            salesAxisCanvas.height
+                                                        );
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                                    
+                                    // ── DATA CHART: scrollable canvas, Y-axis ticks hidden ──
                                     salesChartInstance = new Chart(salesCtx, {
                                         type: 'line',
                                         data: {
-                                            labels: months.map(m => new Date(m + '-01').toLocaleString('default', { month: 'short', year: 'numeric' })),
+                                            labels: salesLabels,
                                             datasets: [{
                                                 label: 'Cars Sold',
                                                 data: salesCounts,
@@ -3270,19 +3403,25 @@
                                             maintainAspectRatio: false,
                                             interaction: { mode: 'index', intersect: false },
                                             plugins: {
-                                                title: { display: true, text: 'Sales Trend', font: { size: 16, weight: 'bold' }, color: 'white', padding: { top: 10, bottom: 20 } },
-                                                legend: { display: true, position: 'top', align: 'end', labels: { usePointStyle: true, padding: 10, color: 'white' } }
+                                                title:  { display: false },   // title is now HTML
+                                                legend: { display: false }    // legend is now HTML
                                             },
                                             scales: {
-                                                x: { ticks: { autoSkip: false, maxRotation: 45, color: 'white' } },
-                                                y: { beginAtZero: true, ticks: { color: 'white', stepSize: 1 }, grid: { color: 'rgba(128,128,128,0.3)' } }
+                                                x: {
+                                                    title: { display: false },   // X-axis title is now HTML
+                                                    ticks: { autoSkip: false, maxRotation: 45, color: 'white' }
+                                                },
+                                                y: {
+                                                    ...sharedSalesY,
+                                                    ticks: { display: false },   // ticks hidden — shown on axis canvas instead
+                                                    grid: { color: 'rgba(128,128,128,0.3)' }
+                                                }
                                             }
                                         }
                                     });
-
+                                    
                                     console.log('Sales trend updated on submit!');
-                                    const salesWrapper = salesCanvas.parentElement;
-                                    salesWrapper.scrollLeft = salesWrapper.scrollWidth;
+                                    salesScrollWrapper.scrollLeft = salesScrollWrapper.scrollWidth;
                                 })
                                 .catch(err => console.error('Sales chart error: ', err));
                         };
