@@ -3152,6 +3152,8 @@
                                     
                                     // ── get the fixed Y-axis canvas ──
                                     const profitAxisCanvas = document.getElementById('profitAxisCanvas');
+                                    profitAxisCanvas.width  = 55;
+                                    profitAxisCanvas.height = canvas.height;
                                     const profitAxisCtx = profitAxisCanvas.getContext('2d');
                                     
                                     // ── destroy old instances ──
@@ -3164,6 +3166,7 @@
                                     // ── shared Y scale so both canvases use identical tick values ──
                                     const sharedProfitY = {
                                         beginAtZero: true,
+                                        max: Math.max(...profits) * 1.25,
                                         ticks: { callback: abbreviateNumber, color: 'white' },
                                         grid: { color: 'rgba(128,128,128,0.3)' }
                                     };
@@ -3241,11 +3244,12 @@
                                                     title: { display: false },   // X-axis title is now HTML
                                                     ticks: { autoSkip: false, maxRotation: 45, color: 'white' }
                                                 },
-                                                y: {
+                                               y: {
                                                     ...sharedProfitY,
-                                                    ticks: { display: false },   // ticks hidden — shown on axis canvas instead
-                                                    grid: { color: 'rgba(128,128,128,0.3)' }
-                                                }
+                                                    ticks: { display: false },
+                                                    grid: { color: 'rgba(128,128,128,0.3)' },
+                                                    max: Math.max(...profits) * 1.25
+                                                } 
                                             }
                                         }
                                     });
@@ -3336,6 +3340,8 @@
                                     
                                     // ── get the fixed Y-axis canvas ──
                                     const salesAxisCanvas = document.getElementById('salesAxisCanvas');
+                                    salesAxisCanvas.width  = 55;
+                                    salesAxisCanvas.height = salesCanvas.height;
                                     const salesAxisCtx = salesAxisCanvas.getContext('2d');
                                     
                                     // ── destroy old instances ──
