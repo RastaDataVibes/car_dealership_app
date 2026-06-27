@@ -3148,9 +3148,11 @@
                                     var grandTotal = profits.reduce((a, b) => a + b, 0);
 
                                    // ── size the scrollable data canvas ──
-                                    const MIN_BAR_WIDTH = 90;
                                     const profitScrollWrapper = canvas.parentElement;
-                                    canvas.width = 2000;  // TEMP TEST — remove after confirming scroll works
+
+                                    // === SIMPLE TEST ===
+                                    canvas.style.width = "2200px";
+                                    canvas.width = 2200;
                                     canvas.height = profitScrollWrapper.clientHeight;
                                     var ctx = canvas.getContext('2d');
                                     
@@ -3336,9 +3338,11 @@
                                     const salesLabels = months.map(m => new Date(m + '-01').toLocaleString('default', { month: 'short', year: 'numeric' }));
 
                                     // ── size the scrollable data canvas ──
-                                    const MIN_COL_WIDTH = 80;
                                     const salesScrollWrapper = salesCanvas.parentElement;
-                                    salesCanvas.width = 2000;  // TEMP TEST — remove after confirming scroll works
+
+                                    // === SIMPLE TEST ===
+                                    salesCanvas.style.width = "2200px";     // Force it very wide
+                                    salesCanvas.width = 2200;               // Internal resolution
                                     salesCanvas.height = salesScrollWrapper.clientHeight;
                                     const salesCtx = salesCanvas.getContext('2d');
                                     
