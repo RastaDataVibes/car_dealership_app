@@ -3146,7 +3146,7 @@
                                    // ── size the scrollable data canvas ──
                                     const MIN_BAR_WIDTH = 90;
                                     const profitScrollWrapper = canvas.parentElement;
-                                    canvas.width = Math.max(profitScrollWrapper.clientWidth, makes.length * MIN_BAR_WIDTH);
+                                    canvas.width = 2000;  // TEMP TEST — remove after confirming scroll works
                                     canvas.height = profitScrollWrapper.clientHeight;
                                     var ctx = canvas.getContext('2d');
                                     
@@ -3334,7 +3334,7 @@
                                     // ── size the scrollable data canvas ──
                                     const MIN_COL_WIDTH = 80;
                                     const salesScrollWrapper = salesCanvas.parentElement;
-                                    salesCanvas.width = Math.max(salesScrollWrapper.clientWidth, months.length * MIN_COL_WIDTH);
+                                    salesCanvas.width = 2000;  // TEMP TEST — remove after confirming scroll works
                                     salesCanvas.height = salesScrollWrapper.clientHeight;
                                     const salesCtx = salesCanvas.getContext('2d');
                                     
