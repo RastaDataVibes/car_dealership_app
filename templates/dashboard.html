@@ -1341,10 +1341,10 @@
             }
             #salesTrendChart,
             #profitChart {
-                width: 100% !important;
+                display: block;
             }
             .chart-scroll-wrapper {
-                overflow-x: hidden !important;
+                overflow-x: auto !important;
             }
             .profile-dropdown {
                 position: fixed;
@@ -1390,10 +1390,10 @@
             }
             #salesTrendChart,
             #profitChart {
-                width: 100% !important;
+                display: block;
             }
             .chart-scroll-wrapper {
-                overflow-x: hidden !important;
+                overflow-x: auto !important;
             }
             .topbar {
                 flex-direction: column !important;
@@ -2171,7 +2171,7 @@
             </div>
 
             <div class="chart-row">
-                <div class="card sales-trend" style="flex-direction:column; padding:0; overflow:hidden;">
+                <div class="card sales-trend" style="flex-direction:column; padding:0; overflow:visible;">
                     <!-- Fixed top: title + legend -->
                     <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px 6px 12px; flex-shrink:0;">
                         <span style="color:white; font-size:15px; font-weight:bold;">Sales Trend</span>
@@ -2193,7 +2193,7 @@
                     </div>
                 </div>
                 
-                <div class="card profit-make" style="flex-direction:column; padding:0; overflow:hidden;">
+                <div class="card profit-make" style="flex-direction:column; padding:0; overflow:visible;">
                     <!-- Fixed top: title + legend -->
                     <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px 6px 12px; flex-shrink:0;">
                         <span style="color:white; font-size:15px; font-weight:bold;">Profit by Make</span>
