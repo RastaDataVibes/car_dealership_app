@@ -1339,13 +1339,15 @@
                 width: 100% !important;
                 flex: none !important;
             }
+            
             #salesTrendChart,
             #profitChart {
-                display: block;
+                width: 100% !important;
             }
             .chart-scroll-wrapper {
-                overflow-x: auto !important;
+                overflow-x: hidden !important;
             }
+            
             .profile-dropdown {
                 position: fixed;
                 top: 60px;
@@ -1388,13 +1390,15 @@
                 flex: none !important;
                 height: 200px !important;
             }
+            
             #salesTrendChart,
             #profitChart {
-                display: block;
+                width: 100% !important;
             }
             .chart-scroll-wrapper {
-                overflow-x: auto !important;
+                overflow-x: hidden !important;
             }
+            
             .topbar {
                 flex-direction: column !important;
                 height: auto !important;
@@ -2171,7 +2175,7 @@
             </div>
 
             <div class="chart-row">
-                <div class="card sales-trend" style="flex-direction:column; padding:0; overflow:visible;">
+                <div class="card sales-trend" style="flex-direction:column; padding:0; overflow:hidden;">
                     <!-- Fixed top: title + legend -->
                     <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px 6px 12px; flex-shrink:0;">
                         <span style="color:white; font-size:15px; font-weight:bold;">Sales Trend</span>
@@ -2193,7 +2197,7 @@
                     </div>
                 </div>
                 
-                <div class="card profit-make" style="flex-direction:column; padding:0; overflow:visible;">
+                <div class="card profit-make" style="flex-direction:column; padding:0; overflow:hidden;">
                     <!-- Fixed top: title + legend -->
                     <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px 6px 12px; flex-shrink:0;">
                         <span style="color:white; font-size:15px; font-weight:bold;">Profit by Make</span>
