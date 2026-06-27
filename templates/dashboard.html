@@ -3157,6 +3157,9 @@
                                     // ── destroy old instances ──
                                     if (profitChartInstance) { profitChartInstance.destroy(); profitChartInstance = null; }
                                     if (window.profitAxisChartInstance) { window.profitAxisChartInstance.destroy(); window.profitAxisChartInstance = null; }
+                                    const _pac = document.getElementById('profitAxisCanvas');
+                                    if (_pac) { const _c = _pac.getContext('2d'); if (_c) _c.clearRect(0, 0, _pac.width, _pac.height); }
+                                    if (canvas) { const _c2 = canvas.getContext('2d'); if (_c2) _c2.clearRect(0, 0, canvas.width, canvas.height); }
                                     
                                     // ── shared Y scale so both canvases use identical tick values ──
                                     const sharedProfitY = {
@@ -3186,18 +3189,16 @@
                                                 y: {
                                                     ...sharedProfitY,
                                                     afterFit(scale) {
-                                                        // lock axis canvas to exactly the width Chart.js used for the Y-axis
-                                                        profitAxisCanvas.width  = Math.ceil(scale.width);
-                                                        profitAxisCanvas.height = canvas.height;
-                                                        window.profitAxisChartInstance.resize(
-                                                            profitAxisCanvas.width,
-                                                            profitAxisCanvas.height
-                                                        );
+                                                        profitAxisCanvas._measuredWidth = Math.ceil(scale.width);
                                                     }
                                                 }
                                             }
                                         }
                                     });
+                                    const measuredPW = profitAxisCanvas._measuredWidth || 50;
+                                    profitAxisCanvas.width  = measuredPW;
+                                    profitAxisCanvas.height = canvas.height;
+                                    window.profitAxisChartInstance.resize(measuredPW, canvas.height);
                                     
                                     // ── DATA CHART: scrollable canvas, Y-axis ticks hidden ──
                                     profitChartInstance = new Chart(ctx, {
@@ -3340,6 +3341,9 @@
                                     // ── destroy old instances ──
                                     if (salesChartInstance) { salesChartInstance.destroy(); salesChartInstance = null; }
                                     if (window.salesAxisChartInstance) { window.salesAxisChartInstance.destroy(); window.salesAxisChartInstance = null; }
+                                    const _sac = document.getElementById('salesAxisCanvas');
+                                    if (_sac) { const _c = _sac.getContext('2d'); if (_c) _c.clearRect(0, 0, _sac.width, _sac.height); }
+                                    if (salesCanvas) { const _c2 = salesCanvas.getContext('2d'); if (_c2) _c2.clearRect(0, 0, salesCanvas.width, salesCanvas.height); }
                                     
                                     // ── shared Y scale ──
                                     const sharedSalesY = {
@@ -3369,17 +3373,16 @@
                                                 y: {
                                                     ...sharedSalesY,
                                                     afterFit(scale) {
-                                                        salesAxisCanvas.width  = Math.ceil(scale.width);
-                                                        salesAxisCanvas.height = salesCanvas.height;
-                                                        window.salesAxisChartInstance.resize(
-                                                            salesAxisCanvas.width,
-                                                            salesAxisCanvas.height
-                                                        );
+                                                        salesAxisCanvas._measuredWidth = Math.ceil(scale.width);
                                                     }
                                                 }
                                             }
                                         }
                                     });
+                                    const measuredSW = salesAxisCanvas._measuredWidth || 50;
+                                    salesAxisCanvas.width  = measuredSW;
+                                    salesAxisCanvas.height = salesCanvas.height;
+                                    window.salesAxisChartInstance.resize(measuredSW, salesCanvas.height);
                                     
                                     // ── DATA CHART: scrollable canvas, Y-axis ticks hidden ──
                                     salesChartInstance = new Chart(salesCtx, {
