@@ -3193,7 +3193,7 @@
                                             responsive: false,
                                             maintainAspectRatio: false,
                                             animation: false,
-                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 0 } },
+                                            layout: { padding: { top: 10, bottom: 30, left: 10, right: 0 } },
                                             plugins: {
                                                 legend: { display: false },
                                                 tooltip: { enabled: false },
@@ -3208,10 +3208,11 @@
                                                         callback: abbreviateNumber, 
                                                         color: 'white',
                                                         font: { size: 10 }
+                                                        padding: 12
                                                     },
                                                     grid: { color: 'rgba(128,128,128,0.3)' },
                                                     afterFit(scale) {
-                                                        scale.width = 75;
+                                                        scale.width = 78;
                                                     }
                                                 }
                                             }
@@ -3265,13 +3266,18 @@
                                                     beginAtZero: true,
                                                     max: yMax,
                                                     ticks: { 
+                                                        display: false,
                                                         callback: abbreviateNumber, 
                                                         color: 'white',
                                                         font: { size: 10 }
                                                     },
-                                                    grid: { color: 'rgba(128,128,128,0.3)' },
+                                                    grid: { 
+                                                        color: 'rgba(128,128,128,0.3)',
+                                                        drawBorder: false
+                                                    },
+                                                    border: { display: false },
                                                     afterFit(scale) {
-                                                        scale.width = 75;
+                                                        scale.width = 0;
                                                     }
                                                 }
                                             }
@@ -3280,6 +3286,12 @@
                                     
                                     console.log('Profit chart updated on submit!');
                                     profitScrollWrapper.scrollLeft = profitScrollWrapper.scrollWidth;
+
+                                    // Force final sync for better alignment between fixed axis and data chart
+                                    setTimeout(() => {
+                                        if (window.profitAxisChartInstance) window.profitAxisChartInstance.update('none');
+                                        if (profitChartInstance) profitChartInstance.update('none');
+                                    }, 50);
                                 })
                                 .catch(err => {
                                     console.error('Chart error: ', err);
