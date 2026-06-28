@@ -1345,7 +1345,7 @@
                 width: 100% !important;
             }
             .chart-scroll-wrapper {
-                overflow-x: hidden !important;
+                overflow-x: auto !important;
             }
             
             .profile-dropdown {
@@ -1396,7 +1396,7 @@
                 width: 100% !important;
             }
             .chart-scroll-wrapper {
-                overflow-x: hidden !important;
+                overflow-x: auto !important;
             }
             
             .topbar {
@@ -3146,14 +3146,17 @@
                                     }
 
                                     var grandTotal = profits.reduce((a, b) => a + b, 0);
+                                    const yMax = Math.max(...profits) * 1.25;
 
                                    // ── size the scrollable data canvas ──
                                     const profitScrollWrapper = canvas.parentElement;
 
                                     // === SIMPLE TEST ===
-                                    canvas.style.width = "2200px";
-                                    canvas.width = 2200;
-                                    canvas.height = profitScrollWrapper.clientHeight;
+                                    const barWidth = 80;
+                                    const dataWidth = Math.max(makes.length * barWidth, profitScrollWrapper.clientWidth);
+                                    canvas.style.width = dataWidth + 'px';
+                                    canvas.width = dataWidth;
+                                    canvas.height = profitScrollWrapper.clientHeight || 240;
                                     var ctx = canvas.getContext('2d');
                                     
                                     // ── get the fixed Y-axis canvas ──
@@ -3188,6 +3191,7 @@
                                             responsive: false,
                                             maintainAspectRatio: false,
                                             animation: false,
+                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 0 } },
                                             plugins: {
                                                 legend: { display: false },
                                                 tooltip: { enabled: false },
@@ -3196,18 +3200,15 @@
                                             scales: {
                                                 x: { display: false },
                                                 y: {
-                                                    ...sharedProfitY,
-                                                    afterFit(scale) {
-                                                        profitAxisCanvas._measuredWidth = Math.ceil(scale.width);
-                                                    }
+                                                    beginAtZero: true,
+                                                    max: yMax,
+                                                    ticks: { callback: abbreviateNumber, color: 'white' },
+                                                    grid: { color: 'rgba(128,128,128,0.3)' }
                                                 }
                                             }
                                         }
                                     });
-                                    const measuredPW = profitAxisCanvas._measuredWidth || 50;
-                                    profitAxisCanvas.width  = measuredPW;
-                                    profitAxisCanvas.height = canvas.height;
-                                    window.profitAxisChartInstance.resize(measuredPW, canvas.height);
+                                    
                                     
                                     // ── DATA CHART: scrollable canvas, Y-axis ticks hidden ──
                                     profitChartInstance = new Chart(ctx, {
@@ -3226,9 +3227,10 @@
                                             maintainAspectRatio: false,
                                             barPercentage: 0.8,
                                             interaction: { mode: 'index', intersect: false },
+                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 0 } },
                                             plugins: {
-                                                title:  { display: false },   // title is now HTML
-                                                legend: { display: false },   // legend is now HTML
+                                                title:  { display: false },
+                                                legend: { display: false },
                                                 tooltip: {
                                                     callbacks: {
                                                         label: context => {
@@ -3247,15 +3249,15 @@
                                             },
                                             scales: {
                                                 x: {
-                                                    title: { display: false },   // X-axis title is now HTML
+                                                    title: { display: false },
                                                     ticks: { autoSkip: false, maxRotation: 45, color: 'white' }
                                                 },
-                                               y: {
-                                                    ...sharedProfitY,
+                                                y: {
+                                                    beginAtZero: true,
+                                                    max: yMax,
                                                     ticks: { display: false },
-                                                    grid: { color: 'rgba(128,128,128,0.3)' },
-                                                    max: Math.max(...profits) * 1.25
-                                                } 
+                                                    grid: { color: 'rgba(128,128,128,0.3)' }
+                                                }
                                             }
                                         }
                                     });
@@ -3336,14 +3338,17 @@
                                     }
 
                                     const salesLabels = months.map(m => new Date(m + '-01').toLocaleString('default', { month: 'short', year: 'numeric' }));
+                                    const salesYMax = Math.max(...salesCounts, 1);
 
                                     // ── size the scrollable data canvas ──
                                     const salesScrollWrapper = salesCanvas.parentElement;
 
                                     // === SIMPLE TEST ===
-                                    salesCanvas.style.width = "2200px";     // Force it very wide
-                                    salesCanvas.width = 2200;               // Internal resolution
-                                    salesCanvas.height = salesScrollWrapper.clientHeight;
+                                    const pointWidth = 100;
+                                    const salesDataWidth = Math.max(salesLabels.length * pointWidth, salesScrollWrapper.clientWidth);
+                                    salesCanvas.style.width = salesDataWidth + 'px';
+                                    salesCanvas.width = salesDataWidth;
+                                    salesCanvas.height = salesScrollWrapper.clientHeight || 240;
                                     const salesCtx = salesCanvas.getContext('2d');
                                     
                                     // ── get the fixed Y-axis canvas ──
@@ -3377,6 +3382,7 @@
                                             responsive: false,
                                             maintainAspectRatio: false,
                                             animation: false,
+                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 0 } },
                                             plugins: {
                                                 legend: { display: false },
                                                 tooltip: { enabled: false },
@@ -3385,18 +3391,15 @@
                                             scales: {
                                                 x: { display: false },
                                                 y: {
-                                                    ...sharedSalesY,
-                                                    afterFit(scale) {
-                                                        salesAxisCanvas._measuredWidth = Math.ceil(scale.width);
-                                                    }
+                                                    beginAtZero: true,
+                                                    max: salesYMax,
+                                                    ticks: { color: 'white', stepSize: 1 },
+                                                    grid: { color: 'rgba(128,128,128,0.3)' }
                                                 }
                                             }
                                         }
                                     });
-                                    const measuredSW = salesAxisCanvas._measuredWidth || 50;
-                                    salesAxisCanvas.width  = measuredSW;
-                                    salesAxisCanvas.height = salesCanvas.height;
-                                    window.salesAxisChartInstance.resize(measuredSW, salesCanvas.height);
+                                    
                                     
                                     // ── DATA CHART: scrollable canvas, Y-axis ticks hidden ──
                                     salesChartInstance = new Chart(salesCtx, {
@@ -3419,18 +3422,20 @@
                                             responsive: false,
                                             maintainAspectRatio: false,
                                             interaction: { mode: 'index', intersect: false },
+                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 0 } },
                                             plugins: {
-                                                title:  { display: false },   // title is now HTML
-                                                legend: { display: false }    // legend is now HTML
+                                                title:  { display: false },
+                                                legend: { display: false }
                                             },
                                             scales: {
                                                 x: {
-                                                    title: { display: false },   // X-axis title is now HTML
+                                                    title: { display: false },
                                                     ticks: { autoSkip: false, maxRotation: 45, color: 'white' }
                                                 },
                                                 y: {
-                                                    ...sharedSalesY,
-                                                    ticks: { display: false },   // ticks hidden — shown on axis canvas instead
+                                                    beginAtZero: true,
+                                                    max: salesYMax,
+                                                    ticks: { display: false },
                                                     grid: { color: 'rgba(128,128,128,0.3)' }
                                                 }
                                             }
