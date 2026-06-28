@@ -2186,7 +2186,7 @@
                     </div>
                     <!-- Chart body: fixed Y-axis + scrollable data -->
                     <div style="display:flex; flex:1; min-height:0;">
-                        <canvas id="salesAxisCanvas" style="flex-shrink:0; display:block; background:black;"></canvas>
+                        <canvas id="salesAxisCanvas" style="flex-shrink:0; display:block; background:black; width:75px; min-width:75px;"></canvas>
                         <div class="chart-scroll-wrapper" style="flex:1; min-width:0;">
                             <canvas id="salesTrendChart"></canvas>
                         </div>
@@ -2208,7 +2208,7 @@
                     </div>
                     <!-- Chart body: fixed Y-axis + scrollable data -->
                     <div style="display:flex; flex:1; min-height:0;">
-                        <canvas id="profitAxisCanvas" style="flex-shrink:0; display:block; background:black;"></canvas>
+                        <canvas id="profitAxisCanvas" style="flex-shrink:0; display:block; background:black; width:75px; min-width:75px;"></canvas>
                         <div class="chart-scroll-wrapper" style="flex:1; min-width:0;">
                             <canvas id="profitChart"></canvas>
                         </div>
@@ -3161,8 +3161,10 @@
                                     
                                     // ── get the fixed Y-axis canvas ──
                                     const profitAxisCanvas = document.getElementById('profitAxisCanvas');
-                                    profitAxisCanvas.width  = 55;
-                                    profitAxisCanvas.height = canvas.height;
+                                    profitAxisCanvas.width      = 75;
+                                    profitAxisCanvas.style.width = '75px';
+                                    profitAxisCanvas.height      = canvas.height;
+                                    profitAxisCanvas.style.height = canvas.height + 'px';
                                     const profitAxisCtx = profitAxisCanvas.getContext('2d');
                                     
                                     // ── destroy old instances ──
@@ -3202,8 +3204,15 @@
                                                 y: {
                                                     beginAtZero: true,
                                                     max: yMax,
-                                                    ticks: { callback: abbreviateNumber, color: 'white' },
-                                                    grid: { color: 'rgba(128,128,128,0.3)' }
+                                                    ticks: { 
+                                                        callback: abbreviateNumber, 
+                                                        color: 'white',
+                                                        font: { size: 10 }
+                                                    },
+                                                    grid: { color: 'rgba(128,128,128,0.3)' },
+                                                    afterFit(scale) {
+                                                        scale.width = 75;
+                                                    }
                                                 }
                                             }
                                         }
@@ -3227,7 +3236,7 @@
                                             maintainAspectRatio: false,
                                             barPercentage: 0.8,
                                             interaction: { mode: 'index', intersect: false },
-                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 0 } },
+                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 20 } },
                                             plugins: {
                                                 title:  { display: false },
                                                 legend: { display: false },
@@ -3255,8 +3264,15 @@
                                                 y: {
                                                     beginAtZero: true,
                                                     max: yMax,
-                                                    ticks: { display: false },
-                                                    grid: { color: 'rgba(128,128,128,0.3)' }
+                                                    ticks: { 
+                                                        callback: abbreviateNumber, 
+                                                        color: 'white',
+                                                        font: { size: 10 }
+                                                    },
+                                                    grid: { color: 'rgba(128,128,128,0.3)' },
+                                                    afterFit(scale) {
+                                                        scale.width = 75;
+                                                    }
                                                 }
                                             }
                                         }
@@ -3353,8 +3369,10 @@
                                     
                                     // ── get the fixed Y-axis canvas ──
                                     const salesAxisCanvas = document.getElementById('salesAxisCanvas');
-                                    salesAxisCanvas.width  = 55;
-                                    salesAxisCanvas.height = salesCanvas.height;
+                                    salesAxisCanvas.width       = 75;
+                                    salesAxisCanvas.style.width  = '75px';
+                                    salesAxisCanvas.height       = salesCanvas.height;
+                                    salesAxisCanvas.style.height = salesCanvas.height + 'px';
                                     const salesAxisCtx = salesAxisCanvas.getContext('2d');
                                     
                                     // ── destroy old instances ──
@@ -3393,8 +3411,15 @@
                                                 y: {
                                                     beginAtZero: true,
                                                     max: salesYMax,
-                                                    ticks: { color: 'white', stepSize: 1 },
-                                                    grid: { color: 'rgba(128,128,128,0.3)' }
+                                                    ticks: { 
+                                                        color: 'white', 
+                                                        stepSize: 1,
+                                                        font: { size: 10 }
+                                                    },
+                                                    grid: { color: 'rgba(128,128,128,0.3)' },
+                                                    afterFit(scale) {
+                                                        scale.width = 75;
+                                                    }
                                                 }
                                             }
                                         }
@@ -3422,7 +3447,7 @@
                                             responsive: false,
                                             maintainAspectRatio: false,
                                             interaction: { mode: 'index', intersect: false },
-                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 0 } },
+                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 20 } },
                                             plugins: {
                                                 title:  { display: false },
                                                 legend: { display: false }
@@ -3435,8 +3460,15 @@
                                                 y: {
                                                     beginAtZero: true,
                                                     max: salesYMax,
-                                                    ticks: { display: false },
-                                                    grid: { color: 'rgba(128,128,128,0.3)' }
+                                                    ticks: { 
+                                                        color: 'white', 
+                                                        stepSize: 1,
+                                                        font: { size: 10 }
+                                                    },
+                                                    grid: { color: 'rgba(128,128,128,0.3)' },
+                                                    afterFit(scale) {
+                                                        scale.width = 75;
+                                                    }
                                                 }
                                             }
                                         }
