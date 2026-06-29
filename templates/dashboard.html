@@ -3287,10 +3287,20 @@
                                     console.log('Profit chart updated on submit!');
                                     profitScrollWrapper.scrollLeft = profitScrollWrapper.scrollWidth;
 
-                                    // Force final sync for better alignment between fixed axis and data chart
+                                    // Sync the axis canvas chartArea to match the data canvas chartArea
                                     setTimeout(() => {
-                                        if (window.profitAxisChartInstance) window.profitAxisChartInstance.update('none');
-                                        if (profitChartInstance) profitChartInstance.update('none');
+                                        const dataArea  = profitChartInstance.chartArea;
+                                        const axisArea  = window.profitAxisChartInstance.chartArea;
+                                    
+                                        // How many pixels is the axis canvas bottom higher than the data canvas bottom?
+                                        // That difference is the X-axis tick labels stealing space on the data canvas.
+                                        const bottomDiff = dataArea.bottom - axisArea.bottom;
+                                        const topDiff    = dataArea.top    - axisArea.top;
+                                    
+                                        // Push the axis canvas plot area down/up by exactly that difference
+                                        window.profitAxisChartInstance.options.layout.padding.bottom += bottomDiff;
+                                        window.profitAxisChartInstance.options.layout.padding.top    += topDiff;
+                                        window.profitAxisChartInstance.update('none');
                                     }, 50);
                                 })
                                 .catch(err => {
