@@ -3495,7 +3495,7 @@
                                     });
                                     
                                     console.log('Sales trend updated on submit!');
-                                    salesScrollWrapper.scrollLeft = salesScrollWrapper.scrollWidth;
+                                    salesScrollWrapper.scrollLeft = salesScrollWrapper.scrollWidth - 20;
                                 })
                                 .catch(err => console.error('Sales chart error: ', err));
                         };
