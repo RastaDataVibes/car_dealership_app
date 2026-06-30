@@ -3497,6 +3497,25 @@
                                     
                                     console.log('Sales trend updated on submit!');
                                     salesScrollWrapper.scrollLeft = salesScrollWrapper.scrollWidth;
+                                    // === DEBUG: Check alignment between axis and data chart ===
+                                    setTimeout(() => {
+                                        if (salesChartInstance && window.salesAxisChartInstance) {
+                                            const dataArea = salesChartInstance.chartArea;
+                                            const axisArea = window.salesAxisChartInstance.chartArea;
+                                            
+                                            console.log('=== SALES CHART ALIGNMENT DEBUG ===');
+                                            console.log('DATA top:', dataArea.top);
+                                            console.log('AXIS top:', axisArea.top);
+                                            console.log('DATA bottom:', dataArea.bottom);
+                                            console.log('AXIS bottom:', axisArea.bottom);
+                                            console.log('DATA left:', dataArea.left);
+                                            console.log('AXIS left:', axisArea.left);
+                                            console.log('DATA right:', dataArea.right);
+                                            console.log('DATA width:', dataArea.right - dataArea.left);
+                                            console.log('AXIS width:', axisArea.right - axisArea.left);
+                                            console.log('Height difference:', Math.abs(dataArea.bottom - axisArea.bottom));
+                                        }
+                                    }, 150);
                                 })
                                 .catch(err => console.error('Sales chart error: ', err));
                         };
