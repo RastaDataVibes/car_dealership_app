@@ -3375,7 +3375,7 @@
 
                                     // === SIMPLE TEST ===
                                     const pointWidth = 100;
-                                    const salesDataWidth = Math.max(salesLabels.length * pointWidth, salesScrollWrapper.clientWidth);
+                                    const salesDataWidth = Math.max(salesLabels.length * pointWidth + 100, salesScrollWrapper.clientWidth);
                                     salesCanvas.style.width = salesDataWidth + 'px';
                                     salesCanvas.width = salesDataWidth;
                                     salesCanvas.height = salesScrollWrapper.clientHeight || 240;
@@ -3414,7 +3414,7 @@
                                             responsive: false,
                                             maintainAspectRatio: false,
                                             animation: false,
-                                            layout: { padding: { top: 18, bottom: 58, left: 10, right: 0 } },
+                                            layout: { padding: { top: 18, bottom: 60, left: 10, right: 0 } },
                                             plugins: {
                                                 legend: { display: false },
                                                 tooltip: { enabled: false },
