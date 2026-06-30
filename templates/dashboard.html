@@ -3414,7 +3414,7 @@
                                             responsive: false,
                                             maintainAspectRatio: false,
                                             animation: false,
-                                            layout: { padding: { top: 10, bottom: 30, left: 0, right: 0 } },
+                                            layout: { padding: { top: 18, bottom: 58, left: 10, right: 0 } },
                                             plugins: {
                                                 legend: { display: false },
                                                 tooltip: { enabled: false },
@@ -3428,11 +3428,12 @@
                                                     ticks: { 
                                                         color: 'white', 
                                                         stepSize: 1,
-                                                        font: { size: 10 }
+                                                        font: { size: 10 
+                                                        padding: 12
                                                     },
                                                     grid: { color: 'rgba(128,128,128,0.3)' },
                                                     afterFit(scale) {
-                                                        scale.width = 75;
+                                                        scale.width = 78;
                                                     }
                                                 }
                                             }
@@ -3475,13 +3476,14 @@
                                                     beginAtZero: true,
                                                     max: salesYMax,
                                                     ticks: { 
+                                                        display: false,
                                                         color: 'white', 
                                                         stepSize: 1,
                                                         font: { size: 10 }
                                                     },
                                                     grid: { color: 'rgba(128,128,128,0.3)' },
                                                     afterFit(scale) {
-                                                        scale.width = 75;
+                                                        scale.width = 0;
                                                     }
                                                 }
                                             }
