@@ -3318,7 +3318,7 @@
                                     }
 
                                     const salesLabels = months.map(m => new Date(m + '-01').toLocaleString('default', { month: 'short', year: 'numeric' }));
-                                    const salesYMax = Math.max(...salesCounts, 1);
+                                    const salesYMax = Math.max(...salesCounts) * 1.25 || 0;
 
                                     // ── size the scrollable data canvas ──
                                     const salesScrollWrapper = salesCanvas.parentElement;
